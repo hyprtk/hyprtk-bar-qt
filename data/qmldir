@@ -4,3 +4,4 @@ singleton NotifyData 1.0 NotifyData.qml
 singleton Widgets 1.0 Widgets.qml
 singleton WidgetData 1.0 WidgetData.qml
 singleton MenuConfig 1.0 MenuConfig.qml
+singleton BarConfig 1.0 BarConfig.qml

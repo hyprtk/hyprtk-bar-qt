@@ -49,6 +49,7 @@ data/
   Widgets.qml                 singleton: desktop-widget config (shared hyprtk-bar block)
   WidgetData.qml              singleton: telemetry for the sampled desktop widgets
   MenuConfig.qml              singleton: start-menu config (shared hyprtk-bar block)
+  BarConfig.qml               singleton: module/font/animation/monitors config (shared)
 surface/widgets/
   WidgetFrame.qml             desktop-widget base (placement, pill, pywal theming)
   ClockWidget.qml             digital / text clock

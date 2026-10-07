@@ -4,19 +4,22 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "../../theme"
+import "../../data"
 
 Text {
     id: root
 
     property int count: 0
 
-    readonly property string script: root.home + "/.local/share/hyprtk-bar/scripts/updates.sh"
     readonly property string home: Quickshell.env("HOME") || ""
+    readonly property string script: BarConfig.updates.script || (root.home + "/.local/share/hyprtk-bar/scripts/updates.sh")
+    readonly property string install: BarConfig.updates.install_command || (root.home + "/.local/share/hyprtk-bar/scripts/installupdates.sh")
+    readonly property int intervalS: BarConfig.updates.interval || 3600
 
     visible: count > 0
     text: "\uf021 " + count
     color: count >= 20 ? Theme.err : (count > 0 ? Theme.warn : Theme.dim)
-    font.pixelSize: 12
+    font.pixelSize: BarConfig.fontSize(Theme.fontSize)
 
     Process {
         id: proc
@@ -30,7 +33,7 @@ Text {
     }
 
     Timer {
-        interval: 1800000
+        interval: Math.max(30, root.intervalS) * 1000
         running: true
         repeat: true
         triggeredOnStart: true
@@ -40,7 +43,6 @@ Text {
     MouseArea {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
-        onClicked: Quickshell.execDetached(["sh", "-c",
-            "~/.local/share/hyprtk-bar/scripts/installupdates.sh 2>/dev/null || true"])
+        onClicked: Quickshell.execDetached(["sh", "-c", "'" + root.install + "' 2>/dev/null || true"])
     }
 }

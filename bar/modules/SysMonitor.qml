@@ -14,9 +14,11 @@ RowLayout {
     id: root
     spacing: 10
 
+    readonly property int fs: BarConfig.fontSize(11)
+
     RowLayout {
         spacing: 4
-        Text { text: "CPU"; color: Theme.dim; font.pixelSize: 11 }
+        Text { text: "CPU"; color: Theme.dim; font.pixelSize: root.fs }
         Sparkline {
             Layout.preferredWidth: 46
             Layout.preferredHeight: 16
@@ -27,14 +29,14 @@ RowLayout {
         Text {
             text: Math.round(SysData.cpu * 100) + "%"
             color: Theme.foreground
-            font.pixelSize: 11
+            font.pixelSize: root.fs
             Layout.preferredWidth: 30
         }
     }
 
     RowLayout {
         spacing: 4
-        Text { text: "MEM"; color: Theme.dim; font.pixelSize: 11 }
+        Text { text: "MEM"; color: Theme.dim; font.pixelSize: root.fs }
         Sparkline {
             Layout.preferredWidth: 46
             Layout.preferredHeight: 16
@@ -45,7 +47,7 @@ RowLayout {
         Text {
             text: Math.round(SysData.mem * 100) + "%"
             color: Theme.foreground
-            font.pixelSize: 11
+            font.pixelSize: root.fs
             Layout.preferredWidth: 30
         }
     }

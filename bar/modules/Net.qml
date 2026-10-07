@@ -9,9 +9,11 @@ RowLayout {
     id: root
     spacing: 8
 
+    readonly property int fs: BarConfig.fontSize(11)
+
     RowLayout {
         spacing: 4
-        Text { text: "\u2193"; color: Theme.accent2; font.pixelSize: 12 }
+        Text { text: "\u2193"; color: Theme.accent2; font.pixelSize: root.fs + 1 }
         Sparkline {
             Layout.preferredWidth: 40
             Layout.preferredHeight: 16
@@ -21,14 +23,14 @@ RowLayout {
         Text {
             text: SysData.humanBytes(SysData.rx)
             color: Theme.foreground
-            font.pixelSize: 11
+            font.pixelSize: root.fs
             Layout.preferredWidth: 58
         }
     }
 
     RowLayout {
         spacing: 4
-        Text { text: "\u2191"; color: Theme.accent; font.pixelSize: 12 }
+        Text { text: "\u2191"; color: Theme.accent; font.pixelSize: root.fs + 1 }
         Sparkline {
             Layout.preferredWidth: 40
             Layout.preferredHeight: 16
@@ -38,7 +40,7 @@ RowLayout {
         Text {
             text: SysData.humanBytes(SysData.tx)
             color: Theme.foreground
-            font.pixelSize: 11
+            font.pixelSize: root.fs
             Layout.preferredWidth: 58
         }
     }

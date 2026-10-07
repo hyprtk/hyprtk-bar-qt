@@ -50,14 +50,16 @@ stub.
 
 | Section | Qt status |
 |---|---|
-| `bar` (position/height/gaps/radius/opacity/width/align) | ✅ (multi-monitor `monitors` todo) |
+| `bar` (position/height/gaps/radius/opacity/width/align) | ✅ |
+| `monitors` (primary / all / [connector]) | ✅ `shell.qml` screen filter |
 | `theme` (source/theme_name/background/foreground/accent) | ✅ writer + `Theme` overrides |
-| `animations`, `font` | ◐ (stored; font application partial) |
+| `animations`, `font` | ◐ animations stored; `font` family/size applied to modules |
 | `layout` (left/center/right module lists) | ✅ data-driven (`DelegateChooser`) |
 | `quicklinks` | ✅ |
 | `menu` (layout + power) | ◐ (layout stored; v1 grid) |
 | `sysmon` (interval/data_points/disk_path/network_iface/pages/monitor) | ✅ |
-| `workspaces`, `clock`, `updates`, `window`, `tray`, `quicksettings`, `notifications`, `arcmenu`, `widgets` | ◐ (partial) |
+| `workspaces` (show_empty/max), `clock` (format), `updates` (interval/scripts), `window` (max_length/width), `tray` (icon_size) | ✅ |
+| `quicksettings`, `notifications`, `arcmenu`, `widgets` | ◐ (partial) |
 | — own qt config (`~/.config/hyprtk-bar-qt/config.json`) | ✅ `config/Config.qml` |
 
 ## Theming components
@@ -106,6 +108,6 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 1. Desktop widgets: drag / snap / usable-area placement (all seven widgets done).
 2. Start menu: KDE-Plasma in-menu file browser (the places sidebar + content);
    whisker categories and win7 places are done.
-3. Remaining module config (workspaces/clock/tray/quicksettings options),
-   multi-monitor `monitors`, animation/font live application.
+3. Remaining config: quicksettings/notifications/arcmenu options, live animation
+   application, and full font application to every module.
 4. Themer: in-bar Matuwall TOML editor (currently links to the config file).

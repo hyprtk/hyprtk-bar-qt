@@ -10,9 +10,22 @@ import "bar"
 import "surface"
 import "config"
 import "state"
+import "data"
 
 ShellRoot {
     id: shell
+
+    // Screens that should show the bar, per the shared hyprtk-bar `monitors`
+    // selector ("primary" | "all" | ["CONNECTOR", ...]).
+    function _screens() {
+        const screens = Quickshell.screens;
+        const m = BarConfig.monitors;
+        if (Array.isArray(m))
+            return screens.filter(s => m.indexOf(s.name) >= 0);
+        if (m === "all")
+            return screens;
+        return screens.length ? [screens[0]] : [];
+    }
 
     // Parsed bar width in px for a given screen width.
     function _width(screenW) {
@@ -38,7 +51,7 @@ ShellRoot {
     }
 
     Variants {
-        model: Quickshell.screens
+        model: shell._screens()
 
         PanelWindow {
             id: panel

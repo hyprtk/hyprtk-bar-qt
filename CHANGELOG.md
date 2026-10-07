@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.17.0 — unreleased
+
+Parity pass 14: shared bar config (module options, font, monitors).
+
+- `data/BarConfig.qml`: reads the shared hyprtk-bar config blocks.
+- `shell.qml`: the `monitors` selector (`primary` / `all` / `[connector, …]`)
+  now controls which screens show the bar.
+- `workspaces` (show_empty, max), `clock` (strftime `format`), `updates`
+  (interval + scripts), `window` (max_length/width) and `tray` (icon_size)
+  options are honoured; `font` family/size applied to the clock, workspaces,
+  active-window, net, updates, sysmon and tray modules.
+
 ## 0.16.0 — unreleased
 
 Parity pass 13: start-menu categories + places.

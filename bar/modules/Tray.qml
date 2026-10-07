@@ -8,10 +8,13 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.SystemTray
 import "../../theme"
+import "../../data"
 
 RowLayout {
     id: root
     spacing: 6
+
+    readonly property int iconSize: BarConfig.tray.icon_size || 18
 
     Repeater {
         model: SystemTray.items
@@ -20,8 +23,8 @@ RowLayout {
             id: item
             required property var modelData
 
-            implicitWidth: 18
-            implicitHeight: 18
+            implicitWidth: root.iconSize
+            implicitHeight: root.iconSize
 
             // Window attached property is only valid on Item-derived types, so
             // resolve it here and hand it to the (QtObject) menu anchor.
@@ -30,8 +33,8 @@ RowLayout {
             Image {
                 anchors.fill: parent
                 source: item.modelData.icon
-                sourceSize.width: 18
-                sourceSize.height: 18
+                sourceSize.width: root.iconSize
+                sourceSize.height: root.iconSize
                 smooth: true
                 fillMode: Image.PreserveAspectFit
             }
