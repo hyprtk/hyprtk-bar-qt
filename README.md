@@ -33,6 +33,7 @@ surface/
   Notifications.qml           transient toast stack (opt-in daemon, see below)
   Clipboard.qml               cliphist history (search/copy/delete/wipe)
   Themer.qml                  theming window (Wallpaper grid, bar themes, import)
+  DesktopWidgets.qml          instantiates the enabled desktop widgets
 theme/
   Theme.qml                   singleton: live pywal + hyprtk-bar config colours
   qmldir
@@ -44,6 +45,14 @@ data/
   SysData.qml                 singleton: runs the backend once, exposes cpu/mem/net + histories
   MonitorData.qml             singleton: runs the rich monitor backend while the dialog is open
   NotifyData.qml              singleton: notification daemon + history + unread count
+  Widgets.qml                 singleton: desktop-widget config (shared hyprtk-bar block)
+  WidgetData.qml              singleton: telemetry for the sampled desktop widgets
+surface/widgets/
+  WidgetFrame.qml             desktop-widget base (placement, pill, pywal theming)
+  ClockWidget.qml             digital / text clock
+  ResourcesWidget.qml         CPU graph + RAM/swap bars + temp/load
+  DiskWidget.qml              per-drive usage + I/O rates
+  NetworkWidget.qml           interface / IP / rates + download graph
 components/
   Toggle.qml                  pill toggle
   Sparkline.qml               Canvas line + gradient-area graph
@@ -106,8 +115,9 @@ Working bar: workspaces, tasklist, tray, clock, CPU/memory sparklines and a
 network-rate graph (all fed by the Python backend), plus a quick-settings
 flyout, a settings window, a corner arc menu and a Mission Center-style system
 monitor dialog (CPU / Memory / Disks / Network / GPU / Apps, opened from the
-sysmon module), a notification center (bell + history panel) and cliphist
-clipboard history. Theming reads the live pywal
+sysmon module), a notification center (bell + history panel), cliphist
+clipboard history, and free-floating desktop widgets (clock / resources / disk /
+network) driven by the shared hyprtk-bar `widgets` config. Theming reads the live pywal
 palette and the existing hyprtk-bar config, so it matches the desktop while the
 GTK bar still runs alongside it.
 

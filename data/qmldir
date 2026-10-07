@@ -1,3 +1,5 @@
 singleton SysData 1.0 SysData.qml
 singleton MonitorData 1.0 MonitorData.qml
 singleton NotifyData 1.0 NotifyData.qml
+singleton Widgets 1.0 Widgets.qml
+singleton WidgetData 1.0 WidgetData.qml

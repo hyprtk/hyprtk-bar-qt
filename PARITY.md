@@ -73,8 +73,20 @@ stub.
 
 ## Desktop widgets (`desktop/`)
 
-`clock` · `weather` · `visualizer` · `disk` · `network` · `resources` · `sysinfo`
-+ `manager` (placement) — all ☐.
+`surface/DesktopWidgets.qml` + `surface/widgets/` — free-floating layer-shell
+surfaces reading the shared hyprtk-bar `widgets` config.
+
+| Widget | Qt status |
+|---|---|
+| `clock` | ✅ digital + text styles (dials todo) |
+| `resources` | ✅ CPU graph + RAM/swap bars + temp/load |
+| `disk` | ✅ per-drive bars + I/O rates |
+| `network` | ✅ iface/IP/rates + download graph |
+| `weather` | ☐ |
+| `visualizer` | ☐ |
+| `sysinfo` | ☐ |
+| placement: 9-way + `free` | ✅ (`WidgetFrame`) |
+| placement: drag / snap / usable-area clamp | ☐ |
 
 ## Backend (Python, toolkit-free)
 
@@ -91,7 +103,8 @@ stub.
 
 ## Next passes
 
-1. Desktop widgets (clock/weather/visualizer/disk/network/resources/sysinfo) + placement.
+1. Desktop widgets: weather / visualizer / sysinfo, clock dials, and drag / snap /
+   usable-area placement (clock/resources/disk/network are done).
 2. Start-menu layout variants (whisker/win7/win11/plasma), favorites/recents/places.
 3. Remaining module config (workspaces/clock/tray/quicksettings options),
    multi-monitor `monitors`, animation/font live application.

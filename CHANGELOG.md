@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.12.0 — unreleased
+
+Parity pass 9: desktop widgets (framework + four widgets).
+
+- `data/Widgets.qml`: reads the shared hyprtk-bar `widgets` config block.
+- `data/WidgetData.qml`: runs the monitor backend only while a sampled widget is
+  on, exposing sample + histories.
+- `surface/widgets/WidgetFrame.qml`: layer-shell base — 9-way / `free` placement,
+  size, opacity, radius, padding and pywal theming (`transparent` master switch).
+- Widgets: **clock** (digital/text), **resources** (CPU graph, RAM/swap bars,
+  temp/load), **disk** (per-drive bars + I/O rates), **network** (iface/IP/rates
+  + download graph). Weather/visualizer/sysinfo are a later pass.
+- `surface/DesktopWidgets.qml` instantiates the enabled widgets.
+
 ## 0.11.0 — unreleased
 
 Parity pass 8 (theming, part 3): the remaining Themer pages.
