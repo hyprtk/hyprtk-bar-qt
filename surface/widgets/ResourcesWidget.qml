@@ -9,6 +9,7 @@ import "../../components"
 WidgetFrame {
     id: win
     property var block: ({})
+    widgetId: "resources"
 
     position: block.position || "top-left"
     marginX: block.margin_x !== undefined ? block.margin_x : 40

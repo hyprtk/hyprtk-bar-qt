@@ -92,7 +92,8 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 | `sysinfo` | ✅ host/OS/kernel/uptime/CPU/GPU/memory/disks |
 | placement: 9-way + `free` | ✅ (`WidgetFrame`) |
 | placement: usable-area clamp | ✅ (kept clear of the bar) |
-| placement: drag / snap groups | ☐ |
+| placement: snap groups (`snap_group`/`snap_axis`/`snap_order`) | ✅ config-driven (`widgets_layout`) |
+| placement: drag (Super+Shift move) | ☐ |
 
 ## Backend (Python, toolkit-free)
 
@@ -109,6 +110,6 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 
 ## Next passes
 
-1. Desktop-widget drag (Super+Shift move) and snap groups; usable-area clamp done.
+1. Desktop-widget drag (Super+Shift move); snap groups and usable-area clamp done.
 2. Config parity is essentially complete (only the low-level drag/snap placement
    of desktop widgets remains an open design question).

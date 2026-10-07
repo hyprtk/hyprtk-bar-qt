@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.24.0 — unreleased
+
+Parity pass 21: desktop-widget snap groups.
+
+- `backend/.../widgets_layout.py`: lays out widgets sharing a `snap_group` along
+  `snap_axis`, ordered by `snap_order`, in a uniform cell.
+- `data/WidgetLayout.qml` + `WidgetFrame` read the override per widget id, so a
+  configured snap group is positioned and sized together.
+
 ## 0.23.0 — unreleased
 
 Parity pass 20: per-module `enabled` flags.

@@ -9,6 +9,7 @@ import "../../theme"
 WidgetFrame {
     id: win
     property var block: ({})
+    widgetId: "sysinfo"
 
     readonly property string backend:
         Qt.resolvedUrl("../../backend/hyprtk_bar_qt/sysinfo.py").toString().replace("file://", "")

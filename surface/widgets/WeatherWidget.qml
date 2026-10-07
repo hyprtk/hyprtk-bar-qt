@@ -8,6 +8,7 @@ import "../../theme"
 WidgetFrame {
     id: win
     property var block: ({})
+    widgetId: "weather"
 
     readonly property string backend:
         Qt.resolvedUrl("../../backend/hyprtk_bar_qt/weather.py").toString().replace("file://", "")

@@ -8,6 +8,7 @@ import "../../data"
 WidgetFrame {
     id: win
     property var block: ({})
+    widgetId: "disk"
 
     position: block.position || "bottom-left"
     marginX: block.margin_x !== undefined ? block.margin_x : 40

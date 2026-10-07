@@ -48,6 +48,7 @@ data/
   NotifyData.qml              singleton: notification daemon + history + unread count
   Widgets.qml                 singleton: desktop-widget config (shared hyprtk-bar block)
   WidgetData.qml              singleton: telemetry for the sampled desktop widgets
+  WidgetLayout.qml            singleton: snap-group layout overrides
   MenuConfig.qml              singleton: start-menu config (shared hyprtk-bar block)
   BarConfig.qml               singleton: module/font/animation/monitors config (shared)
 surface/widgets/
@@ -81,6 +82,7 @@ backend/
     menu.py                   start-menu favourites/recents (shared config)
     matuwall.py               matuwall config.toml read/write (themer page)
     files.py                  directory listing for the plasma file browser
+    widgets_layout.py         desktop-widget snap-group layout
 tests/
   test_sysmon.py              backend unit tests
   test_monitor.py             monitor backend unit tests

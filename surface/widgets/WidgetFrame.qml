@@ -12,10 +12,20 @@ PanelWindow {
     id: frame
 
     // ── placement ──────────────────────────────────────────────────────
+    property string widgetId: ""           // for snap-group overrides
     property string position: "top-left"   // free | 9-way
     property int marginX: 40
     property int marginY: 40
     property string layer: "bottom"        // background | bottom | top
+
+    // Snap-group override (empty unless the widget is in a snap_group).
+    readonly property var over: WidgetLayout.forId(frame.widgetId)
+    readonly property bool hasOver: over !== null
+    readonly property string effPos: frame.hasOver ? "free" : frame.position
+    readonly property int effMarginX: frame.hasOver ? frame.over.x : frame.marginX
+    readonly property int effMarginY: frame.hasOver ? frame.over.y : frame.marginY
+    readonly property int effWidth: (frame.hasOver && frame.over.w > 0) ? frame.over.w : frame.widgetWidth
+    readonly property int effHeight: (frame.hasOver && frame.over.h > 0) ? frame.over.h : frame.widgetHeight
 
     // ── appearance ─────────────────────────────────────────────────────
     property int widgetWidth: 280
@@ -50,14 +60,14 @@ PanelWindow {
     anchors.bottom: pos.bottom
     anchors.left: pos.left
     anchors.right: pos.right
-    margins.top: pos.top ? Math.max(frame.marginY, frame.barTop) : 0
-    margins.bottom: pos.bottom ? Math.max(frame.marginY, frame.barBottom) : 0
-    margins.left: pos.left ? frame.marginX : 0
-    margins.right: pos.right ? frame.marginX : 0
+    margins.top: pos.top ? Math.max(frame.effMarginY, frame.barTop) : 0
+    margins.bottom: pos.bottom ? Math.max(frame.effMarginY, frame.barBottom) : 0
+    margins.left: pos.left ? frame.effMarginX : 0
+    margins.right: pos.right ? frame.effMarginX : 0
 
-    implicitWidth: frame.widgetWidth
-    implicitHeight: frame.widgetHeight > 0
-        ? frame.widgetHeight
+    implicitWidth: frame.effWidth
+    implicitHeight: frame.effHeight > 0
+        ? frame.effHeight
         : contentCol.implicitHeight + frame.padding * 2
 
     function _pick(override, wal, fallback) {
@@ -66,9 +76,9 @@ PanelWindow {
         return (typeof wal === "string" && wal.length > 0) ? wal : fallback;
     }
     function _pos() {
-        if (frame.position === "free")
+        if (frame.effPos === "free")
             return { top: true, bottom: false, left: true, right: false };
-        const parts = frame.position.split("-");
+        const parts = frame.effPos.split("-");
         const v = parts.length > 1 ? parts[0] : (parts[0] === "top" || parts[0] === "bottom" ? parts[0] : "center");
         const h = parts.length > 1 ? parts[1] : "center";
         return { top: v === "top", bottom: v === "bottom", left: h === "left", right: h === "right" };
