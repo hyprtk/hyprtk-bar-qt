@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.23.0 — unreleased
+
+Parity pass 20: per-module `enabled` flags.
+
+- Modules honour the shared `enabled` key from their config block (workspaces,
+  clock, sysmon, updates, window, tray, quicksettings, notifications, themer,
+  quicklinks, arcmenu): a disabled module is hidden.
+- `notifications.enabled` also gates the daemon.
+
 ## 0.22.0 — unreleased
 
 Parity pass 19: live surface animations.

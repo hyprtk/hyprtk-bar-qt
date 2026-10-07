@@ -8,6 +8,7 @@ import "../../data"
 Item {
     implicitWidth: 22
     implicitHeight: 22
+    visible: BarConfig.notifications.enabled !== false
 
     BarIconButton {
         anchors.fill: parent

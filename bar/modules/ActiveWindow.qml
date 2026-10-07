@@ -16,7 +16,7 @@ Text {
     text: root.full.length > root.maxLength
         ? root.full.slice(0, root.maxLength - 1) + "\u2026"
         : root.full
-    visible: text.length > 0
+    visible: text.length > 0 && BarConfig.windowBlock.enabled !== false
     color: Theme.foreground
     font.pixelSize: BarConfig.fontSize(Theme.fontSize)
     elide: Text.ElideRight

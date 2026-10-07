@@ -60,6 +60,7 @@ stub.
 | `sysmon` (interval/data_points/disk_path/network_iface/pages/monitor) | ✅ |
 | `workspaces` (show_empty/max), `clock` (format), `updates` (interval/scripts), `window` (max_length/width), `tray` (icon_size) | ✅ |
 | `notifications` (max_stored / default_timeout) | ✅ |
+| per-module `enabled` (`workspaces`/`clock`/`sysmon`/`updates`/`window`/`tray`/`quicksettings`/`notifications`/`themer`/`quicklinks`/`arcmenu`) | ✅ |
 | `arcmenu` (position/geometry/colours/animation/items/enabled) | ✅ |
 | `quicksettings`, `widgets` | ◐ (partial) |
 | — own qt config (`~/.config/hyprtk-bar-qt/config.json`) | ✅ `config/Config.qml` |
@@ -109,4 +110,5 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 ## Next passes
 
 1. Desktop-widget drag (Super+Shift move) and snap groups; usable-area clamp done.
-2. Quicksettings options (the block is currently just `enabled`).
+2. Config parity is essentially complete (only the low-level drag/snap placement
+   of desktop widgets remains an open design question).

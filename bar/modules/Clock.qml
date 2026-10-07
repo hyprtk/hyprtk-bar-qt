@@ -8,6 +8,7 @@ import "../../data"
 
 Text {
     id: root
+    visible: BarConfig.clock.enabled !== false
 
     SystemClock {
         id: clock

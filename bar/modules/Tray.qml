@@ -13,6 +13,7 @@ import "../../data"
 RowLayout {
     id: root
     spacing: 6
+    visible: BarConfig.tray.enabled !== false
 
     readonly property int iconSize: BarConfig.tray.icon_size || 18
 

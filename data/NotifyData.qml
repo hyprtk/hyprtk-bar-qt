@@ -17,6 +17,7 @@ Singleton {
 
     readonly property bool enabled:
         Quickshell.env("HYPRTK_BAR_QT_NOTIFICATIONS") === "1"
+        && BarConfig.notifications.enabled !== false
 
     // Shared notifications config block (max_stored / default_timeout).
     readonly property int maxStored: BarConfig.notifications.max_stored || 50

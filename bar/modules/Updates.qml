@@ -16,7 +16,7 @@ Text {
     readonly property string install: BarConfig.updates.install_command || (root.home + "/.local/share/hyprtk-bar/scripts/installupdates.sh")
     readonly property int intervalS: BarConfig.updates.interval || 3600
 
-    visible: count > 0
+    visible: count > 0 && BarConfig.updates.enabled !== false
     text: "\uf021 " + count
     color: count >= 20 ? Theme.err : (count > 0 ? Theme.warn : Theme.dim)
     font.pixelSize: BarConfig.fontSize(Theme.fontSize)

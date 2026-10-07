@@ -11,6 +11,7 @@ import "../../data"
 RowLayout {
     id: root
     spacing: 4
+    visible: BarConfig.quicklinks.enabled !== false
     readonly property int fs: BarConfig.fontSize(13)
 
     Repeater {

@@ -9,6 +9,7 @@ import "../../data"
 RowLayout {
     id: root
     spacing: 5
+    visible: BarConfig.workspaces.enabled !== false
 
     readonly property bool showEmpty: BarConfig.workspaces.show_empty !== false
     readonly property int maxWs: BarConfig.workspaces.max || 10

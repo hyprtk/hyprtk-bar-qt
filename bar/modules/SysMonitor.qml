@@ -13,6 +13,7 @@ import "../../components"
 RowLayout {
     id: root
     spacing: 10
+    visible: BarConfig.sysmon.enabled !== false
 
     readonly property int fs: BarConfig.fontSize(11)
 
