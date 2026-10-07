@@ -80,6 +80,7 @@ backend/
     visualizer.py             cava audio levels (synthetic fallback), JSON lines
     menu.py                   start-menu favourites/recents (shared config)
     matuwall.py               matuwall config.toml read/write (themer page)
+    files.py                  directory listing for the plasma file browser
 tests/
   test_sysmon.py              backend unit tests
   test_monitor.py             monitor backend unit tests

@@ -29,9 +29,17 @@ PanelWindow {
 
     readonly property string backend:
         Qt.resolvedUrl("../backend/hyprtk_bar_qt/menu.py").toString().replace("file://", "")
+    readonly property string filesBackend:
+        Qt.resolvedUrl("../backend/hyprtk_bar_qt/files.py").toString().replace("file://", "")
+    readonly property string home: Quickshell.env("HOME") || ""
 
     property string query: ""
     property string side: "all"   // all | favorites | recents
+    property bool plasmaComputer: false
+    property string browsePath: "~"
+    property string browseParent: ""
+    property var browseEntries: []
+    property var browseHistory: []
     property string layout: MenuConfig.layout
     readonly property bool isGrid: layout === "win11" || layout === "plasma"
 
@@ -119,6 +127,73 @@ PanelWindow {
         Quickshell.execDetached(["sh", "-c", "xdg-open " + path]);
     }
 
+    // ── plasma file browser ────────────────────────────────────────────
+    readonly property var browsePlaces: [
+        { label: "Home", path: "~" },
+        { label: "Desktop", path: "~/Desktop" },
+        { label: "Documents", path: "~/Documents" },
+        { label: "Downloads", path: "~/Downloads" },
+        { label: "Music", path: "~/Music" },
+        { label: "Pictures", path: "~/Pictures" },
+        { label: "Videos", path: "~/Videos" },
+        { label: "Root", path: "/" }
+    ]
+    function browseTo(path, push) {
+        if (push)
+            sm.browseHistory = sm.browseHistory.concat([sm.browsePath]);
+        browseProc.command = ["python3", sm.filesBackend, "list", path];
+        browseProc.running = true;
+    }
+    function browseBack() {
+        if (sm.browseHistory.length === 0)
+            return;
+        const h = sm.browseHistory.slice();
+        const prev = h.pop();
+        sm.browseHistory = h;
+        sm.browseTo(prev, false);
+    }
+    function browseUp() {
+        if (sm.browseParent && sm.browseParent !== sm.browsePath)
+            sm.browseTo(sm.browseParent, true);
+    }
+    function openEntry(e) {
+        if (e.is_dir)
+            sm.browseTo(e.path, true);
+        else
+            Quickshell.execDetached(["xdg-open", e.path]);
+    }
+    function fmtSize(b) {
+        const units = ["B", "KiB", "MiB", "GiB", "TiB"];
+        let v = b, i = 0;
+        while (v >= 1024 && i < units.length - 1) {
+            v /= 1024;
+            i++;
+        }
+        return (i === 0 ? Math.round(v) : v.toFixed(1)) + " " + units[i];
+    }
+
+    Process {
+        id: browseProc
+        stdout: SplitParser {
+            onRead: line => {
+                try {
+                    const o = JSON.parse(line);
+                    sm.browsePath = o.path || "";
+                    sm.browseParent = o.parent || "";
+                    sm.browseEntries = o.entries || [];
+                } catch (e) {}
+            }
+        }
+    }
+
+    onVisibleChanged: {
+        if (visible) {
+            sm.plasmaComputer = false;
+            sm.side = "all";
+            sm.browseHistory = [];
+        }
+    }
+
     function launch(entry) {
         UiState.startMenuOpen = false;
         entry.execute();
@@ -184,6 +259,54 @@ PanelWindow {
                 }
                 Button { text: "Settings"; onClicked: { UiState.startMenuOpen = false; UiState.settingsOpen = true; } }
                 Button { text: "Themer"; onClicked: { UiState.startMenuOpen = false; UiState.themerOpen = true; } }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                visible: layout === "plasma"
+                spacing: 6
+                Repeater {
+                    model: [
+                        { key: "apps", label: "Applications" },
+                        { key: "computer", label: "Computer" },
+                        { key: "recent", label: "Recently Used" }
+                    ]
+                    delegate: Rectangle {
+                        required property var modelData
+                        implicitWidth: tabText.implicitWidth + 20
+                        implicitHeight: 28
+                        radius: 6
+                        color: {
+                            const on = (modelData.key === "computer" && sm.plasmaComputer)
+                                || (modelData.key === "recent" && !sm.plasmaComputer && sm.recentsEntries().length > 0 && sm.side === "recents")
+                                || (modelData.key === "apps" && !sm.plasmaComputer);
+                            return on ? Theme.alpha(Theme.accent, 0.85) : Theme.alpha(Theme.accent2, 0.12);
+                        }
+                        Text {
+                            id: tabText
+                            anchors.centerIn: parent
+                            text: modelData.label
+                            color: Theme.foreground
+                            font.pixelSize: 11
+                        }
+                        TapHandler {
+                            onTapped: {
+                                if (modelData.key === "computer") {
+                                    sm.plasmaComputer = true;
+                                    if (sm.browseEntries.length === 0)
+                                        sm.browseTo("~", false);
+                                } else if (modelData.key === "recent") {
+                                    sm.plasmaComputer = false;
+                                    sm.side = "recents";
+                                } else {
+                                    sm.plasmaComputer = false;
+                                    sm.side = "all";
+                                }
+                            }
+                        }
+                    }
+                }
+                Item { Layout.fillWidth: true }
             }
 
             RowLayout {
@@ -274,7 +397,7 @@ PanelWindow {
 
                 // app grid (win11 / plasma)
                 GridView {
-                    visible: sm.isGrid
+                    visible: sm.isGrid && !(layout === "plasma" && sm.plasmaComputer)
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     clip: true
@@ -369,6 +492,91 @@ PanelWindow {
                         }
                     }
                     Item { Layout.fillHeight: true }
+                }
+
+                // computer file browser (plasma)
+                RowLayout {
+                    visible: layout === "plasma" && sm.plasmaComputer
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    spacing: 12
+
+                    ColumnLayout {
+                        Layout.preferredWidth: 150
+                        Layout.fillHeight: true
+                        spacing: 3
+                        Repeater {
+                            model: sm.browsePlaces
+                            delegate: Rectangle {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                implicitHeight: 30
+                                radius: 6
+                                color: bpHover.hovered ? Theme.alpha(Theme.accent2, 0.15) : "transparent"
+                                Text {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    anchors.left: parent.left
+                                    anchors.leftMargin: 10
+                                    text: modelData.label
+                                    color: Theme.foreground
+                                    font.pixelSize: 12
+                                }
+                                HoverHandler { id: bpHover }
+                                TapHandler { onTapped: sm.browseTo(modelData.path, false) }
+                            }
+                        }
+                        Item { Layout.fillHeight: true }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        spacing: 6
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 6
+                            Button { text: "\u2190"; enabled: sm.browseHistory.length > 0; onClicked: sm.browseBack() }
+                            Button { text: "\u2191"; onClicked: sm.browseUp() }
+                            Text {
+                                Layout.fillWidth: true
+                                text: sm.browsePath
+                                color: Theme.dim
+                                font.pixelSize: 11
+                                elide: Text.ElideMiddle
+                            }
+                        }
+                        ListView {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            clip: true
+                            model: sm.browseEntries
+                            spacing: 2
+                            delegate: Rectangle {
+                                id: frow
+                                required property var modelData
+                                width: ListView.view.width
+                                height: 30
+                                radius: 6
+                                color: frowHover.hovered ? Theme.alpha(Theme.accent2, 0.15) : "transparent"
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 8
+                                    anchors.rightMargin: 8
+                                    spacing: 8
+                                    Text { text: frow.modelData.is_dir ? "\uf07b" : "\uf15b"; color: Theme.accent; font.pixelSize: 13 }
+                                    Text { text: frow.modelData.name; color: Theme.foreground; font.pixelSize: 12; Layout.fillWidth: true; elide: Text.ElideRight }
+                                    Text {
+                                        visible: !frow.modelData.is_dir
+                                        text: sm.fmtSize(frow.modelData.size)
+                                        color: Theme.dim
+                                        font.pixelSize: 10
+                                    }
+                                }
+                                HoverHandler { id: frowHover }
+                                TapHandler { onTapped: sm.openEntry(frow.modelData) }
+                            }
+                        }
+                    }
                 }
             }
 

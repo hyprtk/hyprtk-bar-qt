@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.20.0 — unreleased
+
+Parity pass 17: Plasma in-menu file browser.
+
+- `surface/StartMenu.qml`: the plasma layout gains Applications / Computer /
+  Recently Used tabs; Computer is an in-menu file browser (places sidebar,
+  back/up/path nav, directory listing, click to enter folders or open files).
+- `backend/.../files.py`: directory listing (dirs first, hidden skipped).
+- Tests: `tests/test_files.py`.
+
 ## 0.19.0 — unreleased
 
 Parity pass 16: small config/placement completions.

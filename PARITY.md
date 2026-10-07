@@ -34,7 +34,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 | Notification center | ✅ `surface/NotificationCenter.qml` (history, actions, clear all, unread badge) |
 | Quick-settings flyout | ✅ |
 | Arc menu (radial FAB) | ✅ `surface/ArcMenu.qml` (items from config; no per-layout themes) |
-| Start menu (whisker / win7 / win11 / plasma layouts, search, favorites, recents, places, power) | ✅ `surface/StartMenu.qml` (4 layouts, search, favourites, recents, category sidebar, win7 places, power) |
+| Start menu (whisker / win7 / win11 / plasma layouts, search, favorites, recents, places, power) | ✅ `surface/StartMenu.qml` (4 layouts, search, favourites, recents, category sidebar, win7 places, plasma file browser, power) |
 | Bar right-click menu | ✅ `surface/BarMenu.qml` |
 | Theme import dialog | ✅ Themer `Import` page (importable list, path, remove) |
 
@@ -108,7 +108,5 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 ## Next passes
 
 1. Desktop-widget drag (Super+Shift move) and snap groups; usable-area clamp done.
-2. Start menu: KDE-Plasma in-menu file browser; whisker categories and win7
-   places are done.
-3. Remaining config: quicksettings/arcmenu options, live animation application,
+2. Remaining config: quicksettings/arcmenu options, live animation application,
    and font on the last few modules.
