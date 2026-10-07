@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.21.0 — unreleased
+
+Parity pass 18: arc-menu config + animation.
+
+- `surface/ArcMenu.qml` reads the shared `arcmenu` block: position, radius,
+  fab/item size, margin, colours (`use_pywal` / fab_color / item_color),
+  `animation_time` (gated by the `animations` mode) via animated fan
+  transitions, `close_on_click`, items, and `enabled`.
+- `ArcButton` hides when `arcmenu.enabled` is false.
+
 ## 0.20.0 — unreleased
 
 Parity pass 17: Plasma in-menu file browser.

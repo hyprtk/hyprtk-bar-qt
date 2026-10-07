@@ -33,7 +33,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 | Clipboard history dialog | ✅ `surface/Clipboard.qml` (cliphist list/copy/delete/wipe, search) |
 | Notification center | ✅ `surface/NotificationCenter.qml` (history, actions, clear all, unread badge) |
 | Quick-settings flyout | ✅ |
-| Arc menu (radial FAB) | ✅ `surface/ArcMenu.qml` (items from config; no per-layout themes) |
+| Arc menu (radial FAB) | ✅ `surface/ArcMenu.qml` (position/radius/sizes/colours/animation/items from config) |
 | Start menu (whisker / win7 / win11 / plasma layouts, search, favorites, recents, places, power) | ✅ `surface/StartMenu.qml` (4 layouts, search, favourites, recents, category sidebar, win7 places, plasma file browser, power) |
 | Bar right-click menu | ✅ `surface/BarMenu.qml` |
 | Theme import dialog | ✅ Themer `Import` page (importable list, path, remove) |
@@ -60,7 +60,8 @@ stub.
 | `sysmon` (interval/data_points/disk_path/network_iface/pages/monitor) | ✅ |
 | `workspaces` (show_empty/max), `clock` (format), `updates` (interval/scripts), `window` (max_length/width), `tray` (icon_size) | ✅ |
 | `notifications` (max_stored / default_timeout) | ✅ |
-| `quicksettings`, `arcmenu`, `widgets` | ◐ (partial) |
+| `arcmenu` (position/geometry/colours/animation/items/enabled) | ✅ |
+| `quicksettings`, `widgets` | ◐ (partial) |
 | — own qt config (`~/.config/hyprtk-bar-qt/config.json`) | ✅ `config/Config.qml` |
 
 ## Theming components
@@ -108,5 +109,5 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 ## Next passes
 
 1. Desktop-widget drag (Super+Shift move) and snap groups; usable-area clamp done.
-2. Remaining config: quicksettings/arcmenu options, live animation application,
-   and font on the last few modules.
+2. Remaining config: quicksettings options, live animation on the surfaces, and
+   font on the last few modules (arcmenu config/animation done).
