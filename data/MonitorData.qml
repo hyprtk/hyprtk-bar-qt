@@ -18,6 +18,8 @@ Singleton {
         Qt.resolvedUrl("../backend/hyprtk_bar_qt/monitor.py").toString().replace("file://", "")
     readonly property string actionBackend:
         Qt.resolvedUrl("../backend/hyprtk_bar_qt/proc_action.py").toString().replace("file://", "")
+    readonly property string dimmBackend:
+        Qt.resolvedUrl("../backend/hyprtk_bar_qt/dimm.py").toString().replace("file://", "")
 
     readonly property int histLen: Math.max(10, Config.sysmonDataPoints)
 
@@ -34,6 +36,11 @@ Singleton {
 
     // The drive the disk graphs track ("" = auto: the root disk).
     property string selectedDrive: ""
+
+    // DIMM slots (SMBIOS): loaded lazily from the cache, refreshed on demand.
+    property var dimmSlots: []
+    property bool dimmLoaded: false
+    property string dimmStatus: ""
 
     property var cpuHist: []
     property var cpuTempHist: []
@@ -80,6 +87,39 @@ Singleton {
                 root._ingest(o);
             }
         }
+    }
+
+    // DIMM slots: cached read is instant; --fetch may prompt via pkexec.
+    Process {
+        id: dimmProc
+        stdout: SplitParser {
+            onRead: line => {
+                let o;
+                try {
+                    o = JSON.parse(line);
+                } catch (e) {
+                    return;
+                }
+                root.dimmSlots = o.slots || [];
+                root.dimmLoaded = root.dimmSlots.length > 0;
+                root.dimmStatus = root.dimmSlots.length ? "" : "DIMM info unavailable \u2014 click refresh";
+            }
+        }
+    }
+
+    function loadDimm(force) {
+        if (dimmProc.running)
+            return;
+        root.dimmStatus = force ? "Reading DIMM slots\u2026" : "";
+        dimmProc.command = ["python3", root.dimmBackend].concat(force ? ["--fetch"] : []);
+        dimmProc.running = true;
+    }
+
+    function dimmPopulated() {
+        return root.dimmSlots.filter(s => s.populated).length;
+    }
+    function dimmTotalGb() {
+        return root.dimmSlots.reduce((a, s) => a + (s.size_gb || 0), 0);
     }
 
     onActiveChanged: {

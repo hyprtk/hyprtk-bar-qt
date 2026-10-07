@@ -28,7 +28,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 | GTK | Qt status |
 |---|---|
 | Bar settings window (9 pages) | ◐ `surface/Settings.qml` (4 controls; needs pages) |
-| System monitor dialog (CPU/Mem/Disks/Network/GPU/Apps, cairo graphs) | ◐ `surface/SysMonitor.qml` (all six pages live, QML graphs; DIMM-slot graphic todo) |
+| System monitor dialog (CPU/Mem/Disks/Network/GPU/Apps, cairo graphs) | ✅ `surface/SysMonitor.qml` (six pages, QML graphs, DIMM slots) |
 | Themer dialog (Wallpaper/Pywal/Rofi/Bar themes/Matuwall/Swaylock/Icons/SDDM+GRUB) | ◐ `surface/Themer.qml` v1 (palette/opacity/actions; pages todo) |
 | Clipboard history dialog | ☐ |
 | Notification center | ☐ |
@@ -89,11 +89,9 @@ stub.
 
 ## Next passes
 
-1. System-monitor dialog: DIMM-slot graphic (dmidecode via pkexec) — all six
-   pages (CPU/Mem/Disks/Network/GPU/Apps) are otherwise live.
-2. Clipboard history, notification center, tray context menu (dbusmenu).
-3. Themer: 9 themes, theme_import, wallpaper/pywal/rofi/swaylock/icons/SDDM.
-4. Desktop widgets (clock/weather/visualizer/disk/network/resources/sysinfo) + placement.
-5. Start-menu layout variants (whisker/win7/win11/plasma), favorites/recents/places.
-6. Remaining module config (workspaces/clock/sysmon/tray/quicksettings options),
+1. Clipboard history, notification center, tray context menu (dbusmenu).
+2. Themer: 9 themes, theme_import, wallpaper/pywal/rofi/swaylock/icons/SDDM.
+3. Desktop widgets (clock/weather/visualizer/disk/network/resources/sysinfo) + placement.
+4. Start-menu layout variants (whisker/win7/win11/plasma), favorites/recents/places.
+5. Remaining module config (workspaces/clock/tray/quicksettings options),
    multi-monitor `monitors`, animation/font live application.

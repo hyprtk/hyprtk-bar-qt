@@ -5,10 +5,11 @@ from __future__ import annotations
 import os
 import sys
 import unittest
+from unittest import mock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 
-from hyprtk_bar_qt import monitor, monitor_data, proc_action  # noqa: E402
+from hyprtk_bar_qt import dimm, monitor, monitor_data, proc_action  # noqa: E402
 
 
 class Formatters(unittest.TestCase):
@@ -89,6 +90,17 @@ class MonitorSampler(unittest.TestCase):
         self.assertIn("apps", out)
         self.assertIn("uid", out)
         self.assertIsInstance(out["apps"], list)
+
+
+class DimmCli(unittest.TestCase):
+    def test_ok_when_slots_present(self) -> None:
+        slots = [{"locator": "DIMM_A1", "populated": True, "size_gb": 16.0}]
+        with mock.patch.object(monitor_data, "dimm_slots", return_value=slots):
+            self.assertEqual(dimm.main([]), 0)
+
+    def test_fails_when_unavailable(self) -> None:
+        with mock.patch.object(monitor_data, "dimm_slots", return_value=None):
+            self.assertEqual(dimm.main([]), 1)
 
 
 class ProcAction(unittest.TestCase):

@@ -17,6 +17,9 @@ Parity pass 3: Mission Center-style system monitor dialog.
   is on screen.
 - `backend/hyprtk_bar_qt/proc_action.py`: one-shot `kill` / `launch` helper the
   Apps page buttons invoke (reuses `monitor_data.kill_process`/`launch_process`).
+- Memory Slots section on the Memory page: DIMM cards (populated/size/locator)
+  from SMBIOS, read from the cache on first open and refreshed on demand via
+  `backend/hyprtk_bar_qt/dimm.py` (may prompt once through pkexec).
 - `backend/hyprtk_bar_qt/monitor_data.py`: ported the GTK bar's toolkit-free
   readers (CPU cores/load/temps, memory, disk I/O, network interfaces, GPU across
   AMD/NVIDIA/Intel, drives via lsblk, processes, DIMMs). Shares the

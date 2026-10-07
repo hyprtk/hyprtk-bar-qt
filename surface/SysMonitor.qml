@@ -50,8 +50,13 @@ PanelWindow {
     readonly property string activeKey: (win.enabledPages[win.activeIndex] || win.enabledPages[0] || {}).key || "cpu"
     readonly property int stackIndex: Math.max(0, win.allPages.findIndex(p => p.key === win.activeKey))
 
-    // Keep the backend's active page in sync (gates the expensive Apps walk).
-    onActiveKeyChanged: MonitorData.activePage = win.activeKey
+    // Keep the backend's active page in sync (gates the expensive Apps walk),
+    // and lazily read the cached DIMM slots on first arrival at Memory.
+    onActiveKeyChanged: {
+        MonitorData.activePage = win.activeKey;
+        if (win.activeKey === "memory" && !MonitorData.dimmLoaded)
+            MonitorData.loadDimm(false);
+    }
     Component.onCompleted: MonitorData.activePage = win.activeKey
 
     // ── Apps page state ────────────────────────────────────────────────
@@ -344,6 +349,41 @@ PanelWindow {
         }
     }
 
+    component DimmCard: Rectangle {
+        id: dcard
+        property var slot: ({})
+        implicitWidth: 96
+        implicitHeight: 54
+        radius: 8
+        color: Theme.alpha(Theme.accent2, dcard.slot.populated ? 0.14 : 0.05)
+        border.width: 1
+        border.color: Theme.alpha(Theme.accent2, dcard.slot.populated ? 0.4 : 0.15)
+        ColumnLayout {
+            anchors.centerIn: parent
+            spacing: 2
+            RowLayout {
+                Layout.alignment: Qt.AlignHCenter
+                spacing: 5
+                Text {
+                    text: "\uefc5"
+                    color: dcard.slot.populated ? Theme.accent : Theme.dim
+                    font.pixelSize: 13
+                }
+                Text {
+                    text: dcard.slot.populated ? Math.round(dcard.slot.size_gb || 0) + " GB" : "Empty"
+                    color: dcard.slot.populated ? Theme.foreground : Theme.dim
+                    font.pixelSize: 11
+                }
+            }
+            Text {
+                Layout.alignment: Qt.AlignHCenter
+                text: dcard.slot.locator || ""
+                color: Theme.dim
+                font.pixelSize: 9
+            }
+        }
+    }
+
     component ActionButton: Rectangle {
         id: ab
         property string label: ""
@@ -531,6 +571,36 @@ PanelWindow {
                                 Readout { glyph: "\uf07c"; label: "Cached"; value: win.stat((MonitorData.mem.cached_gb || 0).toFixed(2) + " GB") }
                                 Readout { glyph: "\uf0ec"; label: "Swap used"; value: win.stat((MonitorData.mem.swap_used_gb || 0).toFixed(2) + " GB") }
                                 Readout { glyph: "\uf0ec"; label: "Swap total"; value: win.stat((MonitorData.mem.swap_total_gb || 0).toFixed(2) + " GB") }
+                            }
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Layout.topMargin: 4
+                                Text { text: "Memory Slots"; color: Theme.dim; font.pixelSize: 11; Layout.fillWidth: true }
+                                Text {
+                                    visible: MonitorData.dimmLoaded
+                                    text: MonitorData.dimmPopulated() + " populated \u00b7 " + Math.round(MonitorData.dimmTotalGb()) + " GB"
+                                    color: Theme.foreground
+                                    font.pixelSize: 11
+                                }
+                                ActionButton { label: "Refresh"; onClicked: MonitorData.loadDimm(true) }
+                            }
+                            Text {
+                                visible: MonitorData.dimmStatus.length > 0
+                                text: MonitorData.dimmStatus
+                                color: Theme.dim
+                                font.pixelSize: 10
+                            }
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 8
+                                Repeater {
+                                    model: MonitorData.dimmSlots
+                                    delegate: DimmCard {
+                                        required property var modelData
+                                        slot: modelData
+                                    }
+                                }
+                                Item { Layout.fillWidth: true }
                             }
                         }
                     }
