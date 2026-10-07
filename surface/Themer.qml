@@ -12,6 +12,7 @@ import Quickshell.Io
 import "../theme"
 import "../config"
 import "../state"
+import "../components"
 
 FloatingWindow {
     id: win
@@ -349,13 +350,13 @@ FloatingWindow {
                         ColumnLayout {
                             Layout.fillWidth: true
                             Text { text: "Wallpaper folder"; color: Theme.dim; font.pixelSize: 11 }
-                            TextField {
+                            TTextField {
                                 Layout.fillWidth: true
                                 text: win.wallDir()
                                 color: Theme.foreground
                                 onEditingFinished: { Config.wallpaperDir = text; win.refreshWallpapers(); }
                             }
-                            Button { text: "Rescan"; onClicked: win.refreshWallpapers() }
+                            TButton { text: "Rescan"; onClicked: win.refreshWallpapers() }
                         }
                     }
                     Text {
@@ -424,7 +425,7 @@ FloatingWindow {
                     }
                     RowLayout {
                         spacing: 8
-                        Button {
+                        TButton {
                             text: "Regenerate from wallpaper"
                             onClicked: {
                                 Quickshell.execDetached(["bash", win.scripts + "/updatewal-awww.sh"]);
@@ -473,7 +474,7 @@ FloatingWindow {
                             }
                         }
                     }
-                    Button { text: "Regenerate from Pywal"; onClicked: win.regenRofi() }
+                    TButton { text: "Regenerate from Pywal"; onClicked: win.regenRofi() }
                 }
 
                 // Bar Themes ────────────────────────────────────────────
@@ -482,7 +483,7 @@ FloatingWindow {
                     RowLayout {
                         Layout.fillWidth: true
                         Text { text: "Active: " + (Theme.themeName.length ? Theme.themeName : "(pywal)"); color: Theme.foreground; Layout.fillWidth: true }
-                        Button { text: "Follow pywal"; onClicked: win.clearOverrides() }
+                        TButton { text: "Follow pywal"; onClicked: win.clearOverrides() }
                     }
                     RowLayout {
                         spacing: 6
@@ -575,20 +576,20 @@ FloatingWindow {
                                                 elide: Text.ElideRight
                                             }
                                             // bool
-                                            CheckBox {
+                                            TCheckBox {
                                                 visible: mwRow.modelData.kind === "bool"
                                                 checked: win.mwValue(mwSec.modelData.section, mwRow.modelData.key) === true
                                                 onToggled: win.mwSet(mwSec.modelData.section, mwRow.modelData.key, checked)
                                             }
                                             // choice
-                                            ComboBox {
+                                            TComboBox {
                                                 visible: mwRow.modelData.kind === "choice"
                                                 model: mwRow.modelData.choices
                                                 currentIndex: win.mwIdx(mwRow.modelData.choices, win.mwValue(mwSec.modelData.section, mwRow.modelData.key))
                                                 onActivated: win.mwSet(mwSec.modelData.section, mwRow.modelData.key, model[currentIndex])
                                             }
                                             // str / int / list
-                                            TextField {
+                                            TTextField {
                                                 visible: mwRow.modelData.kind !== "bool" && mwRow.modelData.kind !== "choice"
                                                 Layout.fillWidth: true
                                                 color: Theme.foreground
@@ -617,7 +618,7 @@ FloatingWindow {
                     RowLayout {
                         Layout.fillWidth: true
                         Text { text: "Writes through the pywal symlink; colour keys stay live."; color: Theme.dim; font.pixelSize: 10; Layout.fillWidth: true }
-                        Button { text: "Save Matuwall"; onClicked: win.mwSave() }
+                        TButton { text: "Save Matuwall"; onClicked: win.mwSave() }
                     }
                 }
 
@@ -631,7 +632,7 @@ FloatingWindow {
                         font.pixelSize: 11
                         wrapMode: Text.WordWrap
                     }
-                    Button {
+                    TButton {
                         text: "Re-apply Pywal Theme"
                         onClicked: {
                             Quickshell.execDetached(["wal", "-R", "-q"]);
@@ -654,7 +655,7 @@ FloatingWindow {
                 ColumnLayout {
                     spacing: 10
                     Text { text: "Papirus folder colour"; color: Theme.dim; font.pixelSize: 11 }
-                    Button {
+                    TButton {
                         text: "Apply pywal colour match"
                         onClicked: {
                             Quickshell.execDetached(["bash", win.scripts + "/change-icons.sh"]);
@@ -663,13 +664,13 @@ FloatingWindow {
                     }
                     RowLayout {
                         spacing: 8
-                        TextField {
+                        TTextField {
                             Layout.preferredWidth: 140
                             text: win.iconHex
                             color: Theme.foreground
                             onEditingFinished: win.iconHex = text
                         }
-                        Button {
+                        TButton {
                             text: "Apply custom hex"
                             onClicked: {
                                 const hex = win.iconHex.replace(/^#/, "");
@@ -705,7 +706,7 @@ FloatingWindow {
                     }
                     RowLayout {
                         spacing: 8
-                        Button {
+                        TButton {
                             text: "Update SDDM & GRUB Wallpaper"
                             onClicked: {
                                 Quickshell.execDetached(["pkexec", "bash", win.home + "/hyprtk/configs/sddm/update.sh"]);
@@ -750,7 +751,7 @@ FloatingWindow {
                                             spacing: 8
                                             Text { text: ir.modelData.name; color: Theme.foreground; font.pixelSize: 12; Layout.fillWidth: true; elide: Text.ElideRight }
                                             Text { text: ir.modelData.path; color: Theme.dim; font.pixelSize: 9; Layout.preferredWidth: 150; elide: Text.ElideMiddle }
-                                            Button { text: "Import"; onClicked: win.doImport(ir.modelData.path) }
+                                            TButton { text: "Import"; onClicked: win.doImport(ir.modelData.path) }
                                         }
                                         HoverHandler { id: irHover }
                                     }
@@ -759,13 +760,13 @@ FloatingWindow {
                         }
                         RowLayout {
                             Layout.fillWidth: true
-                            TextField {
+                            TTextField {
                                 Layout.fillWidth: true
                                 placeholderText: "Path to a theme folder or style.css"
                                 color: Theme.foreground
                                 onTextChanged: win.importPath = text
                             }
-                            Button { text: "Import"; onClicked: win.doImport(win.importPath) }
+                            TButton { text: "Import"; onClicked: win.doImport(win.importPath) }
                         }
                     }
                     ColumnLayout {
@@ -787,7 +788,7 @@ FloatingWindow {
                                         required property var modelData
                                         Layout.fillWidth: true
                                         Text { text: modelData.name; color: Theme.foreground; font.pixelSize: 12; Layout.fillWidth: true; elide: Text.ElideRight }
-                                        Button { text: "\u2715"; onClicked: win.doRemove(modelData.name) }
+                                        TButton { text: "\u2715"; onClicked: win.doRemove(modelData.name) }
                                     }
                                 }
                             }
@@ -799,15 +800,15 @@ FloatingWindow {
             RowLayout {
                 Layout.fillWidth: true
                 Text { text: "Bar opacity"; color: Theme.foreground }
-                Slider {
+                TSlider {
                     Layout.preferredWidth: 160
                     from: 0.2; to: 1.0; stepSize: 0.01
                     value: Config.opacity >= 0 ? Config.opacity : Theme.opacity
                     onMoved: Config.opacity = value
                 }
                 Text { text: win.statusMsg; color: Theme.accent; font.pixelSize: 10; Layout.fillWidth: true; elide: Text.ElideRight }
-                Button { text: "Save"; onClicked: Config.save() }
-                Button { text: "Close"; onClicked: UiState.themerOpen = false }
+                TButton { text: "Save"; onClicked: Config.save() }
+                TButton { text: "Close"; onClicked: UiState.themerOpen = false }
             }
         }
     }

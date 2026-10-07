@@ -13,6 +13,7 @@ import Quickshell.Widgets
 import "../theme"
 import "../config"
 import "../state"
+import "../components"
 import "../data"
 
 PanelWindow {
@@ -256,15 +257,15 @@ PanelWindow {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
-                TextField {
+                TTextField {
                     Layout.fillWidth: true
                     placeholderText: "Search applications\u2026"
                     focus: sm.visible
                     onTextChanged: sm.query = text
                     Keys.onEscapePressed: UiState.startMenuOpen = false
                 }
-                Button { text: "Settings"; onClicked: { UiState.startMenuOpen = false; UiState.settingsOpen = true; } }
-                Button { text: "Themer"; onClicked: { UiState.startMenuOpen = false; UiState.themerOpen = true; } }
+                TButton { text: "Settings"; onClicked: { UiState.startMenuOpen = false; UiState.settingsOpen = true; } }
+                TButton { text: "Themer"; onClicked: { UiState.startMenuOpen = false; UiState.themerOpen = true; } }
             }
 
             RowLayout {
@@ -541,8 +542,8 @@ PanelWindow {
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: 6
-                            Button { text: "\u2190"; enabled: sm.browseHistory.length > 0; onClicked: sm.browseBack() }
-                            Button { text: "\u2191"; onClicked: sm.browseUp() }
+                            TButton { text: "\u2190"; enabled: sm.browseHistory.length > 0; onClicked: sm.browseBack() }
+                            TButton { text: "\u2191"; onClicked: sm.browseUp() }
                             Text {
                                 Layout.fillWidth: true
                                 text: sm.browsePath
@@ -590,11 +591,11 @@ PanelWindow {
                 Layout.fillWidth: true
                 spacing: 8
                 Text { text: sm.layout; color: Theme.dim; font.pixelSize: 10; Layout.fillWidth: true }
-                Button { text: "Lock"; onClicked: sm.power("lock") }
-                Button { text: "Suspend"; onClicked: sm.power("suspend") }
-                Button { text: "Logout"; onClicked: sm.power("logout") }
-                Button { text: "Reboot"; onClicked: sm.power("reboot") }
-                Button { text: "Shut Down"; onClicked: sm.power("shutdown") }
+                TButton { text: "Lock"; onClicked: sm.power("lock") }
+                TButton { text: "Suspend"; onClicked: sm.power("suspend") }
+                TButton { text: "Logout"; onClicked: sm.power("logout") }
+                TButton { text: "Reboot"; onClicked: sm.power("reboot") }
+                TButton { text: "Shut Down"; onClicked: sm.power("shutdown") }
             }
         }
     }

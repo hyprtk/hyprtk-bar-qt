@@ -11,6 +11,7 @@ import Quickshell.Io
 import "../theme"
 import "../config"
 import "../state"
+import "../components"
 
 PanelWindow {
     id: clip
@@ -170,7 +171,7 @@ PanelWindow {
                 }
             }
 
-            TextField {
+            TTextField {
                 id: search
                 Layout.fillWidth: true
                 placeholderText: "Search history\u2026"

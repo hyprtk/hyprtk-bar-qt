@@ -131,7 +131,7 @@ PanelWindow {
                 Layout.fillWidth: true
                 spacing: 10
                 Text { text: qs.muted ? "\u2716" : "\u266b"; color: Theme.foreground; font.pixelSize: 15 }
-                Slider {
+                TSlider {
                     id: vol
                     Layout.fillWidth: true
                     from: 0
@@ -162,7 +162,7 @@ PanelWindow {
                 Layout.fillWidth: true
                 spacing: 10
                 Text { text: "\u263c"; color: Theme.warn; font.pixelSize: 15 }
-                Slider {
+                TSlider {
                     Layout.fillWidth: true
                     from: 0
                     to: 100
@@ -207,14 +207,14 @@ PanelWindow {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
-                Button {
+                TButton {
                     text: "Settings"
                     onClicked: {
                         UiState.settingsOpen = true;
                         UiState.quickSettingsOpen = false;
                     }
                 }
-                Button {
+                TButton {
                     text: "Lock"
                     onClicked: Quickshell.execDetached(["sh", "-c", "hyprlock || loginctl lock-session"])
                 }

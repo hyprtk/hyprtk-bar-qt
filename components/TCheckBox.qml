@@ -1,0 +1,40 @@
+// Themed check box.
+import QtQuick
+import QtQuick.Controls.Basic
+import "../theme"
+
+CheckBox {
+    id: root
+
+    spacing: 8
+    font.pixelSize: Theme.fontSize
+    font.family: Theme.fontFamily
+    implicitHeight: 26
+
+    contentItem: Text {
+        text: root.text
+        font: root.font
+        color: root.enabled ? Theme.foreground : Theme.dim
+        leftPadding: root.indicator.width + root.spacing
+        verticalAlignment: Text.AlignVCenter
+    }
+
+    indicator: Rectangle {
+        implicitWidth: 18
+        implicitHeight: 18
+        x: root.leftPadding
+        y: parent.height / 2 - height / 2
+        radius: 5
+        color: root.checked ? Theme.accent : Theme.alpha(Theme.background, 0.6)
+        border.width: 1
+        border.color: root.checked ? Theme.accent : Theme.alpha(Theme.accent2, 0.4)
+
+        Text {
+            anchors.centerIn: parent
+            text: "\uf00c"
+            visible: root.checked
+            color: "#000000"
+            font.pixelSize: 11
+        }
+    }
+}
