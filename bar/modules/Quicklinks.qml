@@ -6,10 +6,12 @@ import Quickshell
 import "../../theme"
 import "../../config"
 import "../../state"
+import "../../data"
 
 RowLayout {
     id: root
     spacing: 4
+    readonly property int fs: BarConfig.fontSize(13)
 
     Repeater {
         model: Config.quicklinksLinks
@@ -27,7 +29,7 @@ RowLayout {
                 anchors.centerIn: parent
                 text: link.modelData.glyph || "\u2022"
                 color: Theme.accent
-                font.pixelSize: 13
+                font.pixelSize: root.fs
             }
 
             HoverHandler { id: hover }

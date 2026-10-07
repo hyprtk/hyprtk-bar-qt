@@ -5,10 +5,12 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import "../../theme"
+import "../../data"
 
 RowLayout {
     id: root
     spacing: 5
+    readonly property int fs: BarConfig.fontSize(11)
 
     property bool caps: false
     property bool num: false
@@ -35,13 +37,13 @@ RowLayout {
     Text {
         text: "C"
         color: root.caps ? Theme.accent : Theme.dim
-        font.pixelSize: 11
+        font.pixelSize: root.fs
         font.bold: true
     }
     Text {
         text: "N"
         color: root.num ? Theme.accent : Theme.dim
-        font.pixelSize: 11
+        font.pixelSize: root.fs
         font.bold: true
     }
 }

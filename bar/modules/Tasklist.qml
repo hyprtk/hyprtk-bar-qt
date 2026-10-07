@@ -7,10 +7,12 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
 import "../../theme"
+import "../../data"
 
 RowLayout {
     id: root
     spacing: 4
+    readonly property int fs: BarConfig.fontSize(11)
 
     Repeater {
         model: Hyprland.toplevels
@@ -37,7 +39,7 @@ RowLayout {
                 horizontalAlignment: Text.AlignHCenter
                 text: win.modelData.title || win.modelData.appId || "?"
                 color: win.modelData.activated ? "#000000" : Theme.foreground
-                font.pixelSize: 11
+                font.pixelSize: root.fs
             }
 
             MouseArea {

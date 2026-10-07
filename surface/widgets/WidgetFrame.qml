@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import "../../theme"
+import "../../config"
 import "../../data"
 
 PanelWindow {
@@ -40,13 +41,17 @@ PanelWindow {
     WlrLayershell.layer: frame._layer()
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
+    // Usable area: never sit under the bar (its edge inset acts as a border).
+    readonly property int barTop: Config.barPosition === "top" ? Config.barHeight + Config.gapOut : 0
+    readonly property int barBottom: Config.barPosition === "bottom" ? Config.barHeight + Config.gapOut : 0
+
     readonly property var pos: frame._pos()
     anchors.top: pos.top
     anchors.bottom: pos.bottom
     anchors.left: pos.left
     anchors.right: pos.right
-    margins.top: pos.top ? frame.marginY : 0
-    margins.bottom: pos.bottom ? frame.marginY : 0
+    margins.top: pos.top ? Math.max(frame.marginY, frame.barTop) : 0
+    margins.bottom: pos.bottom ? Math.max(frame.marginY, frame.barBottom) : 0
     margins.left: pos.left ? frame.marginX : 0
     margins.right: pos.right ? frame.marginX : 0
 

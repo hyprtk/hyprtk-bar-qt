@@ -10,12 +10,17 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Services.Notifications
+import "."
 
 Singleton {
     id: root
 
     readonly property bool enabled:
         Quickshell.env("HYPRTK_BAR_QT_NOTIFICATIONS") === "1"
+
+    // Shared notifications config block (max_stored / default_timeout).
+    readonly property int maxStored: BarConfig.notifications.max_stored || 50
+    readonly property int defaultTimeout: BarConfig.notifications.default_timeout || 5000
 
     // History (all tracked notifications, newest last) + arrival timestamps.
     property var tracked: []
@@ -66,9 +71,9 @@ Singleton {
             items[i].dismiss();
     }
 
-    // Newest-first history for the center.
+    // Newest-first history for the center (capped at max_stored).
     function history() {
-        return root.tracked.slice().reverse();
+        return root.tracked.slice().reverse().slice(0, root.maxStored);
     }
 
     function ago(id) {

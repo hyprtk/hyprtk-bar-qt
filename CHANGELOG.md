@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.19.0 — unreleased
+
+Parity pass 16: small config/placement completions.
+
+- Desktop widgets: a usable-area clamp keeps every widget clear of the bar
+  (whichever edge it is on).
+- `notifications` config (`max_stored`, `default_timeout`) is honoured by the
+  center + toasts.
+- `font` family/size now also applied to the tasklist, kbstate and quicklinks
+  modules; `BarConfig` exposes the `notifications` / `arcmenu` blocks.
+
 ## 0.18.0 — unreleased
 
 Parity pass 15: in-bar Matuwall TOML editor (themer complete).

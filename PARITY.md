@@ -59,7 +59,8 @@ stub.
 | `menu` (layout + power) | ◐ (layout stored; v1 grid) |
 | `sysmon` (interval/data_points/disk_path/network_iface/pages/monitor) | ✅ |
 | `workspaces` (show_empty/max), `clock` (format), `updates` (interval/scripts), `window` (max_length/width), `tray` (icon_size) | ✅ |
-| `quicksettings`, `notifications`, `arcmenu`, `widgets` | ◐ (partial) |
+| `notifications` (max_stored / default_timeout) | ✅ |
+| `quicksettings`, `arcmenu`, `widgets` | ◐ (partial) |
 | — own qt config (`~/.config/hyprtk-bar-qt/config.json`) | ✅ `config/Config.qml` |
 
 ## Theming components
@@ -88,7 +89,8 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 | `visualizer` | ✅ cava levels; bars / wave / mirror / dots / glow |
 | `sysinfo` | ✅ host/OS/kernel/uptime/CPU/GPU/memory/disks |
 | placement: 9-way + `free` | ✅ (`WidgetFrame`) |
-| placement: drag / snap / usable-area clamp | ☐ |
+| placement: usable-area clamp | ✅ (kept clear of the bar) |
+| placement: drag / snap groups | ☐ |
 
 ## Backend (Python, toolkit-free)
 
@@ -105,9 +107,8 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 
 ## Next passes
 
-1. Desktop widgets: drag / snap / usable-area placement (all seven widgets done).
-2. Start menu: KDE-Plasma in-menu file browser (the places sidebar + content);
-   whisker categories and win7 places are done.
-3. Remaining config: quicksettings/notifications/arcmenu options, live animation
-   application, and full font application to every module.
-4. Desktop-widget drag (Super+Shift move) — snap/usable-area still todo.
+1. Desktop-widget drag (Super+Shift move) and snap groups; usable-area clamp done.
+2. Start menu: KDE-Plasma in-menu file browser; whisker categories and win7
+   places are done.
+3. Remaining config: quicksettings/arcmenu options, live animation application,
+   and font on the last few modules.

@@ -86,7 +86,7 @@ PanelWindow {
                         running: true
                         interval: {
                             const t = toast.modelData.expireTimeout;
-                            return t && t > 0 ? Math.max(1500, t) : 5000;
+                            return t && t > 0 ? Math.max(1500, t) : NotifyData.defaultTimeout;
                         }
                         onTriggered: NotifyData.dropToast(toast.modelData)
                     }

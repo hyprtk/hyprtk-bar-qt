@@ -41,6 +41,8 @@ Singleton {
     readonly property var windowBlock: block("window")
     readonly property var updates: block("updates")
     readonly property var quicksettings: block("quicksettings")
+    readonly property var notifications: block("notifications")
+    readonly property var arcmenu: block("arcmenu")
     readonly property var font: block("font")
     readonly property var animations: block("animations")
     readonly property var monitors: root.cfg.monitors !== undefined ? root.cfg.monitors : "primary"
