@@ -1,9 +1,9 @@
 // Themer window: sidebar of theming pages — Wallpaper (thumbnail picker),
-// Bar Themes (9 shipped themes) and Import (waybar themes from disk).
+// Pywal, Rofi, Bar Themes (9 shipped), Matuwall, Lock Screen, Icons,
+// SDDM & GRUB, and Import (waybar themes from disk).
 //
-// Wallpaper selection sets the wallpaper and regenerates pywal via the hyprtk
-// wallpaper script; bar themes write explicit Theme overrides. Rofi/Lock/Icons/
-// SDDM pages are a later pass.
+// Script-driven actions call the same hyprtk scripts as the GTK bar. The
+// Matuwall TOML editor is a later pass.
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls.Basic
@@ -18,33 +18,41 @@ FloatingWindow {
 
     title: "hyprtk-bar-qt themer"
     visible: UiState.themerOpen
-    implicitWidth: 720
-    implicitHeight: 600
+    implicitWidth: 760
+    implicitHeight: 620
     color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Theme.opacity)
 
     readonly property string home: Quickshell.env("HOME") || ""
     readonly property string base: Qt.resolvedUrl("../backend/hyprtk_bar_qt/").toString().replace("file://", "")
+    readonly property string scripts: win.home + "/.local/share/hyprtk-bar/scripts"
 
     readonly property var pages: [
         { key: "wallpaper", glyph: "\uf03e", label: "Wallpaper" },
+        { key: "pywal", glyph: "\uf043", label: "Pywal" },
+        { key: "rofi", glyph: "\uf009", label: "Rofi" },
         { key: "bar", glyph: "\uf1fc", label: "Bar Themes" },
+        { key: "matuwall", glyph: "\uf1c5", label: "Matuwall" },
+        { key: "swaylock", glyph: "\uf023", label: "Lock Screen" },
+        { key: "icons", glyph: "\uf02d", label: "Icons" },
+        { key: "sddm", glyph: "\uf005", label: "SDDM & GRUB" },
         { key: "import", glyph: "\uf019", label: "Import" }
     ]
     property int page: 0
     readonly property var swatchNames: ["bg", "fg", "accent", "accent2", "dim", "err", "warn"]
 
-    // ── state ──────────────────────────────────────────────────────────
-    property var themes: []           // [{name, palette{bg,fg,accent}}]
-    property var importable: []       // [{name, path}]
-    property var images: []           // wallpaper paths
+    property var themes: []
+    property var importable: []
+    property var images: []
     property string currentWall: ""
+    property var rofiVariants: []
+    property string rofiActive: ""
     property string statusMsg: ""
     property string importPath: ""
+    property string lockConf: ""
+    property string iconHex: "#2196F3"
 
     function wallDir() {
-        return Config.wallpaperDir.length > 0
-            ? Config.wallpaperDir
-            : win.home + "/Pictures/Wallpapers";
+        return Config.wallpaperDir.length > 0 ? Config.wallpaperDir : win.home + "/Pictures/Wallpapers";
     }
 
     onVisibleChanged: {
@@ -53,24 +61,25 @@ FloatingWindow {
         win.refreshThemes();
         win.refreshImportable();
         win.refreshWallpapers();
+        win.refreshRofi();
         currentProc.running = true;
+        lockFile.reload();
     }
 
-    function refreshThemes() {
-        if (!themeProc.running)
-            themeProc.running = true;
+    function toast(msg) {
+        win.statusMsg = msg;
+        statusTimer.restart();
     }
-    function refreshImportable() {
-        if (!installedProc.running)
-            installedProc.running = true;
-    }
+    function refreshThemes() { if (!themeProc.running) themeProc.running = true; }
+    function refreshImportable() { if (!installedProc.running) installedProc.running = true; }
     function refreshWallpapers() {
         scanProc.command = ["python3", win.base + "wallpapers.py", "scan", win.wallDir()];
         scanProc.running = true;
     }
-    function toast(msg) {
-        win.statusMsg = msg;
-        statusTimer.restart();
+    function refreshRofi() {
+        win.rofiVariants = [];
+        win.rofiActive = "";
+        rofiProc.running = true;
     }
 
     Process {
@@ -78,11 +87,7 @@ FloatingWindow {
         command: ["python3", win.base + "themes.py", "list"]
         stdout: SplitParser {
             onRead: line => {
-                try {
-                    win.themes = JSON.parse(line).themes || [];
-                } catch (e) {
-                    win.themes = [];
-                }
+                try { win.themes = JSON.parse(line).themes || []; } catch (e) { win.themes = []; }
             }
         }
     }
@@ -91,11 +96,7 @@ FloatingWindow {
         command: ["python3", win.base + "themes.py", "installed"]
         stdout: SplitParser {
             onRead: line => {
-                try {
-                    win.importable = JSON.parse(line).installed || [];
-                } catch (e) {
-                    win.importable = [];
-                }
+                try { win.importable = JSON.parse(line).installed || []; } catch (e) { win.importable = []; }
             }
         }
     }
@@ -103,11 +104,7 @@ FloatingWindow {
         id: scanProc
         stdout: SplitParser {
             onRead: line => {
-                try {
-                    win.images = JSON.parse(line).images || [];
-                } catch (e) {
-                    win.images = [];
-                }
+                try { win.images = JSON.parse(line).images || []; } catch (e) { win.images = []; }
             }
         }
     }
@@ -116,11 +113,7 @@ FloatingWindow {
         command: ["python3", win.base + "wallpapers.py", "current"]
         stdout: SplitParser {
             onRead: line => {
-                try {
-                    win.currentWall = JSON.parse(line).current || "";
-                } catch (e) {
-                    win.currentWall = "";
-                }
+                try { win.currentWall = JSON.parse(line).current || ""; } catch (e) { win.currentWall = ""; }
             }
         }
     }
@@ -141,17 +134,35 @@ FloatingWindow {
     }
     Process {
         id: removeProc
-        onExited: (code, status) => {
-            win.refreshThemes();
-            win.refreshImportable();
+        onExited: (code, status) => { win.refreshThemes(); win.refreshImportable(); }
+    }
+    Process {
+        id: rofiProc
+        command: ["bash", "-c",
+            "printf 'LINK=%s\\n' \"$(readlink ~/.config/rofi/variant.rasi 2>/dev/null)\"; " +
+            "ls -1 ~/.local/share/hyprtk-bar/scripts/rofi/variants/*.rasi 2>/dev/null || " +
+            "ls -1 ~/.config/rofi/variants/*.rasi 2>/dev/null"]
+        stdout: SplitParser {
+            onRead: line => {
+                if (line.startsWith("LINK=")) {
+                    const p = line.substring(5);
+                    win.rofiActive = p.length ? p.split("/").pop().replace(/\.rasi$/, "") : "";
+                } else if (line.endsWith(".rasi")) {
+                    win.rofiVariants = win.rofiVariants.concat([{ name: line.split("/").pop().replace(/\.rasi$/, ""), path: line }]);
+                }
+            }
         }
     }
-
-    Timer {
-        id: statusTimer
-        interval: 3000
-        onTriggered: win.statusMsg = ""
+    FileView {
+        id: lockFile
+        path: win.home + "/.cache/wal/hyprlock-colors.conf"
+        watchChanges: true
+        printErrors: false
+        onLoaded: win.lockConf = lockFile.text()
+        onTextChanged: win.lockConf = lockFile.text()
+        onFileChanged: reload()
     }
+    Timer { id: statusTimer; interval: 3000; onTriggered: win.statusMsg = "" }
 
     function applyWallpaper(path) {
         applyProc.command = ["python3", win.base + "wallpapers.py", "apply", path];
@@ -173,16 +184,28 @@ FloatingWindow {
         Config.themeAccent = "";
     }
     function doImport(path) {
-        if (!path) {
-            win.toast("Enter a theme path");
-            return;
-        }
+        if (!path) { win.toast("Enter a theme path"); return; }
         importProc.command = ["python3", win.base + "themes.py", "import", path];
         importProc.running = true;
     }
     function doRemove(name) {
         removeProc.command = ["python3", win.base + "themes.py", "remove", name];
         removeProc.running = true;
+    }
+    function applyRofi(path) {
+        Quickshell.execDetached(["bash", "-c",
+            "ln -sf '" + path + "' ~/.config/rofi/variant.rasi && bash '" + win.scripts + "/sync-rofi-theme.sh'"]);
+        win.toast("Rofi variant: " + path.split("/").pop().replace(/\.rasi$/, ""));
+        rofiRefresh.restart();
+    }
+    function regenRofi() {
+        Quickshell.execDetached(["bash", win.scripts + "/sync-rofi-theme.sh"]);
+        win.toast("Regenerating rofi variant\u2026");
+        rofiRefresh.restart();
+    }
+    function lockColors() {
+        const lines = (win.lockConf || "").split("\n").filter(l => l.trim().startsWith("$lock_"));
+        return lines.length ? lines.join("\n") : "No pywal colours rendered yet \u2014 pick a wallpaper first.";
     }
     function col(name) {
         switch (name) {
@@ -197,11 +220,12 @@ FloatingWindow {
         return Theme.foreground;
     }
 
+    Timer { id: rofiRefresh; interval: 800; onTriggered: win.refreshRofi() }
+
     RowLayout {
         anchors.fill: parent
         spacing: 0
 
-        // ── sidebar ────────────────────────────────────────────────────
         Rectangle {
             Layout.fillHeight: true
             implicitWidth: 150
@@ -209,14 +233,14 @@ FloatingWindow {
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 10
-                spacing: 4
+                spacing: 3
                 Repeater {
                     model: win.pages
                     delegate: Rectangle {
                         required property var modelData
                         required property int index
                         Layout.fillWidth: true
-                        implicitHeight: 32
+                        implicitHeight: 30
                         radius: 8
                         color: win.page === index
                             ? Theme.alpha(Theme.accent, 0.85)
@@ -237,7 +261,6 @@ FloatingWindow {
             }
         }
 
-        // ── content ────────────────────────────────────────────────────
         ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -246,13 +269,7 @@ FloatingWindow {
 
             RowLayout {
                 Layout.fillWidth: true
-                Text {
-                    text: win.pages[win.page].label
-                    color: Theme.accent
-                    font.bold: true
-                    font.pixelSize: 15
-                    Layout.fillWidth: true
-                }
+                Text { text: win.pages[win.page].label; color: Theme.accent; font.bold: true; font.pixelSize: 15; Layout.fillWidth: true }
                 Text { text: "\u00d7"; color: Theme.dim; font.pixelSize: 18; MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: UiState.themerOpen = false } }
             }
 
@@ -282,10 +299,7 @@ FloatingWindow {
                                 Layout.fillWidth: true
                                 text: win.wallDir()
                                 color: Theme.foreground
-                                onEditingFinished: {
-                                    Config.wallpaperDir = text;
-                                    win.refreshWallpapers();
-                                }
+                                onEditingFinished: { Config.wallpaperDir = text; win.refreshWallpapers(); }
                             }
                             Button { text: "Rescan"; onClicked: win.refreshWallpapers() }
                         }
@@ -335,6 +349,77 @@ FloatingWindow {
                             }
                         }
                     }
+                }
+
+                // Pywal ────────────────────────────────────────────────
+                ColumnLayout {
+                    spacing: 10
+                    Text { text: "Live pywal palette"; color: Theme.dim; font.pixelSize: 11 }
+                    RowLayout {
+                        spacing: 6
+                        Repeater {
+                            model: win.swatchNames
+                            delegate: Rectangle {
+                                required property string modelData
+                                width: 34; height: 34; radius: 8
+                                color: win.col(modelData)
+                                border.color: Theme.alpha(Theme.foreground, 0.3); border.width: 1
+                            }
+                        }
+                        Item { Layout.fillWidth: true }
+                    }
+                    RowLayout {
+                        spacing: 8
+                        Button {
+                            text: "Regenerate from wallpaper"
+                            onClicked: {
+                                Quickshell.execDetached(["bash", win.scripts + "/updatewal-awww.sh"]);
+                                win.toast("Regenerating palette\u2026");
+                            }
+                        }
+                        Item { Layout.fillWidth: true }
+                    }
+                    Text {
+                        Layout.fillWidth: true
+                        text: "Regenerating re-runs pywal on the current wallpaper and updates every themed app."
+                        color: Theme.dim
+                        font.pixelSize: 10
+                        wrapMode: Text.WordWrap
+                    }
+                    Item { Layout.fillHeight: true }
+                }
+
+                // Rofi ─────────────────────────────────────────────────
+                ColumnLayout {
+                    spacing: 8
+                    Text { text: "Active variant: " + (win.rofiActive.length ? win.rofiActive : "(none)"); color: Theme.foreground; font.pixelSize: 12 }
+                    Flickable {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        contentHeight: rofiList.implicitHeight
+                        clip: true
+                        ColumnLayout {
+                            id: rofiList
+                            width: parent.width
+                            spacing: 3
+                            Repeater {
+                                model: win.rofiVariants
+                                delegate: Rectangle {
+                                    id: rr
+                                    required property var modelData
+                                    Layout.fillWidth: true
+                                    implicitHeight: 28
+                                    radius: 6
+                                    color: rrHover.hovered ? Theme.alpha(Theme.accent2, 0.15)
+                                        : (win.rofiActive === rr.modelData.name ? Theme.alpha(Theme.accent, 0.25) : "transparent")
+                                    Text { anchors.verticalCenter: parent.verticalCenter; anchors.left: parent.left; anchors.leftMargin: 10; text: rr.modelData.name; color: Theme.foreground; font.pixelSize: 12 }
+                                    HoverHandler { id: rrHover }
+                                    TapHandler { onTapped: win.applyRofi(rr.modelData.path) }
+                                }
+                            }
+                        }
+                    }
+                    Button { text: "Regenerate from Pywal"; onClicked: win.regenRofi() }
                 }
 
                 // Bar Themes ────────────────────────────────────────────
@@ -401,6 +486,120 @@ FloatingWindow {
                     }
                 }
 
+                // Matuwall ──────────────────────────────────────────────
+                ColumnLayout {
+                    spacing: 10
+                    Text {
+                        Layout.fillWidth: true
+                        text: "Matuwall is configured in ~/.config/matuwall/config.toml (a symlink to the pywal-rendered template), so its colours follow the wallpaper automatically."
+                        color: Theme.foreground
+                        font.pixelSize: 11
+                        wrapMode: Text.WordWrap
+                    }
+                    Button {
+                        text: "Open config"
+                        onClicked: Quickshell.execDetached(["sh", "-c", "xdg-open ~/.config/matuwall/config.toml"])
+                    }
+                    Text { text: "In-bar TOML editor is a later pass."; color: Theme.dim; font.pixelSize: 10 }
+                    Item { Layout.fillHeight: true }
+                }
+
+                // Lock Screen ───────────────────────────────────────────
+                ColumnLayout {
+                    spacing: 10
+                    Text {
+                        Layout.fillWidth: true
+                        text: "hyprlock is themed from your wallpaper automatically: pywal renders the lock colours to ~/.cache/wal/hyprlock-colors.conf and hyprlock.conf sources them."
+                        color: Theme.foreground
+                        font.pixelSize: 11
+                        wrapMode: Text.WordWrap
+                    }
+                    Button {
+                        text: "Re-apply Pywal Theme"
+                        onClicked: {
+                            Quickshell.execDetached(["wal", "-R", "-q"]);
+                            win.toast("Re-applying pywal theme");
+                            lockFile.reload();
+                        }
+                    }
+                    Text { text: "Current colours"; color: Theme.dim; font.pixelSize: 11 }
+                    Text {
+                        Layout.fillWidth: true
+                        text: win.lockColors()
+                        color: Theme.dim
+                        font.pixelSize: 10
+                        wrapMode: Text.WordWrap
+                    }
+                    Item { Layout.fillHeight: true }
+                }
+
+                // Icons ─────────────────────────────────────────────────
+                ColumnLayout {
+                    spacing: 10
+                    Text { text: "Papirus folder colour"; color: Theme.dim; font.pixelSize: 11 }
+                    Button {
+                        text: "Apply pywal colour match"
+                        onClicked: {
+                            Quickshell.execDetached(["bash", win.scripts + "/change-icons.sh"]);
+                            win.toast("Applying pywal folder colour match");
+                        }
+                    }
+                    RowLayout {
+                        spacing: 8
+                        TextField {
+                            Layout.preferredWidth: 140
+                            text: win.iconHex
+                            color: Theme.foreground
+                            onEditingFinished: win.iconHex = text
+                        }
+                        Button {
+                            text: "Apply custom hex"
+                            onClicked: {
+                                const hex = win.iconHex.replace(/^#/, "");
+                                Quickshell.execDetached(["papirus-folders", "-C", hex, "-t", "Papirus-Dark"]);
+                                win.toast("Folder colour: #" + hex);
+                            }
+                        }
+                        Item { Layout.fillWidth: true }
+                    }
+                    Text { text: "Sets the Papirus-Dark folder colour (needs papirus-folders on PATH)."; color: Theme.dim; font.pixelSize: 10 }
+                    Item { Layout.fillHeight: true }
+                }
+
+                // SDDM & GRUB ───────────────────────────────────────────
+                ColumnLayout {
+                    spacing: 10
+                    Text {
+                        Layout.fillWidth: true
+                        text: "Update the login screen (SDDM) and bootloader (GRUB) with your current wallpaper. Runs as root via pkexec."
+                        color: Theme.foreground
+                        font.pixelSize: 11
+                        wrapMode: Text.WordWrap
+                    }
+                    Image {
+                        source: win.currentWall.length ? "file://" + win.currentWall : ""
+                        sourceSize.width: 260
+                        sourceSize.height: 146
+                        Layout.preferredWidth: 260
+                        Layout.preferredHeight: 146
+                        fillMode: Image.PreserveAspectCrop
+                        Layout.alignment: Qt.AlignHCenter
+                        visible: win.currentWall.length > 0
+                    }
+                    RowLayout {
+                        spacing: 8
+                        Button {
+                            text: "Update SDDM & GRUB Wallpaper"
+                            onClicked: {
+                                Quickshell.execDetached(["pkexec", "bash", win.home + "/hyprtk/configs/sddm/update.sh"]);
+                                win.toast("Updating SDDM & GRUB\u2026");
+                            }
+                        }
+                        Item { Layout.fillWidth: true }
+                    }
+                    Item { Layout.fillHeight: true }
+                }
+
                 // Import ────────────────────────────────────────────────
                 RowLayout {
                     spacing: 12
@@ -408,13 +607,7 @@ FloatingWindow {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         Text { text: "Importable themes"; color: Theme.dim; font.pixelSize: 11 }
-                        Text {
-                            Layout.fillWidth: true
-                            visible: win.importable.length === 0
-                            text: "None found"
-                            color: Theme.dim
-                            font.pixelSize: 11
-                        }
+                        Text { Layout.fillWidth: true; visible: win.importable.length === 0; text: "None found"; color: Theme.dim; font.pixelSize: 11 }
                         Flickable {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
@@ -439,7 +632,7 @@ FloatingWindow {
                                             anchors.rightMargin: 6
                                             spacing: 8
                                             Text { text: ir.modelData.name; color: Theme.foreground; font.pixelSize: 12; Layout.fillWidth: true; elide: Text.ElideRight }
-                                            Text { text: ir.modelData.path; color: Theme.dim; font.pixelSize: 9; Layout.preferredWidth: 160; elide: Text.ElideMiddle }
+                                            Text { text: ir.modelData.path; color: Theme.dim; font.pixelSize: 9; Layout.preferredWidth: 150; elide: Text.ElideMiddle }
                                             Button { text: "Import"; onClicked: win.doImport(ir.modelData.path) }
                                         }
                                         HoverHandler { id: irHover }

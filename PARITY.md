@@ -29,7 +29,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 |---|---|
 | Bar settings window (9 pages) | ◐ `surface/Settings.qml` (4 controls; needs pages) |
 | System monitor dialog (CPU/Mem/Disks/Network/GPU/Apps, cairo graphs) | ✅ `surface/SysMonitor.qml` (six pages, QML graphs, DIMM slots) |
-| Themer dialog (Wallpaper/Pywal/Rofi/Bar themes/Matuwall/Swaylock/Icons/SDDM+GRUB) | ◐ `surface/Themer.qml` (Wallpaper thumbnails, 9-theme picker, theme import; Pywal/Rofi/Matuwall/Swaylock/Icons/SDDM pages todo) |
+| Themer dialog (Wallpaper/Pywal/Rofi/Bar themes/Matuwall/Swaylock/Icons/SDDM+GRUB) | ✅ `surface/Themer.qml` (all nine pages; Matuwall is a link to its config, not an in-bar TOML editor) |
 | Clipboard history dialog | ✅ `surface/Clipboard.qml` (cliphist list/copy/delete/wipe, search) |
 | Notification center | ✅ `surface/NotificationCenter.qml` (history, actions, clear all, unread badge) |
 | Quick-settings flyout | ✅ |
@@ -91,9 +91,8 @@ stub.
 
 ## Next passes
 
-1. Themer: Pywal / Rofi / Matuwall (TOML editor) / Lock Screen / Icons /
-   SDDM+GRUB pages (Wallpaper, the 9 shipped themes and theme import are done).
-2. Desktop widgets (clock/weather/visualizer/disk/network/resources/sysinfo) + placement.
-3. Start-menu layout variants (whisker/win7/win11/plasma), favorites/recents/places.
-4. Remaining module config (workspaces/clock/tray/quicksettings options),
+1. Desktop widgets (clock/weather/visualizer/disk/network/resources/sysinfo) + placement.
+2. Start-menu layout variants (whisker/win7/win11/plasma), favorites/recents/places.
+3. Remaining module config (workspaces/clock/tray/quicksettings options),
    multi-monitor `monitors`, animation/font live application.
+4. Themer: in-bar Matuwall TOML editor (currently links to the config file).

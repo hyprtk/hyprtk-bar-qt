@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.11.0 — unreleased
+
+Parity pass 8 (theming, part 3): the remaining Themer pages.
+
+- `surface/Themer.qml` now has all nine pages: **Pywal** (live swatches +
+  regenerate), **Rofi** (variant list, apply via symlink + `sync-rofi-theme.sh`,
+  regenerate), **Lock Screen** (re-apply pywal + current `hyprlock-colors.conf`),
+  **Icons** (papirus pywal colour match + custom hex), **SDDM & GRUB**
+  (pkexec `update.sh` with wallpaper preview) and **Matuwall** (opens its
+  config; in-bar TOML editor deferred).
+
 ## 0.10.0 — unreleased
 
 Parity pass 7 (theming, part 2): Wallpaper picker + theme import.
