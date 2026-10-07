@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.9.0 — unreleased
+
+Parity pass 6 (theming, part 1): shipped bar themes.
+
+- `backend/hyprtk_bar_qt/theme_import.py`: ported the toolkit-free waybar-CSS
+  decoder (resolve `@import`/`@define-color`, derive
+  background/foreground/accent/etc.).
+- `backend/hyprtk_bar_qt/themes.py`: CLI over `theme_import` — `list` returns
+  the installed themes with hexified swatches, `palette <name>` one theme.
+- `backend/hyprtk_bar_qt/config.py`: `PYWAL_PATH` + `load_pywal_colors`.
+- `surface/Themer.qml`: a "Bar themes" picker (name + swatches) writes Theme
+  overrides; "Follow hyprtk-bar / pywal" clears them.
+- Tests: `tests/test_themes.py`.
+
 ## 0.8.0 — unreleased
 
 Parity pass 5: clipboard history + tray context menu.

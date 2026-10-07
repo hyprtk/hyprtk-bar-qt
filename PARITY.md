@@ -29,7 +29,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 |---|---|
 | Bar settings window (9 pages) | ◐ `surface/Settings.qml` (4 controls; needs pages) |
 | System monitor dialog (CPU/Mem/Disks/Network/GPU/Apps, cairo graphs) | ✅ `surface/SysMonitor.qml` (six pages, QML graphs, DIMM slots) |
-| Themer dialog (Wallpaper/Pywal/Rofi/Bar themes/Matuwall/Swaylock/Icons/SDDM+GRUB) | ◐ `surface/Themer.qml` v1 (palette/opacity/actions; pages todo) |
+| Themer dialog (Wallpaper/Pywal/Rofi/Bar themes/Matuwall/Swaylock/Icons/SDDM+GRUB) | ◐ `surface/Themer.qml` (palette/opacity/actions + 9-theme picker; Rofi/Swaylock/Icons/SDDM pages todo) |
 | Clipboard history dialog | ✅ `surface/Clipboard.qml` (cliphist list/copy/delete/wipe, search) |
 | Notification center | ✅ `surface/NotificationCenter.qml` (history, actions, clear all, unread badge) |
 | Quick-settings flyout | ✅ |
@@ -65,10 +65,10 @@ stub.
 | GTK | Qt status |
 |---|---|
 | Live pywal palette | ✅ `theme/Theme.qml` |
-| Bar `theme` block (manual/imported source) | ◐ (palette reads it; no writer) |
-| 9 shipped themes (`themes/`) | ☐ |
+| Bar `theme` block (manual/imported source) | ✅ Themer writes the override keys |
+| 9 shipped themes (`themes/`) | ✅ Themer picker (`backend/.../themes.py` + `theme_import`) |
 | `theme.py` / `menu/theme.py` / `desktop/theme.py` CSS builders | ☐ (QML uses colour tokens only) |
-| `theme_import.py` (decode waybar CSS) | ☐ |
+| `theme_import.py` (decode waybar CSS) | ✅ ported to `backend/.../theme_import.py` |
 | gengtk/oomox, rofi variants, swaylock, SDDM/GRUB, icons | ☐ |
 
 ## Desktop widgets (`desktop/`)
@@ -91,7 +91,8 @@ stub.
 
 ## Next passes
 
-1. Themer: 9 themes, theme_import, wallpaper/pywal/rofi/swaylock/icons/SDDM.
+1. Themer: Wallpaper (matuwall), Rofi/Swaylock/Icons/SDDM+GRUB pages, and a
+   theme-import dialog (the 9 shipped themes + `theme_import` are done).
 2. Desktop widgets (clock/weather/visualizer/disk/network/resources/sysinfo) + placement.
 3. Start-menu layout variants (whisker/win7/win11/plasma), favorites/recents/places.
 4. Remaining module config (workspaces/clock/tray/quicksettings options),

@@ -56,6 +56,8 @@ backend/
     proc_action.py            one-shot kill/launch helper for the Apps page
     dimm.py                   one-shot DIMM-slot reader (SMBIOS/dmidecode)
     clipboard.py              cliphist wrapper (list/copy/delete/wipe)
+    theme_import.py           waybar-CSS decoder -> palette (ported, toolkit-free)
+    themes.py                 list/parse the installed bar themes for the themer
 tests/
   test_sysmon.py              backend unit tests
   test_monitor.py             monitor backend unit tests
