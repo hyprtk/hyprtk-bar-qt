@@ -28,6 +28,7 @@ Rectangle {
         DelegateChoice { roleValue: "net"; delegate: Net {} }
         DelegateChoice { roleValue: "tray"; delegate: Tray {} }
         DelegateChoice { roleValue: "kbstate"; delegate: KbState {} }
+        DelegateChoice { roleValue: "notifications"; delegate: NotificationsButton {} }
         DelegateChoice { roleValue: "clock"; delegate: Clock {} }
         DelegateChoice { roleValue: "sysmon"; delegate: SysMonitor {} }
         DelegateChoice { roleValue: "arcmenu"; delegate: ArcButton {} }

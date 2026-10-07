@@ -21,7 +21,7 @@ FloatingWindow {
     readonly property var pageNames: ["Bar", "Themes", "Fonts", "Animations", "Arc Menu", "Menu", "Quicklinks", "Modules", "Widgets"]
     readonly property var moduleNames: [
         "start_button", "quicklinks", "workspaces", "tasklist", "window", "updates",
-        "net", "tray", "kbstate", "clock", "sysmon",
+        "net", "tray", "kbstate", "notifications", "clock", "sysmon",
         "arcmenu", "themer", "settings", "quicksettings"
     ]
     readonly property var arcPositions: ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right"]

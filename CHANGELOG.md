@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.7.0 — unreleased
+
+Parity pass 4: notification center.
+
+- `data/NotifyData.qml`: singleton owning the notification daemon (gated behind
+  `HYPRTK_BAR_QT_NOTIFICATIONS=1`), the tracked history, arrival timestamps, the
+  unread count and the transient toast queue.
+- `surface/NotificationCenter.qml`: Win11-style history panel — newest first,
+  per-row dismiss + actions, "Clear all", relative time, unread badge reset on
+  open.
+- `bar/modules/NotificationsButton.qml`: bell with a numbered unread badge;
+  registered in the default right layout and the Settings module list.
+- `surface/Notifications.qml`: reworked to render only the transient toasts from
+  `NotifyData` (history outlives the toast).
+
 ## 0.6.0 — unreleased
 
 Parity pass 3: Mission Center-style system monitor dialog.

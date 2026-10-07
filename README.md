@@ -29,7 +29,8 @@ surface/
   Settings.qml                settings window (writes config/Config.qml)
   ArcMenu.qml                 corner FAB with an item arc; IPC-toggleable
   SysMonitor.qml              Mission Center-style system monitor dialog (CPU/Mem/Disks/Network/GPU/Apps)
-  Notifications.qml           notification daemon + toasts (opt-in, see below)
+  NotificationCenter.qml      notification history panel (bell)
+  Notifications.qml           transient toast stack (opt-in daemon, see below)
 theme/
   Theme.qml                   singleton: live pywal + hyprtk-bar config colours
   qmldir
@@ -40,6 +41,7 @@ state/
 data/
   SysData.qml                 singleton: runs the backend once, exposes cpu/mem/net + histories
   MonitorData.qml             singleton: runs the rich monitor backend while the dialog is open
+  NotifyData.qml              singleton: notification daemon + history + unread count
 components/
   Toggle.qml                  pill toggle
   Sparkline.qml               Canvas line + gradient-area graph
@@ -96,8 +98,8 @@ hyprtk-bar-qt                # launcher on ~/.local/bin
 Working bar: workspaces, tasklist, tray, clock, CPU/memory sparklines and a
 network-rate graph (all fed by the Python backend), plus a quick-settings
 flyout, a settings window, a corner arc menu and a Mission Center-style system
-monitor dialog (CPU / Memory / Disks / Network / GPU, opened from the sysmon
-module). Theming reads the live pywal
+monitor dialog (CPU / Memory / Disks / Network / GPU / Apps, opened from the
+sysmon module) and a notification center (bell + history panel). Theming reads the live pywal
 palette and the existing hyprtk-bar config, so it matches the desktop while the
 GTK bar still runs alongside it.
 

@@ -71,6 +71,7 @@ ShellRoot {
     StartMenu {}
     Themer {}
     SysMonitor {}
+    NotificationCenter {}
 
     Loader {
         active: Quickshell.env("HYPRTK_BAR_QT_NOTIFICATIONS") === "1"

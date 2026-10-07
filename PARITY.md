@@ -18,7 +18,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 | `sysmon` | CPU/RAM/disk + click → monitor | ✅ `SysMonitor.qml` + `surface/SysMonitor.qml` dialog |
 | `kbstate` | Caps/Num lock LEDs | ✅ `KbState.qml` |
 | `clock` | time/date (styles, dials, seconds) | ◐ `Clock.qml` (digital simple; no styles/dials) |
-| `notifications` | daemon + center (bell) | ◐ `Notifications.qml` (toasts opt-in; no center) |
+| `notifications` | daemon + center (bell) | ✅ `NotificationsButton.qml` bell + unread badge, `surface/NotificationCenter.qml` history, opt-in toasts |
 | `tray` | SNI tray + dbusmenu | ◐ `Tray.qml` (icons + activate; no context menu) |
 | `quicksettings` | Win11 flyout | ✅ `surface/QuickSettings.qml` |
 | graphs | cpu/mem/net history | ✅ `components/Sparkline.qml`, `Net.qml` |
@@ -31,7 +31,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 | System monitor dialog (CPU/Mem/Disks/Network/GPU/Apps, cairo graphs) | ✅ `surface/SysMonitor.qml` (six pages, QML graphs, DIMM slots) |
 | Themer dialog (Wallpaper/Pywal/Rofi/Bar themes/Matuwall/Swaylock/Icons/SDDM+GRUB) | ◐ `surface/Themer.qml` v1 (palette/opacity/actions; pages todo) |
 | Clipboard history dialog | ☐ |
-| Notification center | ☐ |
+| Notification center | ✅ `surface/NotificationCenter.qml` (history, actions, clear all, unread badge) |
 | Quick-settings flyout | ✅ |
 | Arc menu (radial FAB) | ✅ `surface/ArcMenu.qml` (items from config; no per-layout themes) |
 | Start menu (whisker / win7 / win11 / plasma layouts, search, favorites, recents, places, power) | ◐ `surface/StartMenu.qml` v1 (search + app grid + power; layouts/favorites/recents todo) |
@@ -89,7 +89,7 @@ stub.
 
 ## Next passes
 
-1. Clipboard history, notification center, tray context menu (dbusmenu).
+1. Clipboard history, tray context menu (dbusmenu).
 2. Themer: 9 themes, theme_import, wallpaper/pywal/rofi/swaylock/icons/SDDM.
 3. Desktop widgets (clock/weather/visualizer/disk/network/resources/sysinfo) + placement.
 4. Start-menu layout variants (whisker/win7/win11/plasma), favorites/recents/places.
