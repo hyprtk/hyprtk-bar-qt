@@ -32,6 +32,7 @@ surface/
   NotificationCenter.qml      notification history panel (bell)
   Notifications.qml           transient toast stack (opt-in daemon, see below)
   Clipboard.qml               cliphist history (search/copy/delete/wipe)
+  Themer.qml                  theming window (Wallpaper grid, bar themes, import)
 theme/
   Theme.qml                   singleton: live pywal + hyprtk-bar config colours
   qmldir
@@ -57,7 +58,8 @@ backend/
     dimm.py                   one-shot DIMM-slot reader (SMBIOS/dmidecode)
     clipboard.py              cliphist wrapper (list/copy/delete/wipe)
     theme_import.py           waybar-CSS decoder -> palette (ported, toolkit-free)
-    themes.py                 list/parse the installed bar themes for the themer
+    themes.py                 list/parse/import/remove the bar themes for the themer
+    wallpapers.py             scan a wallpaper folder + apply one (pywal regen)
 tests/
   test_sysmon.py              backend unit tests
   test_monitor.py             monitor backend unit tests

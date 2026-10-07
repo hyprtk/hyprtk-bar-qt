@@ -29,14 +29,14 @@ Legend: ✅ done · ◐ partial · ☐ todo
 |---|---|
 | Bar settings window (9 pages) | ◐ `surface/Settings.qml` (4 controls; needs pages) |
 | System monitor dialog (CPU/Mem/Disks/Network/GPU/Apps, cairo graphs) | ✅ `surface/SysMonitor.qml` (six pages, QML graphs, DIMM slots) |
-| Themer dialog (Wallpaper/Pywal/Rofi/Bar themes/Matuwall/Swaylock/Icons/SDDM+GRUB) | ◐ `surface/Themer.qml` (palette/opacity/actions + 9-theme picker; Rofi/Swaylock/Icons/SDDM pages todo) |
+| Themer dialog (Wallpaper/Pywal/Rofi/Bar themes/Matuwall/Swaylock/Icons/SDDM+GRUB) | ◐ `surface/Themer.qml` (Wallpaper thumbnails, 9-theme picker, theme import; Pywal/Rofi/Matuwall/Swaylock/Icons/SDDM pages todo) |
 | Clipboard history dialog | ✅ `surface/Clipboard.qml` (cliphist list/copy/delete/wipe, search) |
 | Notification center | ✅ `surface/NotificationCenter.qml` (history, actions, clear all, unread badge) |
 | Quick-settings flyout | ✅ |
 | Arc menu (radial FAB) | ✅ `surface/ArcMenu.qml` (items from config; no per-layout themes) |
 | Start menu (whisker / win7 / win11 / plasma layouts, search, favorites, recents, places, power) | ◐ `surface/StartMenu.qml` v1 (search + app grid + power; layouts/favorites/recents todo) |
 | Bar right-click menu | ✅ `surface/BarMenu.qml` |
-| Theme import dialog | ☐ |
+| Theme import dialog | ✅ Themer `Import` page (importable list, path, remove) |
 
 ## Settings pages (`bar_settings.py`)
 
@@ -91,8 +91,8 @@ stub.
 
 ## Next passes
 
-1. Themer: Wallpaper (matuwall), Rofi/Swaylock/Icons/SDDM+GRUB pages, and a
-   theme-import dialog (the 9 shipped themes + `theme_import` are done).
+1. Themer: Pywal / Rofi / Matuwall (TOML editor) / Lock Screen / Icons /
+   SDDM+GRUB pages (Wallpaper, the 9 shipped themes and theme import are done).
 2. Desktop widgets (clock/weather/visualizer/disk/network/resources/sysinfo) + placement.
 3. Start-menu layout variants (whisker/win7/win11/plasma), favorites/recents/places.
 4. Remaining module config (workspaces/clock/tray/quicksettings options),

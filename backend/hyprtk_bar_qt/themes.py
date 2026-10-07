@@ -57,11 +57,28 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("list")
     pal = sub.add_parser("palette")
     pal.add_argument("name")
+    sub.add_parser("installed")
+    imp = sub.add_parser("import")
+    imp.add_argument("path")
+    rem = sub.add_parser("remove")
+    rem.add_argument("name")
     args = ap.parse_args(argv)
 
     if args.action == "list":
         print(json.dumps({"themes": [_theme_entry(n) for n in theme_import.list_themes()]}))
         return 0
+    if args.action == "installed":
+        found = theme_import.find_installed_themes()
+        print(json.dumps({"installed": [{"name": n, "path": str(p)} for n, p in found]}))
+        return 0
+    if args.action == "import":
+        name = theme_import.import_theme(Path(args.path).expanduser())
+        print(json.dumps({"ok": name is not None, "name": name}))
+        return 0 if name else 1
+    if args.action == "remove":
+        ok = theme_import.remove_theme(args.name)
+        print(json.dumps({"ok": bool(ok)}))
+        return 0 if ok else 1
 
     palette = theme_import.parse_palette(args.name)
     print(json.dumps({"name": args.name, "palette": palette}))

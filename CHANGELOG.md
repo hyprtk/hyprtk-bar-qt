@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.10.0 — unreleased
+
+Parity pass 7 (theming, part 2): Wallpaper picker + theme import.
+
+- `surface/Themer.qml`: restructured into a sidebar of pages.
+  - **Wallpaper**: current-wallpaper preview + a thumbnail grid of the folder;
+    click applies via the hyprtk wallpaper script (regenerates pywal).
+  - **Bar Themes**: the 9 shipped themes (unchanged picker).
+  - **Import**: importable waybar themes from disk (name + path) and an
+    imported-themes list with remove.
+- `backend/hyprtk_bar_qt/wallpapers.py`: scan a folder for images, report the
+  current wallpaper, apply one (runs `wallpaper-colors.sh`).
+- `backend/hyprtk_bar_qt/themes.py`: `installed` / `import` / `remove`
+  subcommands.
+- `Config`: `wallpaperDir`.
+- Tests: `tests/test_wallpapers.py`, import/remove coverage in `test_themes.py`.
+
 ## 0.9.0 — unreleased
 
 Parity pass 6 (theming, part 1): shipped bar themes.

@@ -60,6 +60,16 @@ class ThemeImport(unittest.TestCase):
     def test_traversal_name_is_none(self) -> None:
         self.assertIsNone(theme_import.parse_palette("../etc"))
 
+    def test_import_then_remove(self) -> None:
+        src = self.base / "src-theme"
+        src.mkdir()
+        (src / "style.css").write_text(SAMPLE_CSS)
+        name = theme_import.import_theme(src)
+        self.assertEqual(name, "src-theme")
+        self.assertIn("src-theme", theme_import.list_themes())
+        self.assertTrue(theme_import.remove_theme("src-theme"))
+        self.assertNotIn("src-theme", theme_import.list_themes())
+
 
 class Hexify(unittest.TestCase):
     def test_rgba_to_hex(self) -> None:

@@ -38,6 +38,7 @@ Singleton {
     property var layoutRight: ["updates", "net", "tray", "kbstate", "notifications", "clock", "sysmon", "arcmenu", "themer", "settings", "quicksettings"]
 
     // ── theme overrides ("" = follow hyprtk-bar / pywal) ───────────────
+    property string wallpaperDir: ""       // "" = ~/Pictures/Wallpapers
     property string themeSource: ""
     property string themeName: ""
     property string themeBackground: ""
@@ -84,7 +85,7 @@ Singleton {
         "barPosition", "barHeight", "gapOut", "gapIn", "radius", "opacity",
         "barWidth", "barAlign", "clockFormat", "fontFamily", "fontSize",
         "animations", "animationDuration", "layoutLeft", "layoutCenter", "layoutRight",
-        "themeSource", "themeName", "themeBackground", "themeForeground", "themeAccent",
+        "wallpaperDir", "themeSource", "themeName", "themeBackground", "themeForeground", "themeAccent",
         "menuLayout", "quicklinksLinks", "arcMenuPosition", "arcMenuItems", "menuPower",
         "sysmonMonitor", "sysmonInterval", "sysmonDataPoints", "sysmonDiskPath",
         "sysmonNetworkIface", "sysmonPages"
