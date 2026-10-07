@@ -121,6 +121,60 @@ FloatingWindow {
     // ── widgets helpers ────────────────────────────────────────────────
     function widgetVal(id, key, fallback) { return win.g("widgets." + id + "." + key, fallback); }
     function setWidget(id, key, value) { win.set("widgets." + id + "." + key, value); }
+    function cloneArr(a) { return JSON.parse(JSON.stringify(a || [])); }
+    function widgetStyles(id) {
+        if (id === "clock")
+            return ["digital", "text", "dials"];
+        if (id === "visualizer")
+            return ["bars", "wave", "mirror", "dots", "glow"];
+        return [];
+    }
+    function hasColors(id) {
+        return ["clock", "weather", "visualizer", "disk", "network", "resources", "sysinfo"].indexOf(id) >= 0;
+    }
+
+    // ── arc menu item editor ───────────────────────────────────────────
+    function arcItems() { return win.g("arcmenu.items", []); }
+    function setArcItem(i, field, value) {
+        const a = win.cloneArr(win.arcItems());
+        a[i][field] = value;
+        win.set("arcmenu.items", a);
+    }
+    function addArcItem() {
+        const a = win.cloneArr(win.arcItems());
+        a.push({ glyph: "\uf013", command: "", tooltip: "", action: "" });
+        win.set("arcmenu.items", a);
+    }
+    function removeArcItem(i) {
+        const a = win.cloneArr(win.arcItems());
+        a.splice(i, 1);
+        win.set("arcmenu.items", a);
+    }
+    function moveArcItem(i, dir) {
+        const a = win.cloneArr(win.arcItems());
+        const j = i + dir;
+        if (j < 0 || j >= a.length)
+            return;
+        const t = a[i]; a[i] = a[j]; a[j] = t;
+        win.set("arcmenu.items", a);
+    }
+
+    // ── menu power + favourites ────────────────────────────────────────
+    readonly property var powerKeys: ["lock", "logout", "reboot", "shutdown", "suspend", "hibernate"]
+    function powerVal(k) { return win.g("menu.power." + k, ""); }
+    function setPower(k, v) { win.set("menu.power", { [k]: v }); }
+    function favorites() { return win.g("menu.favorites", []); }
+    function removeFavorite(i) {
+        const a = win.cloneArr(win.favorites());
+        a.splice(i, 1);
+        win.set("menu.favorites", a);
+    }
+    function addFavorite(id) {
+        if (!id) return;
+        const a = win.cloneArr(win.favorites());
+        if (a.indexOf(id) < 0) a.push(id);
+        win.set("menu.favorites", a);
+    }
 
     // ── reusable row ───────────────────────────────────────────────────
     component SRow: RowLayout {
@@ -420,6 +474,24 @@ FloatingWindow {
                             label: "Close on click"
                             TCheckBox { checked: win.g("arcmenu.close_on_click", true); onToggled: win.set("arcmenu.close_on_click", checked) }
                         }
+                        Text { text: "Menu items"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 6 }
+                        Repeater {
+                            model: win.arcItems()
+                            delegate: RowLayout {
+                                id: arcItem
+                                required property var modelData
+                                required property int index
+                                Layout.fillWidth: true
+                                spacing: 6
+                                TTextField { Layout.preferredWidth: 40; text: arcItem.modelData.glyph || ""; onEditingFinished: win.setArcItem(arcItem.index, "glyph", text) }
+                                TTextField { Layout.fillWidth: true; placeholderText: "command"; text: arcItem.modelData.command || ""; onEditingFinished: win.setArcItem(arcItem.index, "command", text) }
+                                TTextField { Layout.preferredWidth: 130; placeholderText: "tooltip"; text: arcItem.modelData.tooltip || ""; onEditingFinished: win.setArcItem(arcItem.index, "tooltip", text) }
+                                TButton { text: "\u2191"; implicitWidth: 30; onClicked: win.moveArcItem(arcItem.index, -1) }
+                                TButton { text: "\u2193"; implicitWidth: 30; onClicked: win.moveArcItem(arcItem.index, 1) }
+                                TButton { text: "\u2715"; implicitWidth: 30; onClicked: win.removeArcItem(arcItem.index) }
+                            }
+                        }
+                        TButton { text: "Add item"; onClicked: win.addArcItem() }
                         Item { Layout.fillHeight: true }
                     }
                 }
@@ -465,6 +537,26 @@ FloatingWindow {
                             TCheckBox { checked: win.g("menu.show_recents", true); onToggled: win.set("menu.show_recents", checked) }
                         }
                         SRow { label: "Max recents"; TSpinBox { from: 0; to: 30; value: win.g("menu.max_recents", 10); onValueChanged: win.set("menu.max_recents", value) } }
+                        Text { text: "Power commands"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 6 }
+                        Repeater {
+                            model: win.powerKeys
+                            delegate: SRow {
+                                required property string modelData
+                                label: modelData
+                                TTextField { Layout.fillWidth: true; text: win.powerVal(modelData); onEditingFinished: win.setPower(modelData, text) }
+                            }
+                        }
+                        Text { text: "Favourites"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 6 }
+                        Repeater {
+                            model: win.favorites()
+                            delegate: RowLayout {
+                                required property var modelData
+                                required property int index
+                                Layout.fillWidth: true
+                                Text { text: modelData; color: Theme.foreground; font.pixelSize: 11; Layout.fillWidth: true; elide: Text.ElideRight }
+                                TButton { text: "\u2715"; implicitWidth: 30; onClicked: win.removeFavorite(index) }
+                            }
+                        }
                         Item { Layout.fillHeight: true }
                     }
                 }
@@ -561,24 +653,48 @@ FloatingWindow {
                             spacing: 6
                             Repeater {
                                 model: win.widgetIds
-                                delegate: RowLayout {
+                                delegate: ColumnLayout {
                                     id: wr
                                     required property string modelData
                                     Layout.fillWidth: true
-                                    spacing: 8
-                                    Text { text: wr.modelData; color: Theme.foreground; font.pixelSize: 12; Layout.preferredWidth: 90 }
-                                    TCheckBox { text: "On"; checked: win.g("widgets." + wr.modelData + ".enabled", false); onToggled: win.setWidget(wr.modelData, "enabled", checked) }
-                                    TComboBox {
-                                        model: ["top-left", "top-center", "top-right", "center-left", "center", "center-right", "bottom-left", "bottom-center", "bottom-right", "free"]
-                                        currentIndex: win.idx(model, win.widgetVal(wr.modelData, "position", "top-left"))
-                                        onActivated: win.setWidget(wr.modelData, "position", model[currentIndex])
+                                    spacing: 4
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 8
+                                        Text { text: wr.modelData; color: Theme.foreground; font.pixelSize: 12; Layout.preferredWidth: 90 }
+                                        TCheckBox { text: "On"; checked: win.g("widgets." + wr.modelData + ".enabled", false); onToggled: win.setWidget(wr.modelData, "enabled", checked) }
+                                        TComboBox {
+                                            model: ["top-left", "top-center", "top-right", "center-left", "center", "center-right", "bottom-left", "bottom-center", "bottom-right", "free"]
+                                            currentIndex: win.idx(model, win.widgetVal(wr.modelData, "position", "top-left"))
+                                            onActivated: win.setWidget(wr.modelData, "position", model[currentIndex])
+                                        }
+                                        Text { text: "op"; color: Theme.dim; font.pixelSize: 10 }
+                                        TSlider {
+                                            Layout.preferredWidth: 100
+                                            from: 0.1; to: 1.0; stepSize: 0.05
+                                            value: win.widgetVal(wr.modelData, "opacity", 0.75)
+                                            onMoved: win.setWidget(wr.modelData, "opacity", value)
+                                        }
                                     }
-                                    Text { text: "op"; color: Theme.dim; font.pixelSize: 10 }
-                                    TSlider {
-                                        Layout.preferredWidth: 100
-                                        from: 0.1; to: 1.0; stepSize: 0.05
-                                        value: win.widgetVal(wr.modelData, "opacity", 0.75)
-                                        onMoved: win.setWidget(wr.modelData, "opacity", value)
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        Layout.leftMargin: 98
+                                        spacing: 6
+                                        Text { text: "style"; color: Theme.dim; font.pixelSize: 10 }
+                                        TComboBox {
+                                            Layout.preferredWidth: 120
+                                            visible: win.widgetStyles(wr.modelData).length > 0
+                                            model: win.widgetStyles(wr.modelData)
+                                            currentIndex: win.idx(model, win.widgetVal(wr.modelData, "style", ""))
+                                            onActivated: win.setWidget(wr.modelData, "style", model[currentIndex])
+                                        }
+                                        Text { text: "bg"; color: Theme.dim; font.pixelSize: 10; visible: win.hasColors(wr.modelData) }
+                                        TTextField { Layout.preferredWidth: 96; visible: win.hasColors(wr.modelData); placeholderText: "#rrggbb"; text: win.widgetVal(wr.modelData, "background", ""); onEditingFinished: win.setWidget(wr.modelData, "background", text) }
+                                        Text { text: "fg"; color: Theme.dim; font.pixelSize: 10; visible: win.hasColors(wr.modelData) }
+                                        TTextField { Layout.preferredWidth: 96; visible: win.hasColors(wr.modelData); placeholderText: "#rrggbb"; text: win.widgetVal(wr.modelData, "foreground", ""); onEditingFinished: win.setWidget(wr.modelData, "foreground", text) }
+                                        Text { text: "accent"; color: Theme.dim; font.pixelSize: 10; visible: win.hasColors(wr.modelData) }
+                                        TTextField { Layout.preferredWidth: 96; visible: win.hasColors(wr.modelData); placeholderText: "#rrggbb"; text: win.widgetVal(wr.modelData, "accent", ""); onEditingFinished: win.setWidget(wr.modelData, "accent", text) }
+                                        Item { Layout.fillWidth: true }
                                     }
                                 }
                             }
