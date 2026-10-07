@@ -27,7 +27,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 
 | GTK | Qt status |
 |---|---|
-| Bar settings window (9 pages) | ◐ `surface/Settings.qml` (4 controls; needs pages) |
+| Bar settings window (9 pages) | ✅ `surface/Settings.qml` — edits the shared hyprtk-bar config (bar geometry, theme, font, animations, arc menu, menu, quicklinks, modules, widgets) |
 | System monitor dialog (CPU/Mem/Disks/Network/GPU/Apps, cairo graphs) | ✅ `surface/SysMonitor.qml` (six pages, QML graphs, DIMM slots) |
 | Themer dialog (Wallpaper/Pywal/Rofi/Bar themes/Matuwall/Swaylock/Icons/SDDM+GRUB) | ✅ `surface/Themer.qml` (all nine pages, incl. the Matuwall TOML editor) |
 | Clipboard history dialog | ✅ `surface/Clipboard.qml` (cliphist list/copy/delete/wipe, search) |

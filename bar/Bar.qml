@@ -6,15 +6,19 @@ import Quickshell
 import "../theme"
 import "../config"
 import "../state"
+import "../data"
 import "modules"
 
 Rectangle {
     id: root
 
     readonly property real bgOpacity: Config.opacity >= 0 ? Config.opacity : Theme.opacity
+    readonly property var leftMods: BarConfig.layoutLeft.length ? BarConfig.layoutLeft : Config.layoutLeft
+    readonly property var centerMods: BarConfig.layoutCenter.length ? BarConfig.layoutCenter : Config.layoutCenter
+    readonly property var rightMods: BarConfig.layoutRight.length ? BarConfig.layoutRight : Config.layoutRight
 
     color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, root.bgOpacity)
-    radius: Config.radius
+    radius: BarConfig.radius
 
     // Maps a layout entry to its module component.
     component ModuleChooser: DelegateChooser {
@@ -58,7 +62,7 @@ Rectangle {
             Layout.alignment: Qt.AlignVCenter
             spacing: 8
             Repeater {
-                model: Config.layoutLeft
+                model: root.leftMods
                 delegate: ModuleChooser {}
             }
         }
@@ -69,7 +73,7 @@ Rectangle {
             Layout.alignment: Qt.AlignVCenter
             spacing: 8
             Repeater {
-                model: Config.layoutCenter
+                model: root.centerMods
                 delegate: ModuleChooser {}
             }
         }
@@ -80,7 +84,7 @@ Rectangle {
             Layout.alignment: Qt.AlignVCenter
             spacing: 8
             Repeater {
-                model: Config.layoutRight
+                model: root.rightMods
                 delegate: ModuleChooser {}
             }
         }

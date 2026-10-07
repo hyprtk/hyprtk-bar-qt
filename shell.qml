@@ -29,7 +29,7 @@ ShellRoot {
 
     // Parsed bar width in px for a given screen width.
     function _width(screenW) {
-        const w = Config.barWidth;
+        const w = BarConfig.barWidth;
         if (typeof w === "string" && w.endsWith("%")) {
             const pct = parseFloat(w);
             return Math.round(screenW * Math.max(0, Math.min(pct, 100)) / 100);
@@ -39,15 +39,15 @@ ShellRoot {
     }
     // Left/right margins for the bar pill on a screen of the given width.
     function _insets(screenW) {
-        const avail = screenW - Config.gapOut * 2;
+        const avail = screenW - BarConfig.gapOut * 2;
         const w = Math.max(120, Math.min(shell._width(screenW), avail));
         const leftover = avail - w;
-        if (Config.barAlign === "left")
-            return { left: Config.gapOut, right: Config.gapOut + leftover };
-        if (Config.barAlign === "right")
-            return { left: Config.gapOut + leftover, right: Config.gapOut };
+        if (BarConfig.barAlign === "left")
+            return { left: BarConfig.gapOut, right: BarConfig.gapOut + leftover };
+        if (BarConfig.barAlign === "right")
+            return { left: BarConfig.gapOut + leftover, right: BarConfig.gapOut };
         const half = Math.round(leftover / 2);
-        return { left: Config.gapOut + half, right: Config.gapOut + (leftover - half) };
+        return { left: BarConfig.gapOut + half, right: BarConfig.gapOut + (leftover - half) };
     }
 
     Variants {
@@ -60,16 +60,16 @@ ShellRoot {
 
             readonly property var insets: shell._insets(modelData.width)
 
-            anchors.top: Config.barPosition === "top"
-            anchors.bottom: Config.barPosition === "bottom"
+            anchors.top: BarConfig.barPosition === "top"
+            anchors.bottom: BarConfig.barPosition === "bottom"
             anchors.left: true
             anchors.right: true
-            margins.top: Config.barPosition === "top" ? Config.gapOut : 0
-            margins.bottom: Config.barPosition === "bottom" ? Config.gapOut : 0
+            margins.top: BarConfig.barPosition === "top" ? BarConfig.gapOut : 0
+            margins.bottom: BarConfig.barPosition === "bottom" ? BarConfig.gapOut : 0
             margins.left: panel.insets.left
             margins.right: panel.insets.right
-            implicitHeight: Config.barHeight
-            exclusiveZone: Config.barHeight + Config.gapOut
+            implicitHeight: BarConfig.barHeight
+            exclusiveZone: BarConfig.barHeight + BarConfig.gapOut
             color: "transparent"
 
             Bar {

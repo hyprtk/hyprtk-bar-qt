@@ -62,6 +62,8 @@ surface/widgets/
   SysInfoWidget.qml           host / OS / kernel / CPU / GPU / memory / disks
   VisualizerWidget.qml        cava audio bars / wave / mirror / dots / glow
 components/
+  TButton.qml / TTextField.qml / TComboBox.qml / TCheckBox.qml / TSpinBox.qml / TSlider.qml
+                              themed QtQuick Controls (replace the default look)
   Toggle.qml                  pill toggle
   Sparkline.qml               Canvas line + gradient-area graph
 backend/
@@ -83,6 +85,7 @@ backend/
     menu.py                   start-menu favourites/recents (shared config)
     matuwall.py               matuwall config.toml read/write (themer page)
     files.py                  directory listing for the plasma file browser
+    barsettings.py            shared hyprtk-bar config editor (settings window)
     widgets_layout.py         desktop-widget snap-group layout + position save
     widget_move.py            desktop-widget move FIFO (start/stop)
 tests/

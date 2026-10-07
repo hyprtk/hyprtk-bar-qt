@@ -1,12 +1,17 @@
-// Settings window — nine pages (Bar / Themes / Fonts / Animations / Arc Menu /
-// Menu / Quicklinks / Modules / Widgets) editing config/Config.qml.
+// Settings window — nine pages editing the shared hyprtk-bar config
+// (~/.config/hyprtk-bar/config.json), so the Qt and GTK bars share settings.
+//
+// Bar / Themes / Fonts / Animations / Arc Menu / Menu / Quicklinks / Modules /
+// Widgets. Changes are debounced and written via backend/.../barsettings.py.
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls.Basic
 import Quickshell
+import Quickshell.Io
 import "../theme"
 import "../config"
 import "../state"
+import "../data"
 import "../components"
 
 FloatingWindow {
@@ -14,8 +19,8 @@ FloatingWindow {
 
     title: "hyprtk-bar-qt settings"
     visible: UiState.settingsOpen
-    implicitWidth: 760
-    implicitHeight: 560
+    implicitWidth: 820
+    implicitHeight: 620
     color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Math.max(0.95, Theme.opacity))
 
     property real reveal: 0
@@ -23,47 +28,114 @@ FloatingWindow {
     Behavior on reveal { NumberAnimation { duration: win.animMs; easing.type: Easing.OutCubic } }
     onVisibleChanged: reveal = visible ? 1 : 0
 
+    readonly property string backend:
+        Qt.resolvedUrl("../backend/hyprtk_bar_qt/barsettings.py").toString().replace("file://", "")
+
     property int page: 0
     readonly property var pageNames: ["Bar", "Themes", "Fonts", "Animations", "Arc Menu", "Menu", "Quicklinks", "Modules", "Widgets"]
-    readonly property var moduleNames: [
-        "start_button", "quicklinks", "workspaces", "tasklist", "window", "updates",
-        "net", "tray", "kbstate", "notifications", "clock", "sysmon",
-        "arcmenu", "themer", "settings", "quicksettings"
-    ]
     readonly property var arcPositions: ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right"]
+    readonly property var moduleIds: ["start_button", "quicklinks", "workspaces", "tasklist", "window", "updates", "net", "tray", "kbstate", "notifications", "clock", "sysmon", "arcmenu", "themer", "settings", "quicksettings"]
+    readonly property var widgetIds: ["clock", "weather", "visualizer", "disk", "network", "resources", "sysinfo"]
 
+    // ── debounced shared-config writer ─────────────────────────────────
+    property var pending: ({})
+    Timer { id: flushTimer; interval: 200; onTriggered: win.flush() }
+    Process { id: setProc; onExited: (code, status) => {} }
+
+    function set(path, value) {
+        const parts = String(path).split(".");
+        let node = win.pending;
+        for (let i = 0; i < parts.length - 1; i++)
+            node = (node[parts[i]] = node[parts[i]] || ({}));
+        node[parts[parts.length - 1]] = value;
+        flushTimer.restart();
+    }
+    function flush() {
+        if (Object.keys(win.pending).length === 0)
+            return;
+        const patch = win.pending;
+        win.pending = ({});
+        setProc.command = ["python3", win.backend, "set", "--json", JSON.stringify(patch)];
+        setProc.running = true;
+    }
+    // Read a dotted path from the shared config.
+    function g(path, fallback) {
+        let node = BarConfig.cfg;
+        for (const p of String(path).split(".")) {
+            if (node === null || node === undefined)
+                return fallback;
+            node = node[p];
+        }
+        return (node === undefined || node === null) ? fallback : node;
+    }
     function idx(list, v) {
-        const i = list.indexOf(v);
+        const i = (list || []).indexOf(v);
         return i < 0 ? 0 : i;
     }
-    function inList(list, name) {
-        return (list || []).indexOf(name) >= 0;
+
+    // ── layout (modules) helpers ───────────────────────────────────────
+    function sectionOf(id) {
+        if ((BarConfig.layoutLeft || []).indexOf(id) >= 0) return "left";
+        if ((BarConfig.layoutCenter || []).indexOf(id) >= 0) return "center";
+        if ((BarConfig.layoutRight || []).indexOf(id) >= 0) return "right";
+        return "";
     }
-    function setSide(name, side, on) {
-        let L = Config.layoutLeft.filter(x => x !== name);
-        let R = Config.layoutRight.filter(x => x !== name);
-        if (on) {
-            if (side === "left")
-                L.push(name);
-            else
-                R.push(name);
-        }
-        Config.layoutLeft = L;
-        Config.layoutRight = R;
+    function setSection(id, section) {
+        const clean = (list) => (list || []).filter(x => x !== id);
+        let L = clean(BarConfig.layoutLeft);
+        let C = clean(BarConfig.layoutCenter);
+        let R = clean(BarConfig.layoutRight);
+        if (section === "left") L.push(id);
+        else if (section === "center") C.push(id);
+        else if (section === "right") R.push(id);
+        win.set("layout", { left: L, center: C, right: R });
     }
+    function moduleEnabledBlock(id) {
+        const map = {
+            start_button: "center", themer: "themer", quicklinks: "quicklinks",
+            workspaces: "workspaces", window: "window", updates: "updates",
+            tray: "tray", notifications: "notifications", clock: "clock",
+            sysmon: "sysmon", arcmenu: "arcmenu", quicksettings: "quicksettings"
+        };
+        return map[id] || "";
+    }
+
+    // ── quicklinks helpers ─────────────────────────────────────────────
+    function links() { return win.g("quicklinks.links", []); }
     function setLink(i, field, value) {
-        const arr = Config.quicklinksLinks.slice();
-        arr[i] = Object.assign({}, arr[i]);
+        const arr = JSON.parse(JSON.stringify(win.links()));
         arr[i][field] = value;
-        Config.quicklinksLinks = arr;
+        win.set("quicklinks.links", arr);
     }
     function addLink() {
-        Config.quicklinksLinks = Config.quicklinksLinks.concat([{ glyph: "\uf013", command: "" }]);
+        const arr = JSON.parse(JSON.stringify(win.links()));
+        arr.push({ id: "custom" + arr.length, label: "", icon: "\uf013", command: "", command_right: "", command_middle: "" });
+        win.set("quicklinks.links", arr);
     }
     function removeLink(i) {
-        const arr = Config.quicklinksLinks.slice();
+        const arr = JSON.parse(JSON.stringify(win.links()));
         arr.splice(i, 1);
-        Config.quicklinksLinks = arr;
+        win.set("quicklinks.links", arr);
+    }
+
+    // ── widgets helpers ────────────────────────────────────────────────
+    function widgetVal(id, key, fallback) { return win.g("widgets." + id + "." + key, fallback); }
+    function setWidget(id, key, value) { win.set("widgets." + id + "." + key, value); }
+
+    // ── reusable row ───────────────────────────────────────────────────
+    component SRow: RowLayout {
+        id: r
+        default property alias content: r.data
+        Layout.fillWidth: true
+        spacing: 8
+        property string label: ""
+        Text {
+            text: r.label
+            color: Theme.foreground
+            font.pixelSize: 12
+            Layout.preferredWidth: 150
+            elide: Text.ElideRight
+        }
     }
 
     RowLayout {
@@ -77,15 +149,12 @@ FloatingWindow {
             Layout.fillHeight: true
             implicitWidth: 150
             color: Theme.alpha(Theme.background, 0.6)
-
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 10
                 spacing: 4
-
                 Repeater {
                     model: win.pageNames
-
                     delegate: Rectangle {
                         required property string modelData
                         required property int index
@@ -95,7 +164,6 @@ FloatingWindow {
                         color: win.page === index
                             ? Theme.alpha(Theme.accent, 0.85)
                             : (sbHover.hovered ? Theme.alpha(Theme.accent2, 0.15) : "transparent")
-
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             anchors.left: parent.left
@@ -105,11 +173,7 @@ FloatingWindow {
                             font.pixelSize: 12
                         }
                         HoverHandler { id: sbHover }
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: win.page = index
-                        }
+                        TapHandler { onTapped: win.page = index }
                     }
                 }
                 Item { Layout.fillHeight: true }
@@ -124,274 +188,410 @@ FloatingWindow {
             spacing: 12
 
             StackLayout {
-                id: stack
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 currentIndex: win.page
 
-                // Bar
-                ColumnLayout {
-                    spacing: 10
-                    RowLayout {
-                        Text { text: "Position"; color: Theme.foreground; Layout.fillWidth: true }
-                        TComboBox {
-                            model: ["top", "bottom"]
-                            currentIndex: win.idx(["top", "bottom"], Config.barPosition)
-                            onActivated: Config.barPosition = model[currentIndex]
-                        }
-                    }
-                    RowLayout {
-                        Text { text: "Height"; color: Theme.foreground; Layout.fillWidth: true }
-                        TSpinBox { from: 24; to: 64; value: Config.barHeight; onValueChanged: Config.barHeight = value }
-                    }
-                    RowLayout {
-                        Text { text: "Gap (edge)"; color: Theme.foreground; Layout.fillWidth: true }
-                        TSpinBox { from: 0; to: 40; value: Config.gapOut; onValueChanged: Config.gapOut = value }
-                    }
-                    RowLayout {
-                        Text { text: "Gap (windows)"; color: Theme.foreground; Layout.fillWidth: true }
-                        TSpinBox { from: 0; to: 40; value: Config.gapIn; onValueChanged: Config.gapIn = value }
-                    }
-                    RowLayout {
-                        Text { text: "Corner radius"; color: Theme.foreground; Layout.fillWidth: true }
-                        TSpinBox { from: 0; to: 30; value: Config.radius; onValueChanged: Config.radius = value }
-                    }
-                    RowLayout {
-                        Text { text: "Width"; color: Theme.foreground; Layout.fillWidth: true }
-                        TTextField { Layout.preferredWidth: 120; text: Config.barWidth; onEditingFinished: Config.barWidth = text }
-                    }
-                    RowLayout {
-                        Text { text: "Align"; color: Theme.foreground; Layout.fillWidth: true }
-                        TComboBox {
-                            model: ["left", "center", "right"]
-                            currentIndex: win.idx(["left", "center", "right"], Config.barAlign)
-                            onActivated: Config.barAlign = model[currentIndex]
-                        }
-                    }
-                    RowLayout {
-                        Text { text: "Opacity"; color: Theme.foreground; Layout.fillWidth: true }
-                        TSlider {
-                            Layout.preferredWidth: 200
-                            from: 0.2; to: 1.0; stepSize: 0.01
-                            value: Config.opacity >= 0 ? Config.opacity : Theme.opacity
-                            onMoved: Config.opacity = value
-                        }
-                        Text { text: Math.round((Config.opacity >= 0 ? Config.opacity : Theme.opacity) * 100) + "%"; color: Theme.dim }
-                    }
-                    Item { Layout.fillHeight: true }
-                }
-
-                // Themes
-                ColumnLayout {
-                    spacing: 10
-                    Text { text: "Overrides (blank = follow hyprtk-bar / pywal)"; color: Theme.dim; font.pixelSize: 11 }
-                    RowLayout {
-                        Text { text: "Source"; color: Theme.foreground; Layout.fillWidth: true }
-                        TComboBox {
-                            model: ["", "pywal", "manual"]
-                            currentIndex: win.idx(["", "pywal", "manual"], Config.themeSource)
-                            onActivated: Config.themeSource = model[currentIndex]
-                        }
-                    }
-                    RowLayout {
-                        Text { text: "Theme name"; color: Theme.foreground; Layout.fillWidth: true }
-                        TTextField { Layout.preferredWidth: 220; text: Config.themeName; onEditingFinished: Config.themeName = text }
-                    }
-                    RowLayout {
-                        Text { text: "Background"; color: Theme.foreground; Layout.fillWidth: true }
-                        TTextField { Layout.preferredWidth: 220; placeholderText: "#1e1e2e"; text: Config.themeBackground; onEditingFinished: Config.themeBackground = text }
-                    }
-                    RowLayout {
-                        Text { text: "Foreground"; color: Theme.foreground; Layout.fillWidth: true }
-                        TTextField { Layout.preferredWidth: 220; placeholderText: "#e5e7eb"; text: Config.themeForeground; onEditingFinished: Config.themeForeground = text }
-                    }
-                    RowLayout {
-                        Text { text: "Accent"; color: Theme.foreground; Layout.fillWidth: true }
-                        TTextField { Layout.preferredWidth: 220; placeholderText: "#c084fc"; text: Config.themeAccent; onEditingFinished: Config.themeAccent = text }
-                    }
-                    RowLayout {
+                // Bar ──────────────────────────────────────────────────
+                Flickable {
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    contentHeight: barCol.implicitHeight; clip: true
+                    ColumnLayout {
+                        id: barCol
+                        width: parent.width
                         spacing: 8
-                        Repeater {
-                            model: win.swatchList()
-                            delegate: Rectangle {
-                                required property var modelData
-                                width: 32; height: 32; radius: 6
-                                color: modelData.c
-                                border.color: Theme.alpha(Theme.foreground, 0.3); border.width: 1
+                        SRow {
+                            label: "Position"
+                            TComboBox {
+                                model: ["top", "bottom"]
+                                currentIndex: win.idx(model, win.g("position", "top"))
+                                onActivated: win.set("position", model[currentIndex])
                             }
                         }
-                        Item { Layout.fillWidth: true }
-                    }
-                    Item { Layout.fillHeight: true }
-                }
-
-                // Fonts
-                ColumnLayout {
-                    spacing: 10
-                    RowLayout {
-                        Text { text: "Font family"; color: Theme.foreground; Layout.fillWidth: true }
-                        TTextField { Layout.preferredWidth: 220; text: Config.fontFamily; onEditingFinished: Config.fontFamily = text }
-                    }
-                    RowLayout {
-                        Text { text: "Font size"; color: Theme.foreground; Layout.fillWidth: true }
-                        TSpinBox { from: 8; to: 20; value: Config.fontSize; onValueChanged: Config.fontSize = value }
-                    }
-                    Text { text: "Applies to modules that read Theme.fontFamily/fontSize."; color: Theme.dim; font.pixelSize: 10; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                    Item { Layout.fillHeight: true }
-                }
-
-                // Animations
-                ColumnLayout {
-                    spacing: 10
-                    RowLayout {
-                        Text { text: "Enable animations"; color: Theme.foreground; Layout.fillWidth: true }
-                        TCheckBox { checked: Config.animations; onToggled: Config.animations = checked }
-                    }
-                    RowLayout {
-                        Text { text: "Duration (ms)"; color: Theme.foreground; Layout.fillWidth: true }
-                        TSpinBox { from: 0; to: 1000; stepSize: 10; value: Config.animationDuration; onValueChanged: Config.animationDuration = value }
-                    }
-                    Item { Layout.fillHeight: true }
-                }
-
-                // Arc Menu
-                ColumnLayout {
-                    spacing: 10
-                    RowLayout {
-                        Text { text: "Position"; color: Theme.foreground; Layout.fillWidth: true }
-                        TComboBox {
-                            model: win.arcPositions
-                            currentIndex: win.idx(win.arcPositions, Config.arcMenuPosition)
-                            onActivated: Config.arcMenuPosition = model[currentIndex]
+                        SRow {
+                            label: "Height"
+                            TSpinBox { from: 20; to: 120; value: win.g("height", 38); onValueChanged: win.set("height", value) }
                         }
+                        SRow {
+                            label: "Width (% or px)"
+                            TTextField { Layout.preferredWidth: 120; text: win.g("width", "75%"); onEditingFinished: win.set("width", text) }
+                        }
+                        SRow {
+                            label: "Align"
+                            TComboBox {
+                                model: ["left", "center", "right"]
+                                currentIndex: win.idx(model, win.g("align", "center"))
+                                onActivated: win.set("align", model[currentIndex])
+                            }
+                        }
+                        SRow {
+                            label: "Gap in (bar\u2194windows)"
+                            TSpinBox { from: 0; to: 60; value: win.g("gap_in", 0); onValueChanged: win.set("gap_in", value) }
+                        }
+                        SRow {
+                            label: "Gap out (bar\u2194edge)"
+                            TSpinBox { from: 0; to: 60; value: win.g("gap_out", 0); onValueChanged: win.set("gap_out", value) }
+                        }
+                        SRow {
+                            label: "Corner radius"
+                            TSpinBox { from: 0; to: 40; value: win.g("radius", 12); onValueChanged: win.set("radius", value) }
+                        }
+                        SRow {
+                            label: "Opacity"
+                            TSlider {
+                                Layout.preferredWidth: 200
+                                from: 0.2; to: 1.0; stepSize: 0.01
+                                value: win.g("opacity", 0.75)
+                                onMoved: win.set("opacity", value)
+                            }
+                            Text { text: Math.round(win.g("opacity", 0.75) * 100) + "%"; color: Theme.dim; font.pixelSize: 11 }
+                        }
+                        Item { Layout.fillHeight: true }
                     }
-                    Text { text: "Items (" + Config.arcMenuItems.length + ")"; color: Theme.dim; font.pixelSize: 11 }
-                    Repeater {
-                        model: Config.arcMenuItems
-                        delegate: RowLayout {
-                            required property var modelData
-                            Text { text: (modelData.glyph || "?") + "  " + (modelData.tooltip || modelData.command || modelData.action || ""); color: Theme.foreground; font.pixelSize: 11 }
+                }
+
+                // Themes ────────────────────────────────────────────────
+                Flickable {
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    contentHeight: thCol.implicitHeight; clip: true
+                    ColumnLayout {
+                        id: thCol
+                        width: parent.width
+                        spacing: 8
+                        SRow {
+                            label: "Source"
+                            TComboBox {
+                                model: ["pywal", "manual", ""]
+                                currentIndex: win.idx(["pywal", "manual", ""], win.g("theme.source", "pywal"))
+                                onActivated: win.set("theme.source", model[currentIndex])
+                            }
+                        }
+                        SRow {
+                            label: "Theme name"
+                            TTextField { Layout.fillWidth: true; text: win.g("theme.theme_name", ""); onEditingFinished: win.set("theme.theme_name", text) }
+                        }
+                        SRow {
+                            label: "Background"
+                            TTextField { Layout.fillWidth: true; placeholderText: "#1a1b26"; text: win.g("theme.background", ""); onEditingFinished: win.set("theme.background", text) }
+                        }
+                        SRow {
+                            label: "Foreground"
+                            TTextField { Layout.fillWidth: true; placeholderText: "#c0caf5"; text: win.g("theme.foreground", ""); onEditingFinished: win.set("theme.foreground", text) }
+                        }
+                        SRow {
+                            label: "Accent"
+                            TTextField { Layout.fillWidth: true; placeholderText: "#7aa2f7"; text: win.g("theme.accent", ""); onEditingFinished: win.set("theme.accent", text) }
+                        }
+                        SRow {
+                            label: "Border animation"
+                            TCheckBox { checked: win.g("theme.border_animation", true); onToggled: win.set("theme.border_animation", checked) }
+                        }
+                        SRow {
+                            label: "Swatches"
+                            Repeater {
+                                model: [Theme.background, Theme.foreground, Theme.accent, Theme.accent2, Theme.dim, Theme.err, Theme.warn]
+                                delegate: Rectangle {
+                                    required property var modelData
+                                    width: 30; height: 30; radius: 6; color: modelData
+                                    border.color: Theme.alpha(Theme.foreground, 0.3); border.width: 1
+                                }
+                            }
                             Item { Layout.fillWidth: true }
                         }
+                        Item { Layout.fillHeight: true }
                     }
-                    Text { text: "Item editing is a later pass."; color: Theme.dim; font.pixelSize: 10 }
-                    Item { Layout.fillHeight: true }
                 }
 
-                // Menu
+                // Fonts ─────────────────────────────────────────────────
+                Flickable {
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    contentHeight: fnCol.implicitHeight; clip: true
+                    ColumnLayout {
+                        id: fnCol
+                        width: parent.width
+                        spacing: 8
+                        SRow {
+                            label: "Family (blank = sys)"
+                            TTextField { Layout.fillWidth: true; text: win.g("font.family", ""); onEditingFinished: win.set("font.family", text) }
+                        }
+                        SRow {
+                            label: "Size (px)"
+                            TSpinBox { from: 8; to: 40; value: win.g("font.size", 12); onValueChanged: win.set("font.size", value) }
+                        }
+                        SRow {
+                            label: "Icon size (0=auto)"
+                            TSpinBox { from: 0; to: 48; value: win.g("font.icon_size", 0); onValueChanged: win.set("font.icon_size", value) }
+                        }
+                        SRow {
+                            label: "Quicklink icons"
+                            TSpinBox { from: 0; to: 48; value: win.g("quicklinks.icon_size", 0); onValueChanged: win.set("quicklinks.icon_size", value) }
+                        }
+                        Item { Layout.fillHeight: true }
+                    }
+                }
+
+                // Animations ────────────────────────────────────────────
+                Flickable {
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    contentHeight: anCol.implicitHeight; clip: true
+                    ColumnLayout {
+                        id: anCol
+                        width: parent.width
+                        spacing: 8
+                        Text {
+                            Layout.fillWidth: true
+                            text: "Animate the bar's border colour. Low/High follow Hyprland's animation files; Custom is independent."
+                            color: Theme.dim; font.pixelSize: 11; wrapMode: Text.WordWrap
+                        }
+                        SRow {
+                            label: "Animated border"
+                            TCheckBox { checked: win.g("theme.border_animation", true); onToggled: win.set("theme.border_animation", checked) }
+                        }
+                        SRow {
+                            label: "Mode"
+                            TComboBox {
+                                model: ["low", "high", "custom"]
+                                currentIndex: win.idx(model, win.g("animations.mode", "high"))
+                                onActivated: win.set("animations.mode", model[currentIndex])
+                            }
+                        }
+                        SRow {
+                            label: "Custom speed"
+                            TSpinBox { from: 1; to: 200; value: win.g("animations.speed", 15); onValueChanged: win.set("animations.speed", value) }
+                        }
+                        SRow {
+                            label: "UI animations"
+                            TCheckBox { checked: Config.animations; onToggled: Config.animations = checked }
+                        }
+                        Item { Layout.fillHeight: true }
+                    }
+                }
+
+                // Arc Menu ──────────────────────────────────────────────
+                Flickable {
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    contentHeight: arcCol.implicitHeight; clip: true
+                    ColumnLayout {
+                        id: arcCol
+                        width: parent.width
+                        spacing: 8
+                        SRow {
+                            label: "Enabled"
+                            TCheckBox { checked: win.g("arcmenu.enabled", true); onToggled: win.set("arcmenu.enabled", checked) }
+                        }
+                        SRow {
+                            label: "Position"
+                            TComboBox {
+                                model: win.arcPositions
+                                currentIndex: win.idx(win.arcPositions, win.g("arcmenu.position", "bottom-right"))
+                                onActivated: win.set("arcmenu.position", model[currentIndex])
+                            }
+                        }
+                        SRow {
+                            label: "Shape"
+                            TComboBox {
+                                model: ["circle", "square"]
+                                currentIndex: win.idx(model, win.g("arcmenu.shape", "circle"))
+                                onActivated: win.set("arcmenu.shape", model[currentIndex])
+                            }
+                        }
+                        SRow { label: "Radius"; TSpinBox { from: 40; to: 400; value: win.g("arcmenu.radius", 140); onValueChanged: win.set("arcmenu.radius", value) } }
+                        SRow { label: "FAB size"; TSpinBox { from: 24; to: 96; value: win.g("arcmenu.fab_size", 56); onValueChanged: win.set("arcmenu.fab_size", value) } }
+                        SRow { label: "Item size"; TSpinBox { from: 24; to: 96; value: win.g("arcmenu.item_size", 48); onValueChanged: win.set("arcmenu.item_size", value) } }
+                        SRow { label: "Margin"; TSpinBox { from: 0; to: 200; value: win.g("arcmenu.margin", 24); onValueChanged: win.set("arcmenu.margin", value) } }
+                        SRow { label: "Animation (ms)"; TSpinBox { from: 0; to: 1000; stepSize: 20; value: win.g("arcmenu.animation_time", 300); onValueChanged: win.set("arcmenu.animation_time", value) } }
+                        SRow {
+                            label: "FAB glyph"
+                            TTextField { Layout.fillWidth: true; text: win.g("arcmenu.fab_glyph", "\uf00a"); onEditingFinished: win.set("arcmenu.fab_glyph", text) }
+                        }
+                        SRow {
+                            label: "Use pywal colours"
+                            TCheckBox { checked: win.g("arcmenu.use_pywal", true); onToggled: win.set("arcmenu.use_pywal", checked) }
+                        }
+                        SRow {
+                            label: "FAB colour"
+                            TTextField { Layout.preferredWidth: 120; text: win.g("arcmenu.fab_color", "#C084FC"); onEditingFinished: win.set("arcmenu.fab_color", text) }
+                        }
+                        SRow {
+                            label: "Item colour"
+                            TTextField { Layout.preferredWidth: 120; text: win.g("arcmenu.item_color", "#22D3EE"); onEditingFinished: win.set("arcmenu.item_color", text) }
+                        }
+                        SRow {
+                            label: "Close on click"
+                            TCheckBox { checked: win.g("arcmenu.close_on_click", true); onToggled: win.set("arcmenu.close_on_click", checked) }
+                        }
+                        Item { Layout.fillHeight: true }
+                    }
+                }
+
+                // Menu ──────────────────────────────────────────────────
+                Flickable {
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    contentHeight: mnCol.implicitHeight; clip: true
+                    ColumnLayout {
+                        id: mnCol
+                        width: parent.width
+                        spacing: 8
+                        SRow {
+                            label: "Layout"
+                            TComboBox {
+                                model: ["whisker", "win7", "win11", "plasma"]
+                                currentIndex: win.idx(model, win.g("menu.layout", "whisker"))
+                                onActivated: win.set("menu.layout", model[currentIndex])
+                            }
+                        }
+                        SRow {
+                            label: "Position"
+                            TComboBox {
+                                model: ["auto", "top", "bottom"]
+                                currentIndex: win.idx(model, win.g("menu.position", "auto"))
+                                onActivated: win.set("menu.position", model[currentIndex])
+                            }
+                        }
+                        SRow {
+                            label: "Align"
+                            TComboBox {
+                                model: ["left", "center", "right"]
+                                currentIndex: win.idx(model, win.g("menu.align", "left"))
+                                onActivated: win.set("menu.align", model[currentIndex])
+                            }
+                        }
+                        SRow { label: "Width"; TSpinBox { from: 400; to: 1600; stepSize: 20; value: win.g("menu.width", 920); onValueChanged: win.set("menu.width", value) } }
+                        SRow { label: "Height"; TSpinBox { from: 320; to: 1000; stepSize: 20; value: win.g("menu.height", 580); onValueChanged: win.set("menu.height", value) } }
+                        SRow { label: "Sidebar width"; TSpinBox { from: 120; to: 300; value: win.g("menu.sidebar_width", 180); onValueChanged: win.set("menu.sidebar_width", value) } }
+                        SRow { label: "Recents width"; TSpinBox { from: 120; to: 360; value: win.g("menu.recents_width", 230); onValueChanged: win.set("menu.recents_width", value) } }
+                        SRow {
+                            label: "Show recents"
+                            TCheckBox { checked: win.g("menu.show_recents", true); onToggled: win.set("menu.show_recents", checked) }
+                        }
+                        SRow { label: "Max recents"; TSpinBox { from: 0; to: 30; value: win.g("menu.max_recents", 10); onValueChanged: win.set("menu.max_recents", value) } }
+                        Item { Layout.fillHeight: true }
+                    }
+                }
+
+                // Quicklinks ─────────────────────────────────────────────
                 ColumnLayout {
-                    spacing: 10
-                    RowLayout {
-                        Text { text: "Start-menu layout"; color: Theme.foreground; Layout.fillWidth: true }
-                        TComboBox {
-                            model: ["whisker", "win7", "win11", "plasma"]
-                            currentIndex: win.idx(["whisker", "win7", "win11", "plasma"], Config.menuLayout)
-                            onActivated: Config.menuLayout = model[currentIndex]
+                    spacing: 8
+                    SRow {
+                        label: "Enabled"
+                        TCheckBox { checked: win.g("quicklinks.enabled", true); onToggled: win.set("quicklinks.enabled", checked) }
+                    }
+                    Flickable {
+                        Layout.fillWidth: true; Layout.fillHeight: true
+                        contentHeight: qlCol.implicitHeight; clip: true
+                        ColumnLayout {
+                            id: qlCol
+                            width: parent.width
+                            spacing: 6
+                            Repeater {
+                                model: win.links()
+                                delegate: RowLayout {
+                                    id: ql
+                                    required property var modelData
+                                    required property int index
+                                    Layout.fillWidth: true
+                                    spacing: 6
+                                    TTextField { Layout.preferredWidth: 40; text: ql.modelData.icon || ""; onEditingFinished: win.setLink(ql.index, "icon", text) }
+                                    TTextField { Layout.fillWidth: true; placeholderText: "command"; text: ql.modelData.command || ""; onEditingFinished: win.setLink(ql.index, "command", text) }
+                                    TTextField { Layout.preferredWidth: 160; placeholderText: "right command"; text: ql.modelData.command_right || ""; onEditingFinished: win.setLink(ql.index, "command_right", text) }
+                                    TButton { text: "\u2715"; onClicked: win.removeLink(ql.index) }
+                                }
+                            }
+                            RowLayout {
+                                Layout.fillWidth: true
+                                TButton { text: "Add link"; onClicked: win.addLink() }
+                                Item { Layout.fillWidth: true }
+                            }
                         }
                     }
-                    Text { text: "Layout variants are a later pass (v1 grid is used for all)."; color: Theme.dim; font.pixelSize: 10 }
-                    Repeater {
-                        model: ["lock", "logout", "reboot", "shutdown", "suspend"]
-                        delegate: RowLayout {
-                            required property string modelData
-                            Text { text: modelData; color: Theme.foreground; Layout.preferredWidth: 90 }
-                            TTextField {
+                }
+
+                // Modules ────────────────────────────────────────────────
+                Flickable {
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    contentHeight: modCol.implicitHeight; clip: true
+                    ColumnLayout {
+                        id: modCol
+                        width: parent.width
+                        spacing: 6
+                        Text { text: "Place each module left / center / right; the checkbox toggles it."; color: Theme.dim; font.pixelSize: 11 }
+                        Repeater {
+                            model: win.moduleIds
+                            delegate: RowLayout {
+                                id: mrow
+                                required property string modelData
                                 Layout.fillWidth: true
-                                text: Config.menuPower[modelData] || ""
-                                onEditingFinished: {
-                                    const mp = Object.assign({}, Config.menuPower);
-                                    mp[modelData] = text;
-                                    Config.menuPower = mp;
+                                spacing: 8
+                                Text { text: mrow.modelData; color: Theme.foreground; font.pixelSize: 12; Layout.preferredWidth: 130 }
+                                TCheckBox {
+                                    text: "Enabled"
+                                    visible: win.moduleEnabledBlock(mrow.modelData) !== ""
+                                    checked: win.g(win.moduleEnabledBlock(mrow.modelData) + ".enabled", true)
+                                    onToggled: win.set(win.moduleEnabledBlock(mrow.modelData) + ".enabled", checked)
+                                }
+                                TComboBox {
+                                    model: ["", "left", "center", "right"]
+                                    currentIndex: win.idx(["", "left", "center", "right"], win.sectionOf(mrow.modelData))
+                                    onActivated: win.setSection(mrow.modelData, model[currentIndex])
+                                }
+                                Item { Layout.fillWidth: true }
+                            }
+                        }
+                        Item { Layout.fillHeight: true }
+                    }
+                }
+
+                // Widgets ────────────────────────────────────────────────
+                ColumnLayout {
+                    spacing: 8
+                    SRow {
+                        label: "Widgets enabled"
+                        TCheckBox { checked: win.g("widgets.enabled", false); onToggled: win.set("widgets.enabled", checked) }
+                    }
+                    SRow {
+                        label: "Transparent pills"
+                        TCheckBox { checked: win.g("widgets.transparent", false); onToggled: win.set("widgets.transparent", checked) }
+                    }
+                    Flickable {
+                        Layout.fillWidth: true; Layout.fillHeight: true
+                        contentHeight: wCol.implicitHeight; clip: true
+                        ColumnLayout {
+                            id: wCol
+                            width: parent.width
+                            spacing: 6
+                            Repeater {
+                                model: win.widgetIds
+                                delegate: RowLayout {
+                                    id: wr
+                                    required property string modelData
+                                    Layout.fillWidth: true
+                                    spacing: 8
+                                    Text { text: wr.modelData; color: Theme.foreground; font.pixelSize: 12; Layout.preferredWidth: 90 }
+                                    TCheckBox { text: "On"; checked: win.g("widgets." + wr.modelData + ".enabled", false); onToggled: win.setWidget(wr.modelData, "enabled", checked) }
+                                    TComboBox {
+                                        model: ["top-left", "top-center", "top-right", "center-left", "center", "center-right", "bottom-left", "bottom-center", "bottom-right", "free"]
+                                        currentIndex: win.idx(model, win.widgetVal(wr.modelData, "position", "top-left"))
+                                        onActivated: win.setWidget(wr.modelData, "position", model[currentIndex])
+                                    }
+                                    Text { text: "op"; color: Theme.dim; font.pixelSize: 10 }
+                                    TSlider {
+                                        Layout.preferredWidth: 100
+                                        from: 0.1; to: 1.0; stepSize: 0.05
+                                        value: win.widgetVal(wr.modelData, "opacity", 0.75)
+                                        onMoved: win.setWidget(wr.modelData, "opacity", value)
+                                    }
                                 }
                             }
                         }
                     }
-                    Item { Layout.fillHeight: true }
-                }
-
-                // Quicklinks
-                ColumnLayout {
-                    spacing: 8
-                    Repeater {
-                        model: Config.quicklinksLinks
-                        delegate: RowLayout {
-                            required property var modelData
-                            required property int index
-                            TTextField {
-                                Layout.preferredWidth: 40
-                                text: modelData.glyph || ""
-                                onEditingFinished: win.setLink(index, "glyph", text)
-                            }
-                            TTextField {
-                                Layout.fillWidth: true
-                                placeholderText: "command"
-                                text: modelData.command || ""
-                                onEditingFinished: win.setLink(index, "command", text)
-                            }
-                            TTextField {
-                                Layout.preferredWidth: 160
-                                placeholderText: "alt (r/m-click)"
-                                text: modelData.alt || ""
-                                onEditingFinished: win.setLink(index, "alt", text)
-                            }
-                            TButton { text: "\u2715"; onClicked: win.removeLink(index) }
-                        }
-                    }
-                    RowLayout {
-                        TButton { text: "Add link"; onClicked: win.addLink() }
-                        Item { Layout.fillWidth: true }
-                    }
-                    Item { Layout.fillHeight: true }
-                }
-
-                // Modules (placement editor)
-                ColumnLayout {
-                    spacing: 6
-                    Text { text: "Place modules on the left or right of the bar."; color: Theme.dim; font.pixelSize: 11 }
-                    Repeater {
-                        model: win.moduleNames
-                        delegate: RowLayout {
-                            required property string modelData
-                            Text { text: modelData; color: Theme.foreground; Layout.preferredWidth: 140 }
-                            TCheckBox {
-                                text: "Left"
-                                checked: win.inList(Config.layoutLeft, modelData)
-                                onToggled: win.setSide(modelData, "left", checked)
-                            }
-                            TCheckBox {
-                                text: "Right"
-                                checked: win.inList(Config.layoutRight, modelData)
-                                onToggled: win.setSide(modelData, "right", checked)
-                            }
-                            Item { Layout.fillWidth: true }
-                        }
-                    }
-                    Item { Layout.fillHeight: true }
-                }
-
-                // Widgets
-                ColumnLayout {
-                    spacing: 10
-                    Text { text: "Desktop widgets"; color: Theme.accent; font.bold: true }
-                    Text { text: "clock \u00b7 weather \u00b7 visualizer \u00b7 disk \u00b7 network \u00b7 resources \u00b7 sysinfo"; color: Theme.dim; font.pixelSize: 11; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-                    Text { text: "Not yet implemented in the Qt rewrite (see PARITY.md)."; color: Theme.warn; font.pixelSize: 11 }
-                    Item { Layout.fillHeight: true }
                 }
             }
 
             RowLayout {
                 Layout.fillWidth: true
-                Text { text: "Settings write ~/.config/hyprtk-bar-qt/config.json"; color: Theme.dim; font.pixelSize: 10; Layout.fillWidth: true }
-                TButton { text: "Save"; onClicked: Config.save() }
+                Text { text: "Saves to ~/.config/hyprtk-bar/config.json (shared with the GTK bar)"; color: Theme.dim; font.pixelSize: 10; Layout.fillWidth: true }
                 TButton { text: "Close"; onClicked: UiState.settingsOpen = false }
             }
         }
-    }
-
-    function swatchList() {
-        return [
-            { c: Theme.background }, { c: Theme.foreground }, { c: Theme.accent },
-            { c: Theme.accent2 }, { c: Theme.dim }, { c: Theme.err }, { c: Theme.warn }
-        ];
     }
 }

@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import Quickshell
 import "../theme"
 import "../config"
+import "../data"
 import "../state"
 
 PanelWindow {
@@ -11,7 +12,7 @@ PanelWindow {
 
     anchors.top: true
     anchors.left: true
-    margins.top: Config.barHeight + 6
+    margins.top: BarConfig.barHeight + 6
     margins.left: Math.max(4, UiState.barMenuX)
     implicitWidth: 224
     implicitHeight: col.implicitHeight + 16

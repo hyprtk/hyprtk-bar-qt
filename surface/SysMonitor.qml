@@ -23,10 +23,10 @@ PanelWindow {
 
     // Anchor to the same edge as the bar, centred horizontally (no left/right
     // anchor => the compositor centres the surface).
-    anchors.top: Config.barPosition === "top"
-    anchors.bottom: Config.barPosition === "bottom"
-    margins.top: Config.barPosition === "top" ? Config.barHeight + Config.gapOut + 6 : 0
-    margins.bottom: Config.barPosition === "bottom" ? Config.barHeight + Config.gapOut + 6 : 0
+    anchors.top: BarConfig.barPosition === "top"
+    anchors.bottom: BarConfig.barPosition === "bottom"
+    margins.top: BarConfig.barPosition === "top" ? BarConfig.barHeight + BarConfig.gapOut + 6 : 0
+    margins.bottom: BarConfig.barPosition === "bottom" ? BarConfig.barHeight + BarConfig.gapOut + 6 : 0
     implicitWidth: 920
     implicitHeight: 600
 

@@ -34,6 +34,25 @@ Singleton {
         const b = root.cfg[key];
         return (b && typeof b === "object") ? b : ({});
     }
+    function top(key, fallback) {
+        const v = root.cfg[key];
+        return (v === undefined || v === null) ? fallback : v;
+    }
+
+    // ── top-level bar geometry (shared with the GTK bar) ───────────────
+    readonly property string barPosition: top("position", "top")
+    readonly property int barHeight: top("height", 38)
+    readonly property int gapIn: top("gap_in", 0)
+    readonly property int gapOut: top("gap_out", 0)
+    readonly property int radius: top("radius", 12)
+    readonly property real opacity: top("opacity", 0.75)
+    readonly property var barWidth: top("width", "75%")
+    readonly property string barAlign: top("align", "center")
+    readonly property bool usePywal: top("use_pywal", true)
+
+    readonly property var layoutLeft: block("layout").left || []
+    readonly property var layoutCenter: block("layout").center || []
+    readonly property var layoutRight: block("layout").right || []
 
     readonly property var workspaces: block("workspaces")
     readonly property var clock: block("clock")

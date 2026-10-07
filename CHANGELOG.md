@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.26.0 — unreleased
+
+Look-and-feel parity with the GTK bar.
+
+- **Themed controls**: `components/TButton|TTextField|TComboBox|TCheckBox|
+  TSpinBox|TSlider` replace the raw QtQuick Controls (no more default white
+  boxes/buttons); swapped in across every dialog.
+- **Shared bar geometry/layout**: `shell.qml`, `Bar.qml` and the overlay margins
+  (sysmon/clipboard/notification center/bar menu) now read the shared top-level
+  config (`position`/`height`/`gap_in`/`gap_out`/`radius`/`opacity`/`width`/
+  `align`) and the shared `layout` block — the Qt bar now renders at the same
+  2880×38 / 75% / centred geometry as the GTK bar.
+- **Shared quicklinks**: `Quicklinks.qml` reads the shared `quicklinks.links`
+  (icon/command/command_right/command_middle + `icon_size`), with id-based
+  surface actions (apps/cliphist/wallpaper).
+- **Settings rewritten** to edit `~/.config/hyprtk-bar/config.json` via
+  `backend/.../barsettings.py` (debounced atomic patches): full Bar / Themes /
+  Fonts / Animations / Arc Menu / Menu / Quicklinks / Modules / Widgets pages.
+- Tests: `tests/test_barsettings.py`.
+
 ## 0.25.0 — unreleased
 
 Parity pass 22: desktop-widget drag (move mode).

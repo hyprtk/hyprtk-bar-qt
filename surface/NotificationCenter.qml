@@ -18,11 +18,11 @@ PanelWindow {
     focusable: true
     exclusionMode: ExclusionMode.Ignore
 
-    anchors.top: Config.barPosition === "top"
-    anchors.bottom: Config.barPosition === "bottom"
+    anchors.top: BarConfig.barPosition === "top"
+    anchors.bottom: BarConfig.barPosition === "bottom"
     anchors.right: true
-    margins.top: Config.barPosition === "top" ? Config.barHeight + Config.gapOut + 6 : 0
-    margins.bottom: Config.barPosition === "bottom" ? Config.barHeight + Config.gapOut + 6 : 0
+    margins.top: BarConfig.barPosition === "top" ? BarConfig.barHeight + BarConfig.gapOut + 6 : 0
+    margins.bottom: BarConfig.barPosition === "bottom" ? BarConfig.barHeight + BarConfig.gapOut + 6 : 0
     margins.right: 8
     implicitWidth: 380
     implicitHeight: 420

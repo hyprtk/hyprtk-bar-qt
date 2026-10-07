@@ -80,8 +80,8 @@ PanelWindow {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
     // Usable area: never sit under the bar (its edge inset acts as a border).
-    readonly property int barTop: Config.barPosition === "top" ? Config.barHeight + Config.gapOut : 0
-    readonly property int barBottom: Config.barPosition === "bottom" ? Config.barHeight + Config.gapOut : 0
+    readonly property int barTop: BarConfig.barPosition === "top" ? BarConfig.barHeight + BarConfig.gapOut : 0
+    readonly property int barBottom: BarConfig.barPosition === "bottom" ? BarConfig.barHeight + BarConfig.gapOut : 0
 
     readonly property var pos: frame._pos()
     anchors.top: pos.top
