@@ -49,7 +49,9 @@ Singleton {
     property var quicklinksLinks: [
         { glyph: "\uf120", command: "alacritty", alt: "thunar", tooltip: "Terminal" },
         { glyph: "\uf07c", command: "thunar", tooltip: "Files" },
-        { glyph: "\uf0ac", command: "firefox", tooltip: "Browser" }
+        { glyph: "\uf0ac", command: "firefox", tooltip: "Browser" },
+        { glyph: "\uf03e", action: "themer", tooltip: "Wallpaper" },
+        { glyph: "\uf0ea", action: "clipboard", tooltip: "Clipboard history" }
     ]
     property string arcMenuPosition: "top-right"
     property var arcMenuItems: [

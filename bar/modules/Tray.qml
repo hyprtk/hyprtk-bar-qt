@@ -1,8 +1,8 @@
-// System tray (SNI host), via Quickshell's StatusNotifier service.
+// System tray (SNI host), via Quickshell's StatusNotifier + DBusMenu services.
 //
-// Left-click activates, middle-click secondary-activates. Context menus come
-// from Quickshell.DBusMenu in a follow-up; icons use the item's icon string
-// (usually an absolute path).
+// Left-click activates, middle-click secondary-activates, right-click opens the
+// item's DBusMenu context menu through QsMenuAnchor (items with onlyMenu open
+// the menu on left-click too).
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -23,6 +23,10 @@ RowLayout {
             implicitWidth: 18
             implicitHeight: 18
 
+            // Window attached property is only valid on Item-derived types, so
+            // resolve it here and hand it to the (QtObject) menu anchor.
+            readonly property var barWindow: QsWindow.window
+
             Image {
                 anchors.fill: parent
                 source: item.modelData.icon
@@ -32,15 +36,34 @@ RowLayout {
                 fillMode: Image.PreserveAspectFit
             }
 
+            QsMenuAnchor {
+                id: menuAnchor
+                menu: item.modelData.menu
+                anchor.window: item.barWindow
+                anchor.item: item
+                anchor.rect: Qt.rect(0, item.height, item.width, 1)
+                anchor.edges: Edges.Bottom
+                anchor.gravity: Edges.Bottom
+            }
+
             MouseArea {
                 anchors.fill: parent
-                acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+                acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
                 cursorShape: Qt.PointingHandCursor
                 onClicked: (mouse) => {
-                    if (mouse.button === Qt.MiddleButton)
+                    if (mouse.button === Qt.MiddleButton) {
                         item.modelData.secondaryActivate();
-                    else
+                    } else if (mouse.button === Qt.RightButton) {
+                        if (item.modelData.hasMenu)
+                            menuAnchor.open();
+                    } else if (item.modelData.onlyMenu) {
+                        if (item.modelData.hasMenu)
+                            menuAnchor.open();
+                        else
+                            item.modelData.activate();
+                    } else {
                         item.modelData.activate();
+                    }
                 }
             }
         }

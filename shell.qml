@@ -9,6 +9,7 @@ import QtQuick
 import "bar"
 import "surface"
 import "config"
+import "state"
 
 ShellRoot {
     id: shell
@@ -72,6 +73,7 @@ ShellRoot {
     Themer {}
     SysMonitor {}
     NotificationCenter {}
+    Clipboard {}
 
     Loader {
         active: Quickshell.env("HYPRTK_BAR_QT_NOTIFICATIONS") === "1"

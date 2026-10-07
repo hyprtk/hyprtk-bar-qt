@@ -19,7 +19,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 | `kbstate` | Caps/Num lock LEDs | ✅ `KbState.qml` |
 | `clock` | time/date (styles, dials, seconds) | ◐ `Clock.qml` (digital simple; no styles/dials) |
 | `notifications` | daemon + center (bell) | ✅ `NotificationsButton.qml` bell + unread badge, `surface/NotificationCenter.qml` history, opt-in toasts |
-| `tray` | SNI tray + dbusmenu | ◐ `Tray.qml` (icons + activate; no context menu) |
+| `tray` | SNI tray + dbusmenu | ✅ `Tray.qml` (icons + activate + right-click DBusMenu via `QsMenuAnchor`) |
 | `quicksettings` | Win11 flyout | ✅ `surface/QuickSettings.qml` |
 | graphs | cpu/mem/net history | ✅ `components/Sparkline.qml`, `Net.qml` |
 
@@ -30,7 +30,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 | Bar settings window (9 pages) | ◐ `surface/Settings.qml` (4 controls; needs pages) |
 | System monitor dialog (CPU/Mem/Disks/Network/GPU/Apps, cairo graphs) | ✅ `surface/SysMonitor.qml` (six pages, QML graphs, DIMM slots) |
 | Themer dialog (Wallpaper/Pywal/Rofi/Bar themes/Matuwall/Swaylock/Icons/SDDM+GRUB) | ◐ `surface/Themer.qml` v1 (palette/opacity/actions; pages todo) |
-| Clipboard history dialog | ☐ |
+| Clipboard history dialog | ✅ `surface/Clipboard.qml` (cliphist list/copy/delete/wipe, search) |
 | Notification center | ✅ `surface/NotificationCenter.qml` (history, actions, clear all, unread badge) |
 | Quick-settings flyout | ✅ |
 | Arc menu (radial FAB) | ✅ `surface/ArcMenu.qml` (items from config; no per-layout themes) |
@@ -83,15 +83,16 @@ stub.
 | `sysmon` (cpu/mem/net) | ✅ `backend/.../sysmon.py` |
 | `monitor` (cpu cores/mem/disk/net/gpu, rich stream) | ✅ `backend/.../monitor.py` |
 | `monitor_data` (dmidecode/lspci/lsblk) | ✅ `backend/.../monitor_data.py` |
+| `clipboard` (cliphist list/copy/delete/wipe) | ✅ `backend/.../clipboard.py` |
+| `proc_action` / `dimm` helpers | ✅ |
 | palette / config readers | ✅ |
 | `hypr_animations` | ☐ |
-| `ipc` (hyprctl + socket2) | ◐ (Hyprland service used instead) |
+| `ipc` (hyprctl + socket2) | ◐ (Hyprland service + `IpcHandler` used instead) |
 
 ## Next passes
 
-1. Clipboard history, tray context menu (dbusmenu).
-2. Themer: 9 themes, theme_import, wallpaper/pywal/rofi/swaylock/icons/SDDM.
-3. Desktop widgets (clock/weather/visualizer/disk/network/resources/sysinfo) + placement.
-4. Start-menu layout variants (whisker/win7/win11/plasma), favorites/recents/places.
-5. Remaining module config (workspaces/clock/tray/quicksettings options),
+1. Themer: 9 themes, theme_import, wallpaper/pywal/rofi/swaylock/icons/SDDM.
+2. Desktop widgets (clock/weather/visualizer/disk/network/resources/sysinfo) + placement.
+3. Start-menu layout variants (whisker/win7/win11/plasma), favorites/recents/places.
+4. Remaining module config (workspaces/clock/tray/quicksettings options),
    multi-monitor `monitors`, animation/font live application.

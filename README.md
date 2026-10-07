@@ -31,6 +31,7 @@ surface/
   SysMonitor.qml              Mission Center-style system monitor dialog (CPU/Mem/Disks/Network/GPU/Apps)
   NotificationCenter.qml      notification history panel (bell)
   Notifications.qml           transient toast stack (opt-in daemon, see below)
+  Clipboard.qml               cliphist history (search/copy/delete/wipe)
 theme/
   Theme.qml                   singleton: live pywal + hyprtk-bar config colours
   qmldir
@@ -53,6 +54,8 @@ backend/
     monitor.py                rich system-monitor sampler (cpu/mem/disk/net/gpu/apps), streams JSON lines
     monitor_data.py           toolkit-free readers (cpu cores/temps, mem, disk, net, gpu, drives, dimms, procs)
     proc_action.py            one-shot kill/launch helper for the Apps page
+    dimm.py                   one-shot DIMM-slot reader (SMBIOS/dmidecode)
+    clipboard.py              cliphist wrapper (list/copy/delete/wipe)
 tests/
   test_sysmon.py              backend unit tests
   test_monitor.py             monitor backend unit tests
@@ -99,7 +102,8 @@ Working bar: workspaces, tasklist, tray, clock, CPU/memory sparklines and a
 network-rate graph (all fed by the Python backend), plus a quick-settings
 flyout, a settings window, a corner arc menu and a Mission Center-style system
 monitor dialog (CPU / Memory / Disks / Network / GPU / Apps, opened from the
-sysmon module) and a notification center (bell + history panel). Theming reads the live pywal
+sysmon module), a notification center (bell + history panel) and cliphist
+clipboard history. Theming reads the live pywal
 palette and the existing hyprtk-bar config, so it matches the desktop while the
 GTK bar still runs alongside it.
 

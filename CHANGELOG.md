@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.8.0 — unreleased
+
+Parity pass 5: clipboard history + tray context menu.
+
+- `surface/Clipboard.qml`: in-bar clipboard history (cliphist) — search, click to
+  copy (text/image), per-row delete, two-step "Clear all", Esc to close. Toggle
+  from the clipboard quicklink or `qs ipc call clipboard toggle`
+  (`bin/hyprtk-bar-qt-clipboard-toggle`).
+- `backend/hyprtk_bar_qt/clipboard.py`: toolkit-free cliphist wrapper
+  (list/copy/delete/wipe) with a testable `parse_list`.
+- `bar/modules/Tray.qml`: right-click now opens the item's DBusMenu via
+  `QsMenuAnchor` (items with `onlyMenu` open it on left-click too).
+- `bar/modules/Quicklinks.qml`: quicklinks can carry a built-in `action`
+  (`clipboard` / `themer` / `settings`) instead of a command; defaults now
+  include Wallpaper and Clipboard.
+
 ## 0.7.0 — unreleased
 
 Parity pass 4: notification center.

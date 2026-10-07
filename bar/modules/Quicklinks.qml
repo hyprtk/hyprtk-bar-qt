@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Quickshell
 import "../../theme"
 import "../../config"
+import "../../state"
 
 RowLayout {
     id: root
@@ -35,9 +36,20 @@ RowLayout {
                 acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                 cursorShape: Qt.PointingHandCursor
                 onClicked: (mouse) => {
+                    const linkData = link.modelData;
+                    // Built-in surface actions (no command).
+                    if (mouse.button === Qt.LeftButton && linkData.action) {
+                        if (linkData.action === "clipboard")
+                            UiState.clipboardOpen = !UiState.clipboardOpen;
+                        else if (linkData.action === "themer")
+                            UiState.themerOpen = !UiState.themerOpen;
+                        else if (linkData.action === "settings")
+                            UiState.settingsOpen = true;
+                        return;
+                    }
                     const cmd = (mouse.button === Qt.LeftButton)
-                        ? link.modelData.command
-                        : (link.modelData.alt || link.modelData.command);
+                        ? linkData.command
+                        : (linkData.alt || linkData.command);
                     if (cmd)
                         Quickshell.execDetached(["sh", "-c", cmd]);
                 }
