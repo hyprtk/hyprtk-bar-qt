@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Start/stop a desktop-widget move for the Qt bar by writing to its control FIFO.
+#
+# Bind Super + Shift + left mouse (press -> start, release -> stop):
+#   bind = SUPER SHIFT, mouse:272, exec, hyprtk-bar-qt-widget-move start
+#   bindr = SUPER SHIFT, mouse:272, exec, hyprtk-bar-qt-widget-move stop
+set -uo pipefail
+
+action="${1:-start}"
+runtime="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+fifo="$runtime/hyprtk-bar-qt-widget-move.fifo"
+
+if [ -p "$fifo" ]; then
+    printf '%s\n' "$action" > "$fifo" 2>/dev/null || true
+fi
+exit 0

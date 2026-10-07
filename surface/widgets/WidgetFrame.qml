@@ -18,14 +18,42 @@ PanelWindow {
     property int marginY: 40
     property string layer: "bottom"        // background | bottom | top
 
-    // Snap-group override (empty unless the widget is in a snap_group).
-    readonly property var over: WidgetLayout.forId(frame.widgetId)
+    // Placement overrides: an active move wins over a snap-group override, which
+    // wins over the widget's own config.
+    readonly property var moveOver: WidgetMove.overFor(frame.widgetId)
+    readonly property var snapOver: WidgetLayout.forId(frame.widgetId)
+    readonly property var over: frame.moveOver !== null ? frame.moveOver : frame.snapOver
     readonly property bool hasOver: over !== null
     readonly property string effPos: frame.hasOver ? "free" : frame.position
     readonly property int effMarginX: frame.hasOver ? frame.over.x : frame.marginX
     readonly property int effMarginY: frame.hasOver ? frame.over.y : frame.marginY
     readonly property int effWidth: (frame.hasOver && frame.over.w > 0) ? frame.over.w : frame.widgetWidth
     readonly property int effHeight: (frame.hasOver && frame.over.h > 0) ? frame.over.h : frame.widgetHeight
+
+    // Global rect (single monitor origin) for hit-testing a move.
+    function _gx() {
+        const sw = frame.screen ? frame.screen.width : 0;
+        if (pos.left)
+            return frame.effMarginX;
+        if (pos.right)
+            return sw - frame.effMarginX - frame.width;
+        return Math.round((sw - frame.width) / 2);
+    }
+    function _gy() {
+        const sh = frame.screen ? frame.screen.height : 0;
+        if (pos.top)
+            return frame.effMarginY;
+        if (pos.bottom)
+            return sh - frame.effMarginY - frame.height;
+        return Math.round((sh - frame.height) / 2);
+    }
+    function _register() {
+        WidgetMove.setGeometry(frame.widgetId, frame._gx(), frame._gy(), frame.width, frame.height);
+    }
+    Component.onCompleted: _register()
+    onWidthChanged: _register()
+    onHeightChanged: _register()
+    onHasOverChanged: _register()
 
     // ── appearance ─────────────────────────────────────────────────────
     property int widgetWidth: 280

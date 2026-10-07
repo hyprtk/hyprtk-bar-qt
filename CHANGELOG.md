@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.25.0 — unreleased
+
+Parity pass 22: desktop-widget drag (move mode).
+
+- `backend/.../widget_move.py`: a FIFO streamer (`hyprtk-bar-qt-widget-move.fifo`)
+  that relays `start` / `stop` from a Hyprland bind.
+- `data/WidgetMove.qml`: while moving, polls `hyprctl cursorpos` and offsets the
+  widget under the cursor; on release persists its free `margin_x/y` via
+  `widgets_layout.py set`. `WidgetFrame` registers its rect and applies the
+  move override (move > snap > config).
+- `bin/hyprtk-bar-qt-widget-move`: writes start/stop to the FIFO (bind Super +
+  Shift + left mouse press/release).
+- Tests: `widgets_layout.set_position`.
+
 ## 0.24.0 — unreleased
 
 Parity pass 21: desktop-widget snap groups.

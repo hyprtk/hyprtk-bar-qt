@@ -13,8 +13,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import tempfile
+from pathlib import Path
 
 SPACING = 8
+
+BAR_CONFIG = Path.home() / ".config" / "hyprtk-bar" / "config.json"
 
 
 def layout(widgets: dict) -> dict:
@@ -51,12 +56,45 @@ def layout(widgets: dict) -> dict:
     return out
 
 
+def set_position(widget_id: str, x: int, y: int, config_path: Path = BAR_CONFIG) -> bool:
+    """Persist a dragged widget's free position into the shared widgets block."""
+    try:
+        data = json.loads(config_path.read_text())
+    except (OSError, ValueError):
+        return False
+    widgets = data.setdefault("widgets", {})
+    block = widgets.setdefault(widget_id, {})
+    block["position"] = "free"
+    block["margin_x"] = int(x)
+    block["margin_y"] = int(y)
+    try:
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(dir=str(config_path.parent), prefix=".config.", suffix=".tmp")
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, config_path)
+        return True
+    except OSError:
+        return False
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="desktop-widget snap-group layout")
     sub = ap.add_subparsers(dest="action", required=True)
     lp = sub.add_parser("layout")
     lp.add_argument("--json", required=True)
+    sp = sub.add_parser("set")
+    sp.add_argument("--id", required=True)
+    sp.add_argument("--x", type=int, required=True)
+    sp.add_argument("--y", type=int, required=True)
     args = ap.parse_args(argv)
+
+    if args.action == "set":
+        ok = set_position(args.id, args.x, args.y)
+        print(json.dumps({"ok": ok}))
+        return 0 if ok else 1
 
     try:
         widgets = json.loads(args.json)

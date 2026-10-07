@@ -49,6 +49,7 @@ data/
   Widgets.qml                 singleton: desktop-widget config (shared hyprtk-bar block)
   WidgetData.qml              singleton: telemetry for the sampled desktop widgets
   WidgetLayout.qml            singleton: snap-group layout overrides
+  WidgetMove.qml              singleton: cursor-polling widget move mode
   MenuConfig.qml              singleton: start-menu config (shared hyprtk-bar block)
   BarConfig.qml               singleton: module/font/animation/monitors config (shared)
 surface/widgets/
@@ -82,12 +83,14 @@ backend/
     menu.py                   start-menu favourites/recents (shared config)
     matuwall.py               matuwall config.toml read/write (themer page)
     files.py                  directory listing for the plasma file browser
-    widgets_layout.py         desktop-widget snap-group layout
+    widgets_layout.py         desktop-widget snap-group layout + position save
+    widget_move.py            desktop-widget move FIFO (start/stop)
 tests/
   test_sysmon.py              backend unit tests
   test_monitor.py             monitor backend unit tests
 bin/hyprtk-bar-qt             launcher wrapper (qs -p <root>)
 bin/hyprtk-bar-qt-arc-toggle  hotkey helper (qs ipc call arcmenu toggle)
+bin/hyprtk-bar-qt-widget-move  desktop-widget move start/stop (Hyprland bind)
 Makefile                      make test / run / install
 install.sh                    copy into the Quickshell config dir
 ```
@@ -138,6 +141,14 @@ GTK bar still runs alongside it.
 `make test` runs the toolkit-free backend unit tests. The arc menu can be bound
 to a hotkey with `hyprtk-bar-qt-arc-toggle` (it calls `qs ipc call arcmenu
 toggle`).
+
+Desktop widgets can be dragged with Super + Shift + left mouse once these
+Hyprland binds are set (the bar watches its own move FIFO):
+
+```
+bind  = SUPER SHIFT, mouse:272, exec, hyprtk-bar-qt-widget-move start
+bindr = SUPER SHIFT, mouse:272, exec, hyprtk-bar-qt-widget-move stop
+```
 
 Notifications (the `org.freedesktop.Notifications` daemon + toasts) are
 implemented but **opt-in**, because only one process can own that bus name:

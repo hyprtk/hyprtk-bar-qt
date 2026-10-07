@@ -93,7 +93,7 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 | placement: 9-way + `free` | ✅ (`WidgetFrame`) |
 | placement: usable-area clamp | ✅ (kept clear of the bar) |
 | placement: snap groups (`snap_group`/`snap_axis`/`snap_order`) | ✅ config-driven (`widgets_layout`) |
-| placement: drag (Super+Shift move) | ☐ |
+| placement: drag (Super+Shift move) | ✅ cursor-polling move mode via `widget_move` FIFO + `hyprtk-bar-qt-widget-move` |
 
 ## Backend (Python, toolkit-free)
 
@@ -110,6 +110,6 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 
 ## Next passes
 
-1. Desktop-widget drag (Super+Shift move); snap groups and usable-area clamp done.
-2. Config parity is essentially complete (only the low-level drag/snap placement
-   of desktop widgets remains an open design question).
+All listed parity items are implemented. Residual refinements (not tracked as
+blocking): start-menu Places categories beyond the current set, and MPRIS media
+control on the bar (not part of the original module matrix).

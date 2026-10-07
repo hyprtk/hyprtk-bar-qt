@@ -106,6 +106,22 @@ class SnapLayout(unittest.TestCase):
         self.assertEqual(out["b"]["y"], 10 + 120 + widgets_layout.SPACING)
 
 
+class SetPosition(unittest.TestCase):
+    def test_writes_free_position(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "config.json"
+            path.write_text('{"widgets": {"clock": {"position": "top-right"}}}')
+            self.assertTrue(widgets_layout.set_position("clock", 500, 300, path))
+            import json
+            data = json.loads(path.read_text())
+            self.assertEqual(data["widgets"]["clock"]["position"], "free")
+            self.assertEqual(data["widgets"]["clock"]["margin_x"], 500)
+            self.assertEqual(data["widgets"]["clock"]["margin_y"], 300)
+
+    def test_missing_config_fails(self) -> None:
+        self.assertFalse(widgets_layout.set_position("clock", 1, 2, Path("/no/such/config.json")))
+
+
 class SysInfo(unittest.TestCase):
     def test_gather_shape(self) -> None:
         with mock.patch.object(sysinfo.monitor_data, "gpu_static", return_value=None):
