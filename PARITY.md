@@ -53,7 +53,7 @@ stub.
 | `bar` (position/height/gaps/radius/opacity/width/align) | ✅ |
 | `monitors` (primary / all / [connector]) | ✅ `shell.qml` screen filter |
 | `theme` (source/theme_name/background/foreground/accent) | ✅ writer + `Theme` overrides |
-| `animations`, `font` | ◐ animations stored; `font` family/size applied to modules |
+| `animations`, `font` | ✅ surface reveal animations gated by `Config.animations`; `font` applied to the bar modules |
 | `layout` (left/center/right module lists) | ✅ data-driven (`DelegateChooser`) |
 | `quicklinks` | ✅ |
 | `menu` (layout + power) | ◐ (layout stored; v1 grid) |
@@ -109,5 +109,4 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 ## Next passes
 
 1. Desktop-widget drag (Super+Shift move) and snap groups; usable-area clamp done.
-2. Remaining config: quicksettings options, live animation on the surfaces, and
-   font on the last few modules (arcmenu config/animation done).
+2. Quicksettings options (the block is currently just `enabled`).

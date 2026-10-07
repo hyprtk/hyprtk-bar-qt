@@ -31,7 +31,13 @@ PanelWindow {
     implicitHeight: 600
 
     // Drive the backend only while the dialog is open.
-    onVisibleChanged: MonitorData.active = visible
+    property real reveal: 0
+    readonly property int animMs: Config.animations ? Config.animationDuration : 0
+    Behavior on reveal { NumberAnimation { duration: win.animMs; easing.type: Easing.OutCubic } }
+    onVisibleChanged: {
+        MonitorData.active = visible;
+        reveal = visible ? 1 : 0;
+    }
 
     readonly property var allPages: [
         { key: "cpu", glyph: "\uf2db", label: "CPU" },        // fa-microchip
@@ -424,6 +430,8 @@ PanelWindow {
         color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Math.max(0.96, Theme.opacity))
         border.width: 1
         border.color: Theme.alpha(Theme.accent2, 0.2)
+        opacity: win.reveal
+        transform: Translate { y: (1 - win.reveal) * -8 }
 
         ColumnLayout {
             anchors.fill: parent

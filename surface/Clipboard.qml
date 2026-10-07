@@ -46,7 +46,12 @@ PanelWindow {
             listProc.running = true;
     }
 
+    property real reveal: 0
+    readonly property int animMs: Config.animations ? Config.animationDuration : 0
+    Behavior on reveal { NumberAnimation { duration: clip.animMs; easing.type: Easing.OutCubic } }
+
     onVisibleChanged: {
+        clip.reveal = visible ? 1 : 0;
         if (visible) {
             clip.query = "";
             clip.clearArmed = false;
@@ -121,6 +126,8 @@ PanelWindow {
         color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Math.max(0.96, Theme.opacity))
         border.width: 1
         border.color: Theme.alpha(Theme.accent2, 0.2)
+        opacity: clip.reveal
+        transform: Translate { y: (1 - clip.reveal) * -8 }
 
         ColumnLayout {
             anchors.fill: parent

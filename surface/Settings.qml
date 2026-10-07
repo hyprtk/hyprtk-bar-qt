@@ -17,6 +17,11 @@ FloatingWindow {
     implicitHeight: 560
     color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Math.max(0.95, Theme.opacity))
 
+    property real reveal: 0
+    readonly property int animMs: Config.animations ? Config.animationDuration : 0
+    Behavior on reveal { NumberAnimation { duration: win.animMs; easing.type: Easing.OutCubic } }
+    onVisibleChanged: reveal = visible ? 1 : 0
+
     property int page: 0
     readonly property var pageNames: ["Bar", "Themes", "Fonts", "Animations", "Arc Menu", "Menu", "Quicklinks", "Modules", "Widgets"]
     readonly property var moduleNames: [
@@ -63,6 +68,8 @@ FloatingWindow {
     RowLayout {
         anchors.fill: parent
         spacing: 0
+        opacity: win.reveal
+        transform: Translate { y: (1 - win.reveal) * -8 }
 
         // ── sidebar ────────────────────────────────────────────────────
         Rectangle {

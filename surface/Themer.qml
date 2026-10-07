@@ -57,7 +57,12 @@ FloatingWindow {
         return Config.wallpaperDir.length > 0 ? Config.wallpaperDir : win.home + "/Pictures/Wallpapers";
     }
 
+    property real reveal: 0
+    readonly property int animMs: Config.animations ? Config.animationDuration : 0
+    Behavior on reveal { NumberAnimation { duration: win.animMs; easing.type: Easing.OutCubic } }
+
     onVisibleChanged: {
+        win.reveal = visible ? 1 : 0;
         if (!visible)
             return;
         win.refreshThemes();
@@ -272,6 +277,8 @@ FloatingWindow {
     RowLayout {
         anchors.fill: parent
         spacing: 0
+        opacity: win.reveal
+        transform: Translate { y: (1 - win.reveal) * -8 }
 
         Rectangle {
             Layout.fillHeight: true

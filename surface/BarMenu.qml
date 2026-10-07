@@ -57,12 +57,19 @@ PanelWindow {
         }
     }
 
+    property real reveal: 0
+    readonly property int animMs: Config.animations ? Config.animationDuration : 0
+    Behavior on reveal { NumberAnimation { duration: menu.animMs; easing.type: Easing.OutCubic } }
+    onVisibleChanged: reveal = visible ? 1 : 0
+
     Rectangle {
         anchors.fill: parent
         radius: 10
         color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Theme.opacity)
         border.color: Theme.alpha(Theme.accent2, 0.3)
         border.width: 1
+        opacity: menu.reveal
+        transform: Translate { y: (1 - menu.reveal) * -8 }
 
         ColumnLayout {
             id: col

@@ -186,7 +186,11 @@ PanelWindow {
         }
     }
 
+    property real reveal: 0
+    readonly property int animMs: Config.animations ? Config.animationDuration : 0
+    Behavior on reveal { NumberAnimation { duration: sm.animMs; easing.type: Easing.OutCubic } }
     onVisibleChanged: {
+        sm.reveal = visible ? 1 : 0;
         if (visible) {
             sm.plasmaComputer = false;
             sm.side = "all";
@@ -232,6 +236,8 @@ PanelWindow {
         color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Theme.opacity)
         border.color: Theme.alpha(Theme.accent2, 0.3)
         border.width: 1
+        opacity: sm.reveal
+        transform: Translate { y: (1 - sm.reveal) * -8 }
 
         component AppIcon: IconImage {
             id: appIcon

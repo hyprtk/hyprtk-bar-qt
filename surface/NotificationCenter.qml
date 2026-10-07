@@ -27,7 +27,14 @@ PanelWindow {
     implicitWidth: 380
     implicitHeight: 420
 
-    onVisibleChanged: if (visible) NotifyData.markRead()
+    property real reveal: 0
+    readonly property int animMs: Config.animations ? Config.animationDuration : 0
+    Behavior on reveal { NumberAnimation { duration: center.animMs; easing.type: Easing.OutCubic } }
+    onVisibleChanged: {
+        reveal = visible ? 1 : 0;
+        if (visible)
+            NotifyData.markRead();
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -35,6 +42,8 @@ PanelWindow {
         color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Math.max(0.96, Theme.opacity))
         border.width: 1
         border.color: Theme.alpha(Theme.accent2, 0.2)
+        opacity: center.reveal
+        transform: Translate { y: (1 - center.reveal) * -8 }
 
         ColumnLayout {
             anchors.fill: parent

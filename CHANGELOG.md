@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.22.0 — unreleased
+
+Parity pass 19: live surface animations.
+
+- Overlays (quick settings, system monitor, notification center, clipboard,
+  start menu, bar menu, settings, themer) fade + slide in on open, gated by the
+  `animations` switch and `animationDuration`.
+
 ## 0.21.0 — unreleased
 
 Parity pass 18: arc-menu config + animation.

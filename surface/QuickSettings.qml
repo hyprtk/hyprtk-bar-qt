@@ -26,6 +26,16 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     visible: UiState.quickSettingsOpen
 
+    // Reveal animation (gated by the shared animations switch).
+    property real reveal: 0
+    readonly property int animMs: Config.animations ? Config.animationDuration : 0
+    Behavior on reveal { NumberAnimation { duration: qs.animMs; easing.type: Easing.OutCubic } }
+    onVisibleChanged: {
+        reveal = visible ? 1 : 0;
+        if (visible)
+            refresh();
+    }
+
     property int volume: 0
     property bool muted: false
     property int brightness: 0
@@ -38,8 +48,6 @@ PanelWindow {
         wifiGet.running = true;
         btGet.running = true;
     }
-    onVisibleChanged: if (visible) refresh()
-
     // ── readers ────────────────────────────────────────────────────────
     Process {
         id: volGet
@@ -88,6 +96,8 @@ PanelWindow {
         anchors.fill: parent
         radius: 14
         color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Theme.opacity)
+        opacity: qs.reveal
+        transform: Translate { y: (1 - qs.reveal) * -8 }
 
         ColumnLayout {
             id: panel
