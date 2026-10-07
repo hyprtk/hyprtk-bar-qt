@@ -34,6 +34,7 @@ surface/
   Clipboard.qml               cliphist history (search/copy/delete/wipe)
   Themer.qml                  theming window (Wallpaper grid, bar themes, import)
   DesktopWidgets.qml          instantiates the enabled desktop widgets
+  StartMenu.qml               start menu (whisker/win7/win11/plasma, favourites, recents)
 theme/
   Theme.qml                   singleton: live pywal + hyprtk-bar config colours
   qmldir
@@ -47,6 +48,7 @@ data/
   NotifyData.qml              singleton: notification daemon + history + unread count
   Widgets.qml                 singleton: desktop-widget config (shared hyprtk-bar block)
   WidgetData.qml              singleton: telemetry for the sampled desktop widgets
+  MenuConfig.qml              singleton: start-menu config (shared hyprtk-bar block)
 surface/widgets/
   WidgetFrame.qml             desktop-widget base (placement, pill, pywal theming)
   ClockWidget.qml             digital / text clock
@@ -75,6 +77,7 @@ backend/
     weather.py                Open-Meteo weather (geocode + forecast, cached)
     sysinfo.py                host/OS/kernel/CPU/GPU/memory/disks snapshot
     visualizer.py             cava audio levels (synthetic fallback), JSON lines
+    menu.py                   start-menu favourites/recents (shared config)
 tests/
   test_sysmon.py              backend unit tests
   test_monitor.py             monitor backend unit tests

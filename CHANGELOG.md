@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.15.0 — unreleased
+
+Parity pass 12: start-menu layouts + favourites/recents.
+
+- `surface/StartMenu.qml`: layout variants (whisker / win7 / win11 / plasma),
+  a whisker sidebar (All / Favorites / Recently Used) + recent panel, an app
+  list or grid per layout, favourite toggles, and a power footer.
+- `data/MenuConfig.qml`: reads the shared hyprtk-bar `menu` block.
+- `backend/.../menu.py`: favourites/recents store (atomic writes into the shared
+  config) — `record` / `favorite` / `unfavorite` / `get`.
+- Tests: `tests/test_menu.py`.
+
 ## 0.14.0 — unreleased
 
 Parity pass 11: visualizer + clock dials (desktop widgets complete).
