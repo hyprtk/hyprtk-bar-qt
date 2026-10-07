@@ -25,4 +25,12 @@ Scope {
         visible: Widgets.active("network")
         block: Widgets.block("network")
     }
+    WeatherWidget {
+        visible: Widgets.active("weather")
+        block: Widgets.block("weather")
+    }
+    SysInfoWidget {
+        visible: Widgets.active("sysinfo")
+        block: Widgets.block("sysinfo")
+    }
 }

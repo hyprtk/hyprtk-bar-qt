@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.13.0 — unreleased
+
+Parity pass 10: weather + sysinfo desktop widgets.
+
+- `surface/widgets/WeatherWidget.qml` + `backend/.../weather.py`: Open-Meteo
+  geocode + current/daily forecast (keyless), cached to
+  `~/.cache/hyprtk-bar/weather.json`; renders icon/condition/feels/humidity/wind
+  and a daily forecast with WMO/Nerd-Font-Weather-Icons mapping.
+- `surface/widgets/SysInfoWidget.qml` + `backend/.../sysinfo.py`: host, OS,
+  kernel, uptime, CPU, GPU, memory and disk summary.
+- Tests: `tests/test_widgets.py` (weather codes/cache, sysinfo shape).
+
 ## 0.12.0 — unreleased
 
 Parity pass 9: desktop widgets (framework + four widgets).

@@ -82,9 +82,9 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 | `resources` | ✅ CPU graph + RAM/swap bars + temp/load |
 | `disk` | ✅ per-drive bars + I/O rates |
 | `network` | ✅ iface/IP/rates + download graph |
-| `weather` | ☐ |
+| `weather` | ✅ current + feels/humidity/wind + daily forecast (Open-Meteo, cached) |
 | `visualizer` | ☐ |
-| `sysinfo` | ☐ |
+| `sysinfo` | ✅ host/OS/kernel/uptime/CPU/GPU/memory/disks |
 | placement: 9-way + `free` | ✅ (`WidgetFrame`) |
 | placement: drag / snap / usable-area clamp | ☐ |
 
@@ -103,8 +103,8 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 
 ## Next passes
 
-1. Desktop widgets: weather / visualizer / sysinfo, clock dials, and drag / snap /
-   usable-area placement (clock/resources/disk/network are done).
+1. Desktop widgets: visualizer (cava) and clock dials; drag / snap /
+   usable-area placement (clock/resources/disk/network/weather/sysinfo done).
 2. Start-menu layout variants (whisker/win7/win11/plasma), favorites/recents/places.
 3. Remaining module config (workspaces/clock/tray/quicksettings options),
    multi-monitor `monitors`, animation/font live application.

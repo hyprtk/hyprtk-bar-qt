@@ -53,6 +53,8 @@ surface/widgets/
   ResourcesWidget.qml         CPU graph + RAM/swap bars + temp/load
   DiskWidget.qml              per-drive usage + I/O rates
   NetworkWidget.qml           interface / IP / rates + download graph
+  WeatherWidget.qml           current conditions + daily forecast (Open-Meteo)
+  SysInfoWidget.qml           host / OS / kernel / CPU / GPU / memory / disks
 components/
   Toggle.qml                  pill toggle
   Sparkline.qml               Canvas line + gradient-area graph
@@ -69,6 +71,8 @@ backend/
     theme_import.py           waybar-CSS decoder -> palette (ported, toolkit-free)
     themes.py                 list/parse/import/remove the bar themes for the themer
     wallpapers.py             scan a wallpaper folder + apply one (pywal regen)
+    weather.py                Open-Meteo weather (geocode + forecast, cached)
+    sysinfo.py                host/OS/kernel/CPU/GPU/memory/disks snapshot
 tests/
   test_sysmon.py              backend unit tests
   test_monitor.py             monitor backend unit tests
