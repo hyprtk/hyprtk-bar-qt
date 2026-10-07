@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import threading
 import time
@@ -28,7 +29,7 @@ if __package__ in (None, ""):
 else:
     from . import monitor_data
 
-ALL_PAGES = ("cpu", "memory", "disks", "network", "gpu")
+ALL_PAGES = ("cpu", "memory", "disks", "network", "gpu", "apps")
 
 
 class MonitorSampler:
@@ -39,8 +40,9 @@ class MonitorSampler:
     GPU identity is fetched once, off the sampling path, and cached.
     """
 
-    def __init__(self, pages=ALL_PAGES, disk_path="/", iface="auto"):
+    def __init__(self, pages=ALL_PAGES, disk_path="/", iface="auto", active="cpu"):
         self.pages = [p for p in pages if p in ALL_PAGES]
+        self.active = active
         self._cpu = monitor_data.CpuSampler() if "cpu" in self.pages else None
         self._disk = (
             monitor_data.DiskSampler((disk_path,)) if "disks" in self.pages else None
@@ -78,6 +80,11 @@ class MonitorSampler:
             out["gpu"] = self._gpu.sample()
             with self._static_lock:
                 out["gpu_static"] = self._static
+        # The process walk is the most expensive sampler, so only run it while
+        # the Apps page is actually on screen (matches the GTK bar).
+        if "apps" in self.pages and self.active == "apps":
+            out["apps"] = monitor_data.top_processes()
+            out["uid"] = os.getuid()
         return out
 
 
@@ -91,10 +98,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     ap.add_argument("--disk-path", default="/", help="mount point for disk usage")
     ap.add_argument("--iface", default="auto", help="network interface or 'auto'")
+    ap.add_argument(
+        "--active", default="cpu", help="the page currently on screen (gates 'apps')"
+    )
     args = ap.parse_args(argv)
 
     pages = tuple(p.strip() for p in args.pages.split(",") if p.strip())
-    sampler = MonitorSampler(pages, disk_path=args.disk_path, iface=args.iface)
+    sampler = MonitorSampler(
+        pages, disk_path=args.disk_path, iface=args.iface, active=args.active
+    )
 
     try:
         while True:

@@ -16,11 +16,17 @@ Singleton {
 
     readonly property string backend:
         Qt.resolvedUrl("../backend/hyprtk_bar_qt/monitor.py").toString().replace("file://", "")
+    readonly property string actionBackend:
+        Qt.resolvedUrl("../backend/hyprtk_bar_qt/proc_action.py").toString().replace("file://", "")
 
     readonly property int histLen: Math.max(10, Config.sysmonDataPoints)
 
     // Set true by the dialog while it is visible; starts/stops the process.
     property bool active: false
+
+    // The page currently on screen. Changing it restarts the backend so the
+    // expensive process walk only runs while the Apps page is visible.
+    property string activePage: "cpu"
 
     // Latest full sample object ({} until the first line arrives).
     property var sample: ({})
@@ -49,6 +55,8 @@ Singleton {
     readonly property var net: root.sample.net || ({})
     readonly property var gpu: root.sample.gpu || null
     readonly property var gpuStatic: root.sample.gpu_static || null
+    readonly property var apps: root.sample.apps || []
+    readonly property int uid: (typeof root.sample.uid === "number") ? root.sample.uid : -1
 
     Process {
         id: proc
@@ -58,7 +66,8 @@ Singleton {
             "--interval", String(Config.sysmonInterval),
             "--pages", (Config.sysmonPages || []).join(","),
             "--disk-path", Config.sysmonDiskPath,
-            "--iface", Config.sysmonNetworkIface
+            "--iface", Config.sysmonNetworkIface,
+            "--active", root.activePage
         ]
         stdout: SplitParser {
             onRead: line => {

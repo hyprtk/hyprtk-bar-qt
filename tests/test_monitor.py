@@ -8,7 +8,7 @@ import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 
-from hyprtk_bar_qt import monitor, monitor_data  # noqa: E402
+from hyprtk_bar_qt import monitor, monitor_data, proc_action  # noqa: E402
 
 
 class Formatters(unittest.TestCase):
@@ -78,6 +78,25 @@ class MonitorSampler(unittest.TestCase):
     def test_unknown_pages_dropped(self) -> None:
         s = monitor.MonitorSampler(pages=("memory", "bogus"))
         self.assertEqual(s.pages, ["memory"])
+
+    def test_apps_gated_by_active_page(self) -> None:
+        s = monitor.MonitorSampler(pages=("apps",), active="cpu")
+        self.assertEqual(s.sample(), {})
+
+    def test_apps_sampled_when_active(self) -> None:
+        s = monitor.MonitorSampler(pages=("apps",), active="apps")
+        out = s.sample()
+        self.assertIn("apps", out)
+        self.assertIn("uid", out)
+        self.assertIsInstance(out["apps"], list)
+
+
+class ProcAction(unittest.TestCase):
+    def test_kill_missing_pid_fails(self) -> None:
+        self.assertEqual(proc_action.main(["kill", "21474833"]), 1)
+
+    def test_launch_missing_pid_fails(self) -> None:
+        self.assertEqual(proc_action.main(["launch", "21474833"]), 1)
 
 
 if __name__ == "__main__":

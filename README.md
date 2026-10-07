@@ -28,7 +28,7 @@ surface/
   QuickSettings.qml           volume/brightness/Wi-Fi/Bluetooth flyout (wpctl, brightnessctl, nmcli, bluetoothctl)
   Settings.qml                settings window (writes config/Config.qml)
   ArcMenu.qml                 corner FAB with an item arc; IPC-toggleable
-  SysMonitor.qml              Mission Center-style system monitor dialog (CPU/Mem/Disks/Network/GPU)
+  SysMonitor.qml              Mission Center-style system monitor dialog (CPU/Mem/Disks/Network/GPU/Apps)
   Notifications.qml           notification daemon + toasts (opt-in, see below)
 theme/
   Theme.qml                   singleton: live pywal + hyprtk-bar config colours
@@ -48,8 +48,9 @@ backend/
     palette.py                palette resolver (mirrors Theme.qml)
     config.py                 hyprtk-bar config reader
     sysmon.py                 /proc sampler (cpu/mem/net), streams JSON lines on stdout
-    monitor.py                rich system-monitor sampler (cpu/mem/disk/net/gpu), streams JSON lines
+    monitor.py                rich system-monitor sampler (cpu/mem/disk/net/gpu/apps), streams JSON lines
     monitor_data.py           toolkit-free readers (cpu cores/temps, mem, disk, net, gpu, drives, dimms, procs)
+    proc_action.py            one-shot kill/launch helper for the Apps page
 tests/
   test_sysmon.py              backend unit tests
   test_monitor.py             monitor backend unit tests

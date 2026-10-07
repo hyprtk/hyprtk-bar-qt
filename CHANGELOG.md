@@ -6,11 +6,17 @@ Parity pass 3: Mission Center-style system monitor dialog.
 
 - `surface/SysMonitor.qml`: layer-shell panel floated above the bar, opened by
   left-clicking the sysmon module. Sidebar (CPU / Memory / Disks / Network /
-  GPU) + `StackLayout`, live QML graphs (`Sparkline`), stat readouts, a per-core
-  bar grid, a clickable drive grid and a network-interface list. Page set follows
-  `Config.sysmonPages`; graph colours follow the live pywal palette.
+  GPU / Apps) + `StackLayout`, live QML graphs (`Sparkline`), stat readouts, a
+  per-core bar grid, a clickable drive grid, a network-interface list and an
+  Apps page (user/system apps + processes, Launch / Kill / Force kill with a
+  confirm dialog). Page set follows `Config.sysmonPages`; graph colours follow
+  the live pywal palette.
 - `backend/hyprtk_bar_qt/monitor.py`: streams a full JSON sample per interval
-  (selected pages only) — a `MonitorSampler` over the ported readers.
+  (selected pages only) — a `MonitorSampler` over the ported readers. The
+  process walk is gated on `--active apps` so it only runs while the Apps page
+  is on screen.
+- `backend/hyprtk_bar_qt/proc_action.py`: one-shot `kill` / `launch` helper the
+  Apps page buttons invoke (reuses `monitor_data.kill_process`/`launch_process`).
 - `backend/hyprtk_bar_qt/monitor_data.py`: ported the GTK bar's toolkit-free
   readers (CPU cores/load/temps, memory, disk I/O, network interfaces, GPU across
   AMD/NVIDIA/Intel, drives via lsblk, processes, DIMMs). Shares the

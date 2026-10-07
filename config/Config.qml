@@ -65,7 +65,7 @@ Singleton {
     property int sysmonDataPoints: 60       // history length for the graphs
     property string sysmonDiskPath: "/"     // mount point for the disk-usage readout
     property string sysmonNetworkIface: "auto"
-    property var sysmonPages: ["cpu", "memory", "disks", "network", "gpu"]
+    property var sysmonPages: ["cpu", "memory", "disks", "network", "gpu", "apps"]
 
     // ── power actions (same strings as the GTK bar) ────────────────────
     property var menuPower: ({

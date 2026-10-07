@@ -6,6 +6,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import "../theme"
 import "../config"
 import "../state"
@@ -37,7 +38,8 @@ PanelWindow {
         { key: "memory", glyph: "\uefc5", label: "Memory" },  // fa-memory
         { key: "disks", glyph: "\U000f02ca", label: "Disks" },// md-harddisk
         { key: "network", glyph: "\uf1eb", label: "Network" },// fa-wifi
-        { key: "gpu", glyph: "\uf03d", label: "GPU" }         // fa-video-camera
+        { key: "gpu", glyph: "\uf03d", label: "GPU" },        // fa-video-camera
+        { key: "apps", glyph: "\uf0ae", label: "Apps" }       // fa-tasks
     ]
     readonly property var enabledPages: {
         const want = Config.sysmonPages || [];
@@ -47,6 +49,87 @@ PanelWindow {
     property int activeIndex: 0
     readonly property string activeKey: (win.enabledPages[win.activeIndex] || win.enabledPages[0] || {}).key || "cpu"
     readonly property int stackIndex: Math.max(0, win.allPages.findIndex(p => p.key === win.activeKey))
+
+    // Keep the backend's active page in sync (gates the expensive Apps walk).
+    onActiveKeyChanged: MonitorData.activePage = win.activeKey
+    Component.onCompleted: MonitorData.activePage = win.activeKey
+
+    // ── Apps page state ────────────────────────────────────────────────
+    readonly property var appsViews: [
+        { key: "user-apps", label: "User apps" },
+        { key: "system-apps", label: "System apps" },
+        { key: "user-procs", label: "User processes" },
+        { key: "system-procs", label: "System processes" }
+    ]
+    property string appsKey: "user-apps"
+    property int selPid: -1
+    property string selName: ""
+    property string appsMsg: ""
+    property bool confirmOpen: false
+    property bool confirmForce: false
+
+    function bucketRows(key) {
+        const u = MonitorData.uid;
+        return (MonitorData.apps || []).filter(r => {
+            if (key === "user-apps")
+                return r.uid === u && r.is_app;
+            if (key === "system-apps")
+                return r.uid !== u && r.is_app;
+            if (key === "user-procs")
+                return r.uid === u;
+            return r.uid !== u;
+        }).slice(0, 250);
+    }
+    function fmtMem(gb) {
+        if (!gb || gb <= 0)
+            return "--";
+        return gb >= 1 ? gb.toFixed(2) + " GB" : (gb * 1024).toFixed(0) + " MB";
+    }
+    function selectRow(r) {
+        win.selPid = r.pid;
+        win.selName = r.name;
+    }
+    function toast(msg) {
+        win.appsMsg = msg;
+        toastTimer.restart();
+    }
+    function launchSelected() {
+        if (win.selPid < 0) {
+            win.toast("Select a process to launch");
+            return;
+        }
+        win.runProc(["launch", String(win.selPid)]);
+    }
+    function askKill(force) {
+        if (win.selPid < 0) {
+            win.toast("Select a process to kill");
+            return;
+        }
+        win.confirmForce = force;
+        win.confirmOpen = true;
+    }
+    function confirmKill() {
+        win.confirmOpen = false;
+        const args = ["kill", String(win.selPid)].concat(win.confirmForce ? ["--force"] : []);
+        win.runProc(args);
+    }
+    function runProc(args) {
+        action.command = ["python3", MonitorData.actionBackend].concat(args);
+        action.running = true;
+    }
+
+    Timer {
+        id: toastTimer
+        interval: 3000
+        onTriggered: win.appsMsg = ""
+    }
+
+    Process {
+        id: action
+        onExited: (exitCode, exitStatus) => {
+            win.toast(exitCode === 0 ? "Done" : "Failed (permission?)");
+        }
+    }
 
     // Per-page graph colours, matching the waybar-era pywal assignments.
     function pageColor(key) {
@@ -216,6 +299,68 @@ PanelWindow {
                 MonitorData.diskUsageHist = [];
             }
         }
+    }
+
+    component AppRow: Rectangle {
+        id: ar
+        property var entry: ({})
+        property bool selected: false
+        Layout.fillWidth: true
+        implicitHeight: 24
+        radius: 4
+        color: ar.selected ? Theme.alpha(Theme.accent, 0.3)
+            : (arHover.hovered ? Theme.alpha(Theme.accent2, 0.1) : "transparent")
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 8
+            anchors.rightMargin: 8
+            spacing: 8
+            Text {
+                text: ar.entry.name || ""
+                color: Theme.foreground
+                font.pixelSize: 11
+                Layout.fillWidth: true
+                elide: Text.ElideRight
+            }
+            Text {
+                text: (ar.entry.cpu || 0).toFixed(1) + "%"
+                color: Theme.dim
+                font.pixelSize: 11
+                Layout.preferredWidth: 64
+                horizontalAlignment: Text.AlignRight
+            }
+            Text {
+                text: win.fmtMem(ar.entry.mem || 0)
+                color: Theme.dim
+                font.pixelSize: 11
+                Layout.preferredWidth: 80
+                horizontalAlignment: Text.AlignRight
+            }
+        }
+        HoverHandler { id: arHover }
+        TapHandler {
+            acceptedButtons: Qt.LeftButton
+            onTapped: win.selectRow(ar.entry)
+        }
+    }
+
+    component ActionButton: Rectangle {
+        id: ab
+        property string label: ""
+        signal clicked()
+        implicitHeight: 28
+        implicitWidth: abText.implicitWidth + 24
+        radius: 6
+        color: abHover.hovered ? Theme.alpha(Theme.accent2, 0.25) : Theme.alpha(Theme.accent2, 0.12)
+        Text {
+            id: abText
+            anchors.centerIn: parent
+            text: ab.label
+            color: Theme.foreground
+            font.pixelSize: 11
+        }
+        HoverHandler { id: abHover }
+        TapHandler { onTapped: ab.clicked() }
     }
 
     component InterfaceRow: RowLayout {
@@ -587,6 +732,128 @@ PanelWindow {
                                 Readout { glyph: "\uf2c9"; label: "Temperature"; value: MonitorData.gpu && MonitorData.gpu.temps && MonitorData.gpu.temps.edge !== undefined ? Math.round(MonitorData.gpu.temps.edge) + "\u00b0C" : (MonitorData.gpu && MonitorData.gpu.temps && MonitorData.gpu.temps.temp !== undefined ? Math.round(MonitorData.gpu.temps.temp) + "\u00b0C" : "--") }
                                 Readout { glyph: "\uf0e7"; label: "Power"; value: MonitorData.gpu && MonitorData.gpu.power_w !== null && MonitorData.gpu.power_w !== undefined ? Math.round(MonitorData.gpu.power_w) + " W" : "--" }
                                 Readout { glyph: "\uf021"; label: "Fan"; value: MonitorData.gpu && MonitorData.gpu.fan_pct !== null && MonitorData.gpu.fan_pct !== undefined ? Math.round(MonitorData.gpu.fan_pct) + "%" : (MonitorData.gpu && MonitorData.gpu.fan_rpm ? MonitorData.gpu.fan_rpm + " RPM" : "--") }
+                            }
+                        }
+                    }
+
+                    // Apps ───────────────────────────────────────────────
+                    Item {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Flickable {
+                            anchors.fill: parent
+                            contentHeight: appsCol.implicitHeight
+                            clip: true
+                            ColumnLayout {
+                                id: appsCol
+                                width: parent.width
+                                spacing: 6
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 4
+                                    Repeater {
+                                        model: win.appsViews
+                                        delegate: Rectangle {
+                                            required property var modelData
+                                            Layout.fillWidth: true
+                                            implicitHeight: 26
+                                            radius: 6
+                                            color: win.appsKey === modelData.key
+                                                ? Theme.alpha(Theme.accent, 0.85)
+                                                : Theme.alpha(Theme.accent2, 0.12)
+                                            Text {
+                                                anchors.centerIn: parent
+                                                text: modelData.label
+                                                color: win.appsKey === modelData.key ? "#000000" : Theme.foreground
+                                                font.pixelSize: 11
+                                            }
+                                            TapHandler {
+                                                onTapped: {
+                                                    win.appsKey = modelData.key;
+                                                    win.selPid = -1;
+                                                    win.selName = "";
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 8
+                                    Text { text: "Process"; color: Theme.dim; font.pixelSize: 10; Layout.fillWidth: true }
+                                    Text { text: "CPU"; color: Theme.dim; font.pixelSize: 10; Layout.preferredWidth: 64; horizontalAlignment: Text.AlignRight }
+                                    Text { text: "Memory"; color: Theme.dim; font.pixelSize: 10; Layout.preferredWidth: 80; horizontalAlignment: Text.AlignRight }
+                                }
+                                Text {
+                                    visible: win.bucketRows(win.appsKey).length === 0
+                                    text: MonitorData.ready ? "No processes" : "Loading\u2026"
+                                    color: Theme.dim
+                                    font.pixelSize: 11
+                                }
+                                Repeater {
+                                    model: win.bucketRows(win.appsKey)
+                                    delegate: AppRow {
+                                        required property var modelData
+                                        entry: modelData
+                                        selected: modelData.pid === win.selPid
+                                    }
+                                }
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    Layout.topMargin: 6
+                                    spacing: 8
+                                    Text {
+                                        text: win.appsMsg.length ? win.appsMsg
+                                            : (win.selPid >= 0 ? win.selName + "  (PID " + win.selPid + ")" : "Select a process")
+                                        color: win.appsMsg.length ? Theme.accent : Theme.dim
+                                        font.pixelSize: 10
+                                        Layout.fillWidth: true
+                                        elide: Text.ElideRight
+                                    }
+                                    ActionButton { label: "Launch"; onClicked: win.launchSelected() }
+                                    ActionButton { label: "Kill"; onClicked: win.askKill(false) }
+                                    ActionButton { label: "Force kill"; onClicked: win.askKill(true) }
+                                }
+                            }
+                        }
+                        Rectangle {
+                            anchors.fill: parent
+                            visible: win.confirmOpen
+                            color: Qt.rgba(0, 0, 0, 0.45)
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: Math.min(360, parent.width - 40)
+                                height: confirmCol.implicitHeight + 28
+                                radius: 12
+                                color: Theme.background
+                                border.width: 1
+                                border.color: Theme.alpha(Theme.err, 0.6)
+                                ColumnLayout {
+                                    id: confirmCol
+                                    anchors.centerIn: parent
+                                    width: parent.width - 28
+                                    spacing: 10
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: (win.confirmForce ? "Force kill " : "Kill ") + win.selName + " (PID " + win.selPid + ")?"
+                                        color: Theme.foreground
+                                        font.pixelSize: 12
+                                        wrapMode: Text.WordWrap
+                                    }
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: "This will terminate the process. Unsaved work in it will be lost."
+                                        color: Theme.dim
+                                        font.pixelSize: 10
+                                        wrapMode: Text.WordWrap
+                                    }
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        Item { Layout.fillWidth: true }
+                                        ActionButton { label: "Cancel"; onClicked: win.confirmOpen = false }
+                                        ActionButton { label: "OK"; onClicked: win.confirmKill() }
+                                    }
+                                }
                             }
                         }
                     }

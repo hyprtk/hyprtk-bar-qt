@@ -28,7 +28,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 | GTK | Qt status |
 |---|---|
 | Bar settings window (9 pages) | ◐ `surface/Settings.qml` (4 controls; needs pages) |
-| System monitor dialog (CPU/Mem/Disks/Network/GPU/Apps, cairo graphs) | ◐ `surface/SysMonitor.qml` (live CPU/Mem/Disks/Network/GPU, QML graphs; Apps + DIMM slots todo) |
+| System monitor dialog (CPU/Mem/Disks/Network/GPU/Apps, cairo graphs) | ◐ `surface/SysMonitor.qml` (all six pages live, QML graphs; DIMM-slot graphic todo) |
 | Themer dialog (Wallpaper/Pywal/Rofi/Bar themes/Matuwall/Swaylock/Icons/SDDM+GRUB) | ◐ `surface/Themer.qml` v1 (palette/opacity/actions; pages todo) |
 | Clipboard history dialog | ☐ |
 | Notification center | ☐ |
@@ -89,8 +89,8 @@ stub.
 
 ## Next passes
 
-1. System-monitor dialog: Apps page (user/system apps + processes, kill/launch)
-   and DIMM slots (dmidecode) — CPU/Mem/Disks/Network/GPU already live.
+1. System-monitor dialog: DIMM-slot graphic (dmidecode via pkexec) — all six
+   pages (CPU/Mem/Disks/Network/GPU/Apps) are otherwise live.
 2. Clipboard history, notification center, tray context menu (dbusmenu).
 3. Themer: 9 themes, theme_import, wallpaper/pywal/rofi/swaylock/icons/SDDM.
 4. Desktop widgets (clock/weather/visualizer/disk/network/resources/sysinfo) + placement.
