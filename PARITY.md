@@ -20,7 +20,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 | `clock` | time/date (styles, dials, seconds) | ◐ `Clock.qml` (digital simple; no styles/dials) |
 | `notifications` | daemon + center (bell) | ✅ `NotificationsButton.qml` bell + unread badge, `surface/NotificationCenter.qml` history, opt-in toasts |
 | `tray` | SNI tray + dbusmenu | ✅ `Tray.qml` (icons + activate + right-click DBusMenu via `QsMenuAnchor`) |
-| `quicksettings` | Win11 flyout | ✅ `surface/QuickSettings.qml` |
+| `quicksettings` | Win11 flyout | ✅ `surface/QuickSettings.qml` (volume/mic/brightness/Wi-Fi/Bluetooth) |
 | graphs | cpu/mem/net history | ✅ `components/Sparkline.qml`, `Net.qml` |
 
 ## Surfaces / popups / menus
@@ -53,7 +53,7 @@ stub.
 | `bar` (position/height/gaps/radius/opacity/width/align) | ✅ |
 | `monitors` (primary / all / [connector]) | ✅ `shell.qml` screen filter |
 | `theme` (source/theme_name/background/foreground/accent) | ✅ writer + `Theme` overrides |
-| `animations`, `font` | ✅ surface reveal animations gated by `Config.animations`; `font` applied to the bar modules |
+| `animations`, `font` | ✅ animated bar border (`theme.border_animation` + mode/speed) + surface reveal; `font` applied to the bar modules |
 | `layout` (left/center/right module lists) | ✅ data-driven (`DelegateChooser`) |
 | `quicklinks` | ✅ |
 | `menu` (layout + power) | ◐ (layout stored; v1 grid) |

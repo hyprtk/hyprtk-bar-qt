@@ -87,6 +87,7 @@ ShellRoot {
     SysMonitor {}
     NotificationCenter {}
     Clipboard {}
+    About {}
     DesktopWidgets {}
 
     Loader {

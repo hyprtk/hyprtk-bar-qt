@@ -38,12 +38,15 @@ PanelWindow {
 
     property int volume: 0
     property bool muted: false
+    property int micVolume: 0
+    property bool micMuted: false
     property int brightness: 0
     property bool wifiOn: false
     property bool btOn: false
 
     function refresh() {
         volGet.running = true;
+        micGet.running = true;
         brightGet.running = true;
         wifiGet.running = true;
         btGet.running = true;
@@ -58,6 +61,18 @@ PanelWindow {
                 if (m)
                     qs.volume = Math.round(parseFloat(m[1]) * 100);
                 qs.muted = /MUTED/.test(line);
+            }
+        }
+    }
+    Process {
+        id: micGet
+        command: ["wpctl", "get-volume", "@DEFAULT_AUDIO_SOURCE@"]
+        stdout: SplitParser {
+            onRead: line => {
+                const m = line.match(/([0-9.]+)/);
+                if (m)
+                    qs.micVolume = Math.round(parseFloat(m[1]) * 100);
+                qs.micMuted = /MUTED/.test(line);
             }
         }
     }
@@ -151,6 +166,36 @@ PanelWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"]);
+                            qs.refresh();
+                        }
+                    }
+                }
+            }
+
+            // microphone
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 10
+                Text { text: qs.micMuted ? "\uf131" : "\uf130"; color: Theme.foreground; font.pixelSize: 15 }
+                TSlider {
+                    Layout.fillWidth: true
+                    from: 0
+                    to: 100
+                    stepSize: 1
+                    value: qs.micVolume
+                    onMoved: Quickshell.execDetached(
+                        ["wpctl", "set-volume", "@DEFAULT_AUDIO_SOURCE@", (value / 100).toFixed(2)])
+                }
+                Text { text: qs.micVolume + "%"; color: Theme.foreground; font.pixelSize: 12; Layout.preferredWidth: 38 }
+                Text {
+                    text: qs.micMuted ? "unmute" : "mute"
+                    color: Theme.accent2
+                    font.pixelSize: 11
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "toggle"]);
                             qs.refresh();
                         }
                     }

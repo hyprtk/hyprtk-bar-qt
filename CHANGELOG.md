@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.27.0 — unreleased
+
+Dialogue parity round 2.
+
+- **Animated bar border**: `Bar.qml` animates its border colour when
+  `theme.border_animation` is on, at the `animations` mode/speed (low/high/
+  custom) — matching the GTK bar.
+- **Quick Settings**: adds the microphone slider + mute (wpctl
+  `@DEFAULT_AUDIO_SOURCE@`) alongside volume/brightness/Wi-Fi/Bluetooth.
+- **Bar menu**: adds "About hyprtk-bar" and a themed `surface/About.qml`.
+
 ## 0.26.0 — unreleased
 
 Look-and-feel parity with the GTK bar.

@@ -18,6 +18,7 @@ Singleton {
     property bool sysMonitorOpen: false
     property bool notificationCenterOpen: false
     property bool clipboardOpen: false
+    property bool aboutOpen: false
     property bool barMenuOpen: false
     property real barMenuX: 40      // cursor x within the bar window (for the context menu)
 
@@ -30,6 +31,7 @@ Singleton {
         root.sysMonitorOpen = false;
         root.notificationCenterOpen = false;
         root.clipboardOpen = false;
+        root.aboutOpen = false;
         root.barMenuOpen = false;
     }
 }

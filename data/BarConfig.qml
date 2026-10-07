@@ -54,6 +54,7 @@ Singleton {
     readonly property var layoutCenter: block("layout").center || []
     readonly property var layoutRight: block("layout").right || []
 
+    readonly property var theme: block("theme")
     readonly property var workspaces: block("workspaces")
     readonly property var clock: block("clock")
     readonly property var tray: block("tray")

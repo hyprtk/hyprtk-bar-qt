@@ -20,6 +20,23 @@ Rectangle {
     color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, root.bgOpacity)
     radius: BarConfig.radius
 
+    // Animated border (shared `theme.border_animation` + `animations` mode/speed).
+    readonly property bool borderAnim: BarConfig.theme.border_animation !== false && Config.animations
+    readonly property int borderMs: {
+        const mode = BarConfig.animations.mode || "high";
+        if (mode === "custom")
+            return Math.max(200, Math.round(4000 / Math.max(1, BarConfig.animations.speed || 15)));
+        return mode === "low" ? 3200 : 1400;
+    }
+    border.width: root.borderAnim ? 1 : 0
+    border.color: Theme.accent
+    SequentialAnimation on border.color {
+        running: root.borderAnim
+        loops: Animation.Infinite
+        ColorAnimation { to: Theme.accent2; duration: root.borderMs; easing.type: Easing.InOutSine }
+        ColorAnimation { to: Theme.accent; duration: root.borderMs; easing.type: Easing.InOutSine }
+    }
+
     // Maps a layout entry to its module component.
     component ModuleChooser: DelegateChooser {
         role: "modelData"

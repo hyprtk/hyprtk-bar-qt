@@ -28,7 +28,8 @@ PanelWindow {
         { glyph: "\u2261", label: "Quick Settings", act: "qs" },
         { glyph: "\u229e", label: "Arc Menu", act: "arc" },
         { glyph: "\uf021", label: "Reload", act: "reload" },
-        { glyph: "\uf023", label: "Lock", act: "lock" }
+        { glyph: "\uf023", label: "Lock", act: "lock" },
+        { glyph: "\uf05a", label: "About hyprtk-bar", act: "about" }
     ]
 
     function dispatch(action) {
@@ -54,6 +55,9 @@ PanelWindow {
             break;
         case "lock":
             Quickshell.execDetached(["sh", "-c", Config.menuPower.lock]);
+            break;
+        case "about":
+            UiState.aboutOpen = true;
             break;
         }
     }
