@@ -57,12 +57,66 @@ PanelWindow {
             list = sm.favoritesEntries();
         else if (sm.side === "recents")
             list = sm.recentsEntries();
+        else if (sm.side !== "all")
+            list = sm.baseApps().filter(e => sm.entryCategories(e).indexOf(sm.side) >= 0);
         else
             list = sm.baseApps();
         return list;
     }
     function isFavorite(id) {
         return (MenuConfig.favorites || []).indexOf(id) >= 0;
+    }
+
+    readonly property var categoryMap: ({
+        "Utility": "Accessories", "Accessibility": "Accessories", "Archiving": "Accessories",
+        "Development": "Development", "IDE": "Development", "Building": "Development", "Debugger": "Development",
+        "Education": "Education", "Science": "Science",
+        "Game": "Games", "ActionGame": "Games", "AdventureGame": "Games", "ArcadeGame": "Games",
+        "BoardGame": "Games", "CardGame": "Games", "LogicGame": "Games", "SportGame": "Games", "StrategyGame": "Games",
+        "Graphics": "Graphics", "2DGraphics": "Graphics", "3DGraphics": "Graphics", "RasterGraphics": "Graphics", "VectorGraphics": "Graphics",
+        "Network": "Internet", "WebBrowser": "Internet", "Email": "Internet", "Chat": "Internet", "InstantMessaging": "Internet",
+        "AudioVideo": "Multimedia", "Audio": "Multimedia", "Video": "Multimedia", "Music": "Multimedia", "Player": "Multimedia",
+        "Office": "Office", "PIM": "Office", "Presentation": "Office", "Spreadsheet": "Office", "WordProcessor": "Office",
+        "System": "System", "Monitor": "System", "TerminalEmulator": "System", "FileManager": "System", "Settings": "Settings"
+    })
+    readonly property var categoryOrder: ["Accessories", "Development", "Education", "Games", "Graphics", "Internet", "Multimedia", "Office", "Science", "Settings", "System"]
+
+    function entryCategories(e) {
+        const out = [];
+        for (const c of String(e.categories || "").split(";")) {
+            const m = sm.categoryMap[c.trim()];
+            if (m && out.indexOf(m) < 0)
+                out.push(m);
+        }
+        if (out.length === 0)
+            out.push("Accessories");
+        return out;
+    }
+    function categoriesPresent() {
+        const have = ({});
+        for (const e of sm.baseApps())
+            for (const c of sm.entryCategories(e))
+                have[c] = true;
+        return sm.categoryOrder.filter(c => have[c]);
+    }
+    function sidebarItems() {
+        const base = [
+            { key: "all", label: "All Applications" },
+            { key: "favorites", label: "Favorites" },
+            { key: "recents", label: "Recently Used" }
+        ];
+        return base.concat(sm.categoriesPresent().map(c => ({ key: c, label: c })));
+    }
+    readonly property var places: [
+        { label: "Documents", glyph: "\uf07b", path: "~/Documents" },
+        { label: "Pictures", glyph: "\uf03e", path: "~/Pictures" },
+        { label: "Music", glyph: "\uf001", path: "~/Music" },
+        { label: "Videos", glyph: "\uf03d", path: "~/Videos" },
+        { label: "Computer", glyph: "\uf109", path: "/" }
+    ]
+    function openPlace(path) {
+        UiState.startMenuOpen = false;
+        Quickshell.execDetached(["sh", "-c", "xdg-open " + path]);
     }
 
     function launch(entry) {
@@ -144,11 +198,7 @@ PanelWindow {
                     Layout.fillHeight: true
                     spacing: 4
                     Repeater {
-                        model: [
-                            { key: "all", label: "All Applications" },
-                            { key: "favorites", label: "Favorites" },
-                            { key: "recents", label: "Recently Used" }
-                        ]
+                        model: sm.sidebarItems()
                         delegate: Rectangle {
                             required property var modelData
                             Layout.fillWidth: true
@@ -289,6 +339,36 @@ PanelWindow {
                             TapHandler { onTapped: sm.launch(rrow.modelData) }
                         }
                     }
+                }
+
+                // places panel (win7)
+                ColumnLayout {
+                    visible: layout === "win7"
+                    Layout.preferredWidth: MenuConfig.recentsWidth
+                    Layout.fillHeight: true
+                    spacing: 4
+                    Text { text: "Places"; color: Theme.dim; font.pixelSize: 11 }
+                    Repeater {
+                        model: sm.places
+                        delegate: Rectangle {
+                            required property var modelData
+                            Layout.fillWidth: true
+                            implicitHeight: 32
+                            radius: 6
+                            color: placeHover.hovered ? Theme.alpha(Theme.accent2, 0.15) : "transparent"
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 8
+                                anchors.rightMargin: 8
+                                spacing: 8
+                                Text { text: modelData.glyph; color: Theme.accent; font.pixelSize: 13 }
+                                Text { text: modelData.label; color: Theme.foreground; font.pixelSize: 12; Layout.fillWidth: true }
+                            }
+                            HoverHandler { id: placeHover }
+                            TapHandler { onTapped: sm.openPlace(modelData.path) }
+                        }
+                    }
+                    Item { Layout.fillHeight: true }
                 }
             }
 

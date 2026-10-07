@@ -34,7 +34,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 | Notification center | ✅ `surface/NotificationCenter.qml` (history, actions, clear all, unread badge) |
 | Quick-settings flyout | ✅ |
 | Arc menu (radial FAB) | ✅ `surface/ArcMenu.qml` (items from config; no per-layout themes) |
-| Start menu (whisker / win7 / win11 / plasma layouts, search, favorites, recents, places, power) | ◐ `surface/StartMenu.qml` (4 layouts, search, favorites, recents, power; sidebar categories + places todo) |
+| Start menu (whisker / win7 / win11 / plasma layouts, search, favorites, recents, places, power) | ✅ `surface/StartMenu.qml` (4 layouts, search, favourites, recents, category sidebar, win7 places, power) |
 | Bar right-click menu | ✅ `surface/BarMenu.qml` |
 | Theme import dialog | ✅ Themer `Import` page (importable list, path, remove) |
 
@@ -104,8 +104,8 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 ## Next passes
 
 1. Desktop widgets: drag / snap / usable-area placement (all seven widgets done).
-2. Start menu: sidebar category filter (Accessories/Development/…) + Places
-   (home/documents/…); layouts + favourites + recents are done.
+2. Start menu: KDE-Plasma in-menu file browser (the places sidebar + content);
+   whisker categories and win7 places are done.
 3. Remaining module config (workspaces/clock/tray/quicksettings options),
    multi-monitor `monitors`, animation/font live application.
 4. Themer: in-bar Matuwall TOML editor (currently links to the config file).

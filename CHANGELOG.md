@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.16.0 — unreleased
+
+Parity pass 13: start-menu categories + places.
+
+- `surface/StartMenu.qml`: the whisker sidebar now lists the app categories
+  (Accessories / Development / … from the XDG categories), and the win7 layout
+  gains a Places panel (Documents / Pictures / Music / Videos / Computer).
+
 ## 0.15.0 — unreleased
 
 Parity pass 12: start-menu layouts + favourites/recents.
