@@ -55,6 +55,7 @@ surface/widgets/
   NetworkWidget.qml           interface / IP / rates + download graph
   WeatherWidget.qml           current conditions + daily forecast (Open-Meteo)
   SysInfoWidget.qml           host / OS / kernel / CPU / GPU / memory / disks
+  VisualizerWidget.qml        cava audio bars / wave / mirror / dots / glow
 components/
   Toggle.qml                  pill toggle
   Sparkline.qml               Canvas line + gradient-area graph
@@ -73,6 +74,7 @@ backend/
     wallpapers.py             scan a wallpaper folder + apply one (pywal regen)
     weather.py                Open-Meteo weather (geocode + forecast, cached)
     sysinfo.py                host/OS/kernel/CPU/GPU/memory/disks snapshot
+    visualizer.py             cava audio levels (synthetic fallback), JSON lines
 tests/
   test_sysmon.py              backend unit tests
   test_monitor.py             monitor backend unit tests

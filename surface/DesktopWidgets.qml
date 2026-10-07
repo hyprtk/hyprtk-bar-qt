@@ -33,4 +33,8 @@ Scope {
         visible: Widgets.active("sysinfo")
         block: Widgets.block("sysinfo")
     }
+    VisualizerWidget {
+        visible: Widgets.active("visualizer")
+        block: Widgets.block("visualizer")
+    }
 }

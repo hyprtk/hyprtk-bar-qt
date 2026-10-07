@@ -69,8 +69,54 @@ WidgetFrame {
         Layout.fillWidth: true
         spacing: Math.round(4 * win.scale)
 
+        Canvas {
+            id: dial
+            visible: win.style === "dials"
+            Layout.alignment: Qt.AlignHCenter
+            Layout.preferredWidth: Math.max(80, win.widgetWidth - 2 * win.padding)
+            Layout.preferredHeight: Layout.preferredWidth
+            onWidthChanged: requestPaint()
+            Connections {
+                target: win.clock
+                function onDateChanged() { dial.requestPaint(); }
+            }
+            onPaint: {
+                const ctx = getContext("2d");
+                ctx.clearRect(0, 0, width, height);
+                const cx = width / 2, cy = height / 2;
+                const R = Math.min(width, height) / 2 - 3;
+                const d = win.clock.date;
+                ctx.strokeStyle = win.widgetAccent;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(cx, cy, R, 0, Math.PI * 2);
+                ctx.stroke();
+                // ticks
+                for (let i = 0; i < 12; i++) {
+                    const a = i * Math.PI / 6;
+                    const inner = (i % 3 === 0) ? R - 9 : R - 5;
+                    ctx.beginPath();
+                    ctx.moveTo(cx + Math.cos(a) * inner, cy + Math.sin(a) * inner);
+                    ctx.lineTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R);
+                    ctx.stroke();
+                }
+                function hand(angle, len, w, color) {
+                    ctx.beginPath();
+                    ctx.lineWidth = w;
+                    ctx.strokeStyle = color;
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
+                    ctx.stroke();
+                }
+                const sec = d.getSeconds(), min = d.getMinutes(), hr = d.getHours() % 12;
+                hand((hr + min / 60) * Math.PI / 6 - Math.PI / 2, R * 0.5, 3, win.widgetForeground);
+                hand((min + sec / 60) * Math.PI / 30 - Math.PI / 2, R * 0.72, 2, win.widgetForeground);
+                hand(sec * Math.PI / 30 - Math.PI / 2, R * 0.82, 1, win.widgetAccent);
+            }
+        }
         Text {
             Layout.alignment: Qt.AlignHCenter
+            visible: win.style !== "dials"
             text: win.style === "text"
                 ? win.spell(win.now.getHours(), win.now.getMinutes())
                 : Qt.formatDateTime(win.now, win.qtFormat(win.block.time_format || "%H:%M"))

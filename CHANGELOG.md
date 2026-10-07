@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.14.0 — unreleased
+
+Parity pass 11: visualizer + clock dials (desktop widgets complete).
+
+- `surface/widgets/VisualizerWidget.qml` + `backend/.../visualizer.py`: cava
+  raw-ascii levels streamed as JSON (synthetic fallback when cava is absent),
+  drawn on a Canvas as bars / wave / mirror / dots / glow with accent / pywal /
+  gradient / custom colours.
+- `surface/widgets/ClockWidget.qml`: `dials` style — a Canvas analog face
+  (ticks + hour/minute/second hands) alongside the existing digital/text.
+- All seven desktop widgets now have a Qt implementation; only drag / snap /
+  usable-area placement remains.
+
 ## 0.13.0 — unreleased
 
 Parity pass 10: weather + sysinfo desktop widgets.

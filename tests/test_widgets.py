@@ -12,7 +12,7 @@ from unittest import mock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 
-from hyprtk_bar_qt import sysinfo, weather  # noqa: E402
+from hyprtk_bar_qt import sysinfo, visualizer, weather  # noqa: E402
 
 
 class WeatherDescribe(unittest.TestCase):
@@ -57,6 +57,23 @@ class WeatherCache(unittest.TestCase):
                 result = weather.get_weather("Paris", max_age=900)
                 fetch.assert_called_once()
                 self.assertEqual(result["city"], "Paris")
+
+
+class Visualizer(unittest.TestCase):
+    def test_parse_frame(self) -> None:
+        self.assertEqual(visualizer.parse_frame("0;50;100"), [0.0, 0.5, 1.0])
+
+    def test_parse_frame_clamps_and_rejects(self) -> None:
+        self.assertEqual(visualizer.parse_frame("150;-10"), [1.0, 0.0])
+        self.assertEqual(visualizer.parse_frame("oops;12"), [])
+
+    def test_synthetic_frame_shape(self) -> None:
+        frame = visualizer.synthetic_frame(1.0, 16)
+        self.assertEqual(len(frame), 16)
+        self.assertTrue(all(0.0 <= v <= 1.0 for v in frame))
+
+    def test_resolve_binary_rejects_missing(self) -> None:
+        self.assertIsNone(visualizer.resolve_binary("definitely-not-a-real-binary-xyz"))
 
 
 class SysInfo(unittest.TestCase):
