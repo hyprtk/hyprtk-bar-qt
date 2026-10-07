@@ -42,7 +42,7 @@ PanelWindow {
     readonly property var allPages: [
         { key: "cpu", glyph: "\uf2db", label: "CPU" },        // fa-microchip
         { key: "memory", glyph: "\uefc5", label: "Memory" },  // fa-memory
-        { key: "disks", glyph: "\U000f02ca", label: "Disks" },// md-harddisk
+        { key: "disks", glyph: "\uDBC0\uDECA", label: "Disks" },// md-harddisk
         { key: "network", glyph: "\uf1eb", label: "Network" },// fa-wifi
         { key: "gpu", glyph: "\uf03d", label: "GPU" },        // fa-video-camera
         { key: "apps", glyph: "\uf0ae", label: "Apps" }       // fa-tasks
@@ -462,6 +462,8 @@ PanelWindow {
                 // ── sidebar ────────────────────────────────────────────
                 ColumnLayout {
                     Layout.preferredWidth: 132
+                    Layout.minimumWidth: 132
+                    Layout.maximumWidth: 132
                     Layout.fillHeight: true
                     spacing: 3
                     Repeater {
@@ -482,6 +484,7 @@ PanelWindow {
                 StackLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+                    Layout.minimumWidth: 0
                     currentIndex: win.stackIndex
 
                     // CPU ───────────────────────────────────────────────
@@ -654,7 +657,7 @@ PanelWindow {
                                 columnSpacing: 28
                                 rowSpacing: 4
                                 Readout {
-                                    glyph: "\U000f02ca"; label: "Used"
+                                    glyph: "\uDBC0\uDECA"; label: "Used"
                                     value: {
                                         const d = MonitorData.selectedDriveInfo();
                                         return win.stat(d && d.used_b ? MonitorData.fmtBytes(d.used_b) + " / " + MonitorData.fmtBytes(d.size_b) : "not mounted");

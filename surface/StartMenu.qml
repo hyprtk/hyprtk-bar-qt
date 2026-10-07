@@ -325,6 +325,8 @@ PanelWindow {
                 ColumnLayout {
                     visible: !sm.isGrid
                     Layout.preferredWidth: MenuConfig.sidebarWidth
+                    Layout.minimumWidth: MenuConfig.sidebarWidth
+                    Layout.maximumWidth: MenuConfig.sidebarWidth
                     Layout.fillHeight: true
                     spacing: 4
                     Repeater {
@@ -441,6 +443,8 @@ PanelWindow {
                 ColumnLayout {
                     visible: !sm.isGrid && layout === "whisker" && MenuConfig.showRecents
                     Layout.preferredWidth: MenuConfig.recentsWidth
+                    Layout.minimumWidth: MenuConfig.recentsWidth
+                    Layout.maximumWidth: MenuConfig.recentsWidth
                     Layout.fillHeight: true
                     spacing: 4
                     Text { text: "Recently Used"; color: Theme.dim; font.pixelSize: 11 }
@@ -475,6 +479,8 @@ PanelWindow {
                 ColumnLayout {
                     visible: layout === "win7"
                     Layout.preferredWidth: MenuConfig.recentsWidth
+                    Layout.minimumWidth: MenuConfig.recentsWidth
+                    Layout.maximumWidth: MenuConfig.recentsWidth
                     Layout.fillHeight: true
                     spacing: 4
                     Text { text: "Places"; color: Theme.dim; font.pixelSize: 11 }
@@ -510,6 +516,8 @@ PanelWindow {
 
                     ColumnLayout {
                         Layout.preferredWidth: 150
+                        Layout.minimumWidth: 150
+                        Layout.maximumWidth: 150
                         Layout.fillHeight: true
                         spacing: 3
                         Repeater {
