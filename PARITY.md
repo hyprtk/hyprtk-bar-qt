@@ -29,7 +29,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 |---|---|
 | Bar settings window (9 pages) | ◐ `surface/Settings.qml` (4 controls; needs pages) |
 | System monitor dialog (CPU/Mem/Disks/Network/GPU/Apps, cairo graphs) | ✅ `surface/SysMonitor.qml` (six pages, QML graphs, DIMM slots) |
-| Themer dialog (Wallpaper/Pywal/Rofi/Bar themes/Matuwall/Swaylock/Icons/SDDM+GRUB) | ✅ `surface/Themer.qml` (all nine pages; Matuwall is a link to its config, not an in-bar TOML editor) |
+| Themer dialog (Wallpaper/Pywal/Rofi/Bar themes/Matuwall/Swaylock/Icons/SDDM+GRUB) | ✅ `surface/Themer.qml` (all nine pages, incl. the Matuwall TOML editor) |
 | Clipboard history dialog | ✅ `surface/Clipboard.qml` (cliphist list/copy/delete/wipe, search) |
 | Notification center | ✅ `surface/NotificationCenter.qml` (history, actions, clear all, unread badge) |
 | Quick-settings flyout | ✅ |
@@ -110,4 +110,4 @@ surfaces reading the shared hyprtk-bar `widgets` config.
    whisker categories and win7 places are done.
 3. Remaining config: quicksettings/notifications/arcmenu options, live animation
    application, and full font application to every module.
-4. Themer: in-bar Matuwall TOML editor (currently links to the config file).
+4. Desktop-widget drag (Super+Shift move) — snap/usable-area still todo.

@@ -79,6 +79,7 @@ backend/
     sysinfo.py                host/OS/kernel/CPU/GPU/memory/disks snapshot
     visualizer.py             cava audio levels (synthetic fallback), JSON lines
     menu.py                   start-menu favourites/recents (shared config)
+    matuwall.py               matuwall config.toml read/write (themer page)
 tests/
   test_sysmon.py              backend unit tests
   test_monitor.py             monitor backend unit tests

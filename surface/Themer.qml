@@ -50,6 +50,8 @@ FloatingWindow {
     property string importPath: ""
     property string lockConf: ""
     property string iconHex: "#2196F3"
+    property var mwConfig: ({})
+    property var mwSections: []
 
     function wallDir() {
         return Config.wallpaperDir.length > 0 ? Config.wallpaperDir : win.home + "/Pictures/Wallpapers";
@@ -64,6 +66,7 @@ FloatingWindow {
         win.refreshRofi();
         currentProc.running = true;
         lockFile.reload();
+        mwGetProc.running = true;
     }
 
     function toast(msg) {
@@ -221,6 +224,50 @@ FloatingWindow {
     }
 
     Timer { id: rofiRefresh; interval: 800; onTriggered: win.refreshRofi() }
+
+    // ── matuwall ───────────────────────────────────────────────────────
+    Process {
+        id: mwGetProc
+        command: ["python3", win.base + "matuwall.py", "get"]
+        stdout: SplitParser {
+            onRead: line => {
+                try {
+                    const o = JSON.parse(line);
+                    win.mwConfig = o.config || ({});
+                    win.mwSections = o.sections || [];
+                } catch (e) {}
+            }
+        }
+    }
+    Process {
+        id: mwSetProc
+        onExited: (code, status) => win.toast(code === 0 ? "Matuwall config saved" : "Save failed")
+    }
+    function mwValue(section, key) {
+        let node = win.mwConfig;
+        for (const p of section.split(".")) {
+            if (!node || typeof node !== "object")
+                return undefined;
+            node = node[p];
+        }
+        return node ? node[key] : undefined;
+    }
+    function mwSet(section, key, value) {
+        const c = JSON.parse(JSON.stringify(win.mwConfig || ({})));
+        let node = c;
+        for (const p of section.split("."))
+            node = (node[p] = node[p] || ({}));
+        node[key] = value;
+        win.mwConfig = c;
+    }
+    function mwIdx(choices, v) {
+        const i = (choices || []).indexOf(v);
+        return i < 0 ? 0 : i;
+    }
+    function mwSave() {
+        mwSetProc.command = ["python3", win.base + "matuwall.py", "set", "--json", JSON.stringify(win.mwConfig || ({}))];
+        mwSetProc.running = true;
+    }
 
     RowLayout {
         anchors.fill: parent
@@ -488,20 +535,83 @@ FloatingWindow {
 
                 // Matuwall ──────────────────────────────────────────────
                 ColumnLayout {
-                    spacing: 10
-                    Text {
+                    spacing: 8
+                    Flickable {
                         Layout.fillWidth: true
-                        text: "Matuwall is configured in ~/.config/matuwall/config.toml (a symlink to the pywal-rendered template), so its colours follow the wallpaper automatically."
-                        color: Theme.foreground
-                        font.pixelSize: 11
-                        wrapMode: Text.WordWrap
+                        Layout.fillHeight: true
+                        contentHeight: mwCol.implicitHeight
+                        clip: true
+                        ColumnLayout {
+                            id: mwCol
+                            width: parent.width
+                            spacing: 8
+                            Repeater {
+                                model: win.mwSections
+                                delegate: ColumnLayout {
+                                    id: mwSec
+                                    required property var modelData
+                                    Layout.fillWidth: true
+                                    spacing: 4
+                                    Text { text: mwSec.modelData.title; color: Theme.accent; font.bold: true; font.pixelSize: 12 }
+                                    Repeater {
+                                        model: mwSec.modelData.fields
+                                        delegate: RowLayout {
+                                            id: mwRow
+                                            required property var modelData
+                                            Layout.fillWidth: true
+                                            spacing: 8
+                                            Text {
+                                                text: mwRow.modelData.label
+                                                color: Theme.foreground
+                                                font.pixelSize: 11
+                                                Layout.preferredWidth: 170
+                                                elide: Text.ElideRight
+                                            }
+                                            // bool
+                                            CheckBox {
+                                                visible: mwRow.modelData.kind === "bool"
+                                                checked: win.mwValue(mwSec.modelData.section, mwRow.modelData.key) === true
+                                                onToggled: win.mwSet(mwSec.modelData.section, mwRow.modelData.key, checked)
+                                            }
+                                            // choice
+                                            ComboBox {
+                                                visible: mwRow.modelData.kind === "choice"
+                                                model: mwRow.modelData.choices
+                                                currentIndex: win.mwIdx(mwRow.modelData.choices, win.mwValue(mwSec.modelData.section, mwRow.modelData.key))
+                                                onActivated: win.mwSet(mwSec.modelData.section, mwRow.modelData.key, model[currentIndex])
+                                            }
+                                            // str / int / list
+                                            TextField {
+                                                visible: mwRow.modelData.kind !== "bool" && mwRow.modelData.kind !== "choice"
+                                                Layout.fillWidth: true
+                                                color: Theme.foreground
+                                                text: {
+                                                    const v = win.mwValue(mwSec.modelData.section, mwRow.modelData.key);
+                                                    if (v === undefined || v === null)
+                                                        return "";
+                                                    return Array.isArray(v) ? v.join(", ") : String(v);
+                                                }
+                                                onEditingFinished: {
+                                                    const kind = mwRow.modelData.kind;
+                                                    if (kind === "int")
+                                                        win.mwSet(mwSec.modelData.section, mwRow.modelData.key, parseInt(text) || 0);
+                                                    else if (kind === "list")
+                                                        win.mwSet(mwSec.modelData.section, mwRow.modelData.key, text.split(",").map(s => s.trim()).filter(s => s.length));
+                                                    else
+                                                        win.mwSet(mwSec.modelData.section, mwRow.modelData.key, text);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
-                    Button {
-                        text: "Open config"
-                        onClicked: Quickshell.execDetached(["sh", "-c", "xdg-open ~/.config/matuwall/config.toml"])
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Text { text: "Writes through the pywal symlink; colour keys stay live."; color: Theme.dim; font.pixelSize: 10; Layout.fillWidth: true }
+                        Button { text: "Save Matuwall"; onClicked: win.mwSave() }
                     }
-                    Text { text: "In-bar TOML editor is a later pass."; color: Theme.dim; font.pixelSize: 10 }
-                    Item { Layout.fillHeight: true }
                 }
 
                 // Lock Screen ───────────────────────────────────────────

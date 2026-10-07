@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.18.0 — unreleased
+
+Parity pass 15: in-bar Matuwall TOML editor (themer complete).
+
+- `surface/Themer.qml`: the Matuwall page is now a full form (every schema
+  section: general/window/input/animation/grid/thumbnail/colors/backends/hooks)
+  with bool/int/str/choice/list controls and Save.
+- `backend/.../matuwall.py`: reads/parses `~/.config/matuwall/config.toml`,
+  writes through the pywal symlink and rewrites existing template key lines
+  (preserving comments, skipping pywal-rendered colour keys). Ported from the
+  GTK themer.
+- Tests: `tests/test_matuwall.py`.
+
 ## 0.17.0 — unreleased
 
 Parity pass 14: shared bar config (module options, font, monitors).
