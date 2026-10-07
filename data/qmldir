@@ -1,0 +1,2 @@
+singleton SysData 1.0 SysData.qml
+singleton MonitorData 1.0 MonitorData.qml

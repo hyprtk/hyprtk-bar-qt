@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Toggle the hyprtk-bar-qt arc menu via Quickshell IPC (bind to a hotkey).
+set -euo pipefail
+
+src="${BASH_SOURCE[0]}"
+while [ -L "$src" ]; do
+    dir="$(cd -P "$(dirname "$src")" && pwd)"
+    src="$(readlink "$src")"
+    [[ "$src" != /* ]] && src="$dir/$src"
+done
+here="$(cd -P "$(dirname "$src")" && pwd)"
+root="$(cd "$here/.." && pwd)"
+
+exec qs -p "$root" ipc call arcmenu toggle

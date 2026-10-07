@@ -1,0 +1,47 @@
+// Keyboard-state module: Caps Lock / Num Lock indicators, fed by the Python
+// kbleds backend (reads /sys/class/leds).
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+import Quickshell.Io
+import "../../theme"
+
+RowLayout {
+    id: root
+    spacing: 5
+
+    property bool caps: false
+    property bool num: false
+
+    readonly property string backend:
+        Qt.resolvedUrl("../../backend/hyprtk_bar_qt/kbleds.py").toString().replace("file://", "")
+
+    Process {
+        id: proc
+        running: true
+        command: ["python3", "-u", root.backend, "--interval", "0.5"]
+        stdout: SplitParser {
+            onRead: line => {
+                try {
+                    const o = JSON.parse(line);
+                    root.caps = o.caps;
+                    root.num = o.num;
+                } catch (e) {
+                }
+            }
+        }
+    }
+
+    Text {
+        text: "C"
+        color: root.caps ? Theme.accent : Theme.dim
+        font.pixelSize: 11
+        font.bold: true
+    }
+    Text {
+        text: "N"
+        color: root.num ? Theme.accent : Theme.dim
+        font.pixelSize: 11
+        font.bold: true
+    }
+}

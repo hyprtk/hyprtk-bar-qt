@@ -1,0 +1,597 @@
+// Mission Center-style system monitor dialog, opened by left-clicking the
+// sysmon module. A layer-shell panel floated above the bar with a sidebar of
+// resource pages (CPU / Memory / Disks / Network / GPU) and live QML graphs.
+//
+// All colours come from the live theme, so the panel matches the bar.
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+import "../theme"
+import "../config"
+import "../state"
+import "../data"
+import "../components"
+
+PanelWindow {
+    id: win
+
+    visible: UiState.sysMonitorOpen
+    color: "transparent"
+    focusable: true
+    exclusionMode: ExclusionMode.Ignore
+
+    // Anchor to the same edge as the bar, centred horizontally (no left/right
+    // anchor => the compositor centres the surface).
+    anchors.top: Config.barPosition === "top"
+    anchors.bottom: Config.barPosition === "bottom"
+    margins.top: Config.barPosition === "top" ? Config.barHeight + Config.gapOut + 6 : 0
+    margins.bottom: Config.barPosition === "bottom" ? Config.barHeight + Config.gapOut + 6 : 0
+    implicitWidth: 920
+    implicitHeight: 600
+
+    // Drive the backend only while the dialog is open.
+    onVisibleChanged: MonitorData.active = visible
+
+    readonly property var allPages: [
+        { key: "cpu", glyph: "\uf2db", label: "CPU" },        // fa-microchip
+        { key: "memory", glyph: "\uefc5", label: "Memory" },  // fa-memory
+        { key: "disks", glyph: "\U000f02ca", label: "Disks" },// md-harddisk
+        { key: "network", glyph: "\uf1eb", label: "Network" },// fa-wifi
+        { key: "gpu", glyph: "\uf03d", label: "GPU" }         // fa-video-camera
+    ]
+    readonly property var enabledPages: {
+        const want = Config.sysmonPages || [];
+        const list = win.allPages.filter(p => want.indexOf(p.key) >= 0);
+        return list.length ? list : win.allPages;
+    }
+    property int activeIndex: 0
+    readonly property string activeKey: (win.enabledPages[win.activeIndex] || win.enabledPages[0] || {}).key || "cpu"
+    readonly property int stackIndex: Math.max(0, win.allPages.findIndex(p => p.key === win.activeKey))
+
+    // Per-page graph colours, matching the waybar-era pywal assignments.
+    function pageColor(key) {
+        const map = { cpu: 5, memory: 4, disks: 3, network: 2, gpu: 6 };
+        const n = map[key] || 5;
+        return Theme.walColor(n, Theme.accent);
+    }
+    function levelColor(pct) {
+        if (pct >= 90)
+            return Theme.err;
+        if (pct >= 70)
+            return Theme.warn;
+        return Theme.accent;
+    }
+    function stat(expr, fallback) {
+        return MonitorData.ready ? expr : (fallback || "--");
+    }
+
+    // ── reusable pieces ────────────────────────────────────────────────
+    component GraphCard: ColumnLayout {
+        id: gcard
+        property string title: ""
+        property string value: ""
+        property var values: []
+        property color graphColor: Theme.accent
+        property real scale: 0
+        property int graphHeight: 46
+        Layout.fillWidth: true
+        spacing: 2
+        RowLayout {
+            Layout.fillWidth: true
+            Text { text: gcard.title; color: Theme.dim; font.pixelSize: 11; Layout.fillWidth: true }
+            Text { text: gcard.value; color: Theme.foreground; font.pixelSize: 11 }
+        }
+        Sparkline {
+            Layout.fillWidth: true
+            Layout.preferredHeight: gcard.graphHeight
+            values: gcard.values
+            color: gcard.graphColor
+            scale: gcard.scale
+            maxPoints: MonitorData.histLen
+        }
+    }
+
+    component Readout: RowLayout {
+        id: ro
+        property string glyph: ""
+        property string label: ""
+        property string value: ""
+        spacing: 6
+        Text { text: ro.glyph; color: Theme.accent; font.pixelSize: 12 }
+        Text { text: ro.label; color: Theme.dim; font.pixelSize: 11; Layout.fillWidth: true }
+        Text { text: ro.value; color: Theme.foreground; font.pixelSize: 11 }
+    }
+
+    component SideButton: Rectangle {
+        id: sb
+        property string glyph: ""
+        property string label: ""
+        property bool active: false
+        signal activated()
+        Layout.fillWidth: true
+        implicitHeight: 32
+        radius: 8
+        color: sb.active
+            ? Theme.alpha(Theme.accent, 0.85)
+            : (hov.hovered ? Theme.alpha(Theme.accent2, 0.15) : "transparent")
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 10
+            anchors.rightMargin: 8
+            spacing: 8
+            Text { text: sb.glyph; color: sb.active ? "#000000" : Theme.accent; font.pixelSize: 13 }
+            Text { text: sb.label; color: sb.active ? "#000000" : Theme.foreground; font.pixelSize: 12; Layout.fillWidth: true }
+        }
+        HoverHandler { id: hov }
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: sb.activated()
+        }
+    }
+
+    component CoreRow: RowLayout {
+        id: cr
+        property int core: 0
+        property real pct: 0
+        Layout.fillWidth: true
+        spacing: 8
+        Text { text: "Core " + cr.core; color: Theme.dim; font.pixelSize: 10; Layout.preferredWidth: 52 }
+        Rectangle {
+            Layout.fillWidth: true
+            height: 6
+            radius: 3
+            color: Theme.alpha(Theme.dim, 0.25)
+            Rectangle {
+                width: parent.width * Math.min(Math.max(cr.pct / 100, 0), 1)
+                height: parent.height
+                radius: 3
+                color: win.levelColor(cr.pct)
+            }
+        }
+        Text {
+            text: Math.round(cr.pct) + "%"
+            color: Theme.foreground
+            font.pixelSize: 10
+            Layout.preferredWidth: 34
+            horizontalAlignment: Text.AlignRight
+        }
+    }
+
+    component DriveCard: Rectangle {
+        id: dc
+        property var drive: ({})
+        property bool selected: false
+        Layout.fillWidth: true
+        implicitHeight: 56
+        radius: 8
+        color: dc.selected ? Theme.alpha(Theme.accent, 0.22) : Theme.alpha(Theme.background, 0.5)
+        border.width: 1
+        border.color: Theme.alpha(Theme.accent2, dc.selected ? 0.6 : 0.18)
+
+        readonly property real usedPct: {
+            const denom = (dc.drive.used_b || 0) + (dc.drive.free_b || 0);
+            return denom > 0 ? 100 * (dc.drive.used_b || 0) / denom : 0;
+        }
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 8
+            spacing: 3
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 5
+                Text { text: dc.drive.glyph || ""; color: Theme.accent; font.pixelSize: 12 }
+                Text { text: dc.drive.type_label || ""; color: Theme.foreground; font.pixelSize: 10; Layout.fillWidth: true }
+                Text { text: dc.drive.size_b > 0 ? MonitorData.fmtBytes(dc.drive.size_b) : "\u2014"; color: Theme.dim; font.pixelSize: 10 }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 5
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: 5
+                    radius: 3
+                    color: Theme.alpha(Theme.dim, 0.25)
+                    Rectangle {
+                        width: parent.width * Math.min(Math.max(dc.usedPct / 100, 0), 1)
+                        height: parent.height
+                        radius: 3
+                        color: win.levelColor(dc.usedPct)
+                    }
+                }
+                Text {
+                    text: dc.drive.mounted ? MonitorData.fmtBytes(dc.drive.free_b) + " free"
+                        : (dc.drive.size_b === 0 ? "No media" : "not mounted")
+                    color: Theme.dim
+                    font.pixelSize: 9
+                }
+            }
+        }
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+                MonitorData.selectedDrive = dc.drive.name;
+                MonitorData.diskUsageHist = [];
+            }
+        }
+    }
+
+    component InterfaceRow: RowLayout {
+        id: ir
+        property var iface: ({})
+        Layout.fillWidth: true
+        spacing: 10
+        Text { text: ir.iface.glyph || ""; color: Theme.accent; font.pixelSize: 13 }
+        Text { text: ir.iface.name || ""; color: Theme.foreground; font.pixelSize: 11; Layout.preferredWidth: 80 }
+        Text { text: ir.iface.type || ""; color: Theme.dim; font.pixelSize: 11; Layout.preferredWidth: 80 }
+        Text { text: ir.iface.ip || "\u2014"; color: Theme.foreground; font.pixelSize: 11; Layout.fillWidth: true }
+        Text { text: "\uf063"; color: Theme.accent2; font.pixelSize: 10 }
+        Text { text: MonitorData.fmtRate(ir.iface.down_bps || 0); color: Theme.foreground; font.pixelSize: 11 }
+        Text { text: "\uf062"; color: Theme.warn; font.pixelSize: 10 }
+        Text { text: MonitorData.fmtRate(ir.iface.up_bps || 0); color: Theme.foreground; font.pixelSize: 11 }
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        radius: 14
+        color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Math.max(0.96, Theme.opacity))
+        border.width: 1
+        border.color: Theme.alpha(Theme.accent2, 0.2)
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 14
+            spacing: 10
+
+            // ── header ─────────────────────────────────────────────────
+            RowLayout {
+                Layout.fillWidth: true
+                Text { text: "System Monitor"; color: Theme.accent; font.bold: true; font.pixelSize: 16; Layout.fillWidth: true }
+                Text {
+                    text: "\u00d7"
+                    color: Theme.dim
+                    font.pixelSize: 18
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: UiState.sysMonitorOpen = false
+                    }
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                spacing: 12
+
+                // ── sidebar ────────────────────────────────────────────
+                ColumnLayout {
+                    Layout.preferredWidth: 132
+                    Layout.fillHeight: true
+                    spacing: 3
+                    Repeater {
+                        model: win.enabledPages
+                        delegate: SideButton {
+                            required property var modelData
+                            required property int index
+                            glyph: modelData.glyph
+                            label: modelData.label
+                            active: win.activeIndex === index
+                            onActivated: win.activeIndex = index
+                        }
+                    }
+                    Item { Layout.fillHeight: true }
+                }
+
+                // ── pages ──────────────────────────────────────────────
+                StackLayout {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    currentIndex: win.stackIndex
+
+                    // CPU ───────────────────────────────────────────────
+                    Flickable {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        contentHeight: cpuCol.implicitHeight
+                        clip: true
+                        ColumnLayout {
+                            id: cpuCol
+                            width: parent.width
+                            spacing: 10
+                            GraphCard {
+                                title: "CPU usage (all threads)"
+                                value: win.stat(Math.round(MonitorData.cpu.overall || 0) + "%", "--")
+                                values: MonitorData.cpuHist
+                                graphColor: win.pageColor("cpu")
+                                scale: 100
+                            }
+                            GraphCard {
+                                title: "Temperature"
+                                value: MonitorData.cpu.temp_c !== undefined && MonitorData.cpu.temp_c !== null
+                                    ? Math.round(MonitorData.cpu.temp_c) + "\u00b0C" : "--"
+                                values: MonitorData.cpuTempHist
+                                graphColor: win.pageColor("cpu")
+                                graphHeight: 40
+                            }
+                            GridLayout {
+                                Layout.fillWidth: true
+                                columns: 2
+                                columnSpacing: 28
+                                rowSpacing: 4
+                                Readout { glyph: "\uf0e4"; label: "Load average"; value: win.stat(MonitorData.cpu.load ? MonitorData.cpu.load.map(v => v.toFixed(2)).join(" ") : "--") }
+                                Readout { glyph: "\uf0ae"; label: "Processes"; value: win.stat(String(MonitorData.cpu.processes)) }
+                                Readout { glyph: "\uf1b3"; label: "Threads"; value: win.stat(String(MonitorData.cpu.threads)) }
+                                Readout { glyph: "\uf017"; label: "Uptime"; value: MonitorData.ready ? MonitorData.fmtUptime(MonitorData.cpu.uptime_s) : "--" }
+                                Readout { glyph: "\uf2db"; label: "Current frequency"; value: win.stat(MonitorData.cpu.freq_mhz ? MonitorData.cpu.freq_mhz.toLocaleString() + " MHz" : "--") }
+                                Readout { glyph: "\uf2db"; label: "Max frequency"; value: win.stat(MonitorData.cpu.freq_max_mhz ? MonitorData.cpu.freq_max_mhz.toLocaleString() + " MHz" : "--") }
+                                Readout { glyph: "\uf2c9"; label: "CPU temperature"; value: MonitorData.cpu.temp_c !== undefined && MonitorData.cpu.temp_c !== null ? Math.round(MonitorData.cpu.temp_c) + "\u00b0C" : "--" }
+                                Readout { glyph: "\uf2db"; label: "Model"; value: win.stat(MonitorData.cpu.model || "--") }
+                            }
+                            Text { text: "Cores / Threads"; color: Theme.dim; font.pixelSize: 11 }
+                            GridLayout {
+                                Layout.fillWidth: true
+                                columns: 2
+                                columnSpacing: 24
+                                rowSpacing: 2
+                                Repeater {
+                                    model: MonitorData.cpu.cores || []
+                                    delegate: CoreRow {
+                                        required property var modelData
+                                        required property int index
+                                        core: index
+                                        pct: modelData
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Memory ────────────────────────────────────────────
+                    Flickable {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        contentHeight: memCol.implicitHeight
+                        clip: true
+                        ColumnLayout {
+                            id: memCol
+                            width: parent.width
+                            spacing: 10
+                            GraphCard {
+                                title: "Memory usage"
+                                value: win.stat(Math.round(MonitorData.mem.used_pct || 0) + "%", "--")
+                                values: MonitorData.memHist
+                                graphColor: win.pageColor("memory")
+                                scale: 100
+                            }
+                            GraphCard {
+                                title: "Swap"
+                                value: win.stat(Math.round(MonitorData.mem.swap_pct || 0) + "%", "--")
+                                values: MonitorData.swapHist
+                                graphColor: win.pageColor("memory")
+                                graphHeight: 40
+                                scale: 100
+                            }
+                            GridLayout {
+                                Layout.fillWidth: true
+                                columns: 2
+                                columnSpacing: 28
+                                rowSpacing: 4
+                                Readout { glyph: "\uefc5"; label: "Used";                                 value: win.stat((MonitorData.mem.used_gb || 0).toFixed(1) + " / " + (MonitorData.mem.total_gb || 0).toFixed(1) + " GB") }
+                                Readout { glyph: "\uefc5"; label: "Total"; value: win.stat((MonitorData.mem.total_gb || 0).toFixed(1) + " GB") }
+                                Readout { glyph: "\uefc5"; label: "Available"; value: win.stat((MonitorData.mem.avail_gb || 0).toFixed(1) + " GB") }
+                                Readout { glyph: "\uf187"; label: "Buffers"; value: win.stat((MonitorData.mem.buffers_gb || 0).toFixed(2) + " GB") }
+                                Readout { glyph: "\uf07c"; label: "Cached"; value: win.stat((MonitorData.mem.cached_gb || 0).toFixed(2) + " GB") }
+                                Readout { glyph: "\uf0ec"; label: "Swap used"; value: win.stat((MonitorData.mem.swap_used_gb || 0).toFixed(2) + " GB") }
+                                Readout { glyph: "\uf0ec"; label: "Swap total"; value: win.stat((MonitorData.mem.swap_total_gb || 0).toFixed(2) + " GB") }
+                            }
+                        }
+                    }
+
+                    // Disks ──────────────────────────────────────────────
+                    Flickable {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        contentHeight: diskCol.implicitHeight
+                        clip: true
+                        ColumnLayout {
+                            id: diskCol
+                            width: parent.width
+                            spacing: 10
+                            GraphCard {
+                                title: "Disk usage"
+                                value: {
+                                    const d = MonitorData.selectedDriveInfo();
+                                    return win.stat((d ? d.name + " " : "") + Math.round(MonitorData.diskUsageHist.length ? MonitorData.diskUsageHist[MonitorData.diskUsageHist.length - 1] : 0) + "%");
+                                }
+                                values: MonitorData.diskUsageHist
+                                graphColor: win.pageColor("disks")
+                                graphHeight: 40
+                                scale: 100
+                            }
+                            GraphCard {
+                                title: "Read rate"
+                                value: win.stat(MonitorData.fmtRate(MonitorData.deviceRate(MonitorData.selectedDrive).read), "--")
+                                values: MonitorData.diskReadHist
+                                graphColor: win.pageColor("disks")
+                                graphHeight: 28
+                            }
+                            GraphCard {
+                                title: "Write rate"
+                                value: win.stat(MonitorData.fmtRate(MonitorData.deviceRate(MonitorData.selectedDrive).write), "--")
+                                values: MonitorData.diskWriteHist
+                                graphColor: win.pageColor("disks")
+                                graphHeight: 28
+                            }
+                            GridLayout {
+                                Layout.fillWidth: true
+                                columns: 2
+                                columnSpacing: 28
+                                rowSpacing: 4
+                                Readout {
+                                    glyph: "\U000f02ca"; label: "Used"
+                                    value: {
+                                        const d = MonitorData.selectedDriveInfo();
+                                        return win.stat(d && d.used_b ? MonitorData.fmtBytes(d.used_b) + " / " + MonitorData.fmtBytes(d.size_b) : "not mounted");
+                                    }
+                                }
+                                Readout { glyph: "\uf0ec"; label: "Total I/O"; value: win.stat(MonitorData.fmtRate((MonitorData.disk.read_bps || 0) + (MonitorData.disk.write_bps || 0)), "--") }
+                            }
+                            Text { text: "Drives"; color: Theme.dim; font.pixelSize: 11 }
+                            GridLayout {
+                                Layout.fillWidth: true
+                                columns: 3
+                                columnSpacing: 8
+                                rowSpacing: 8
+                                Repeater {
+                                    model: MonitorData.drives
+                                    delegate: DriveCard {
+                                        required property var modelData
+                                        drive: modelData
+                                        selected: modelData.name === MonitorData.selectedDrive
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Network ────────────────────────────────────────────
+                    Flickable {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        contentHeight: netCol.implicitHeight
+                        clip: true
+                        ColumnLayout {
+                            id: netCol
+                            width: parent.width
+                            spacing: 10
+                            GraphCard {
+                                title: "Download"
+                                value: win.stat(MonitorData.fmtRate(MonitorData.net.down_bps || 0), "--")
+                                values: MonitorData.netDownHist
+                                graphColor: win.pageColor("network")
+                                graphHeight: 40
+                            }
+                            GraphCard {
+                                title: "Upload"
+                                value: win.stat(MonitorData.fmtRate(MonitorData.net.up_bps || 0), "--")
+                                values: MonitorData.netUpHist
+                                graphColor: win.pageColor("network")
+                                graphHeight: 32
+                            }
+                            GridLayout {
+                                Layout.fillWidth: true
+                                columns: 2
+                                columnSpacing: 28
+                                rowSpacing: 4
+                                Readout { glyph: "\uf1eb"; label: "Interface"; value: win.stat(MonitorData.net.iface || "--") }
+                                Readout { glyph: "\uf1eb"; label: "Type"; value: win.stat(MonitorData.net.type || "--") }
+                                Readout { glyph: "\uf1eb"; label: "IP address"; value: win.stat(MonitorData.net.ip || "--") }
+                                Readout { glyph: "\uf0ab"; label: "Download"; value: win.stat(MonitorData.fmtRate(MonitorData.net.down_bps || 0), "--") }
+                                Readout { glyph: "\uf0aa"; label: "Upload"; value: win.stat(MonitorData.fmtRate(MonitorData.net.up_bps || 0), "--") }
+                            }
+                            Text { text: "Interfaces"; color: Theme.dim; font.pixelSize: 11 }
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 3
+                                Repeater {
+                                    model: MonitorData.net.all || []
+                                    delegate: InterfaceRow {
+                                        required property var modelData
+                                        iface: modelData
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // GPU ────────────────────────────────────────────────
+                    Flickable {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        contentHeight: gpuCol.implicitHeight
+                        clip: true
+                        ColumnLayout {
+                            id: gpuCol
+                            width: parent.width
+                            spacing: 10
+                            GraphCard {
+                                title: "GPU usage"
+                                value: MonitorData.gpu && MonitorData.gpu.util_pct !== null && MonitorData.gpu.util_pct !== undefined
+                                    ? Math.round(MonitorData.gpu.util_pct) + "%" : "--"
+                                values: MonitorData.gpuUtilHist
+                                graphColor: win.pageColor("gpu")
+                                graphHeight: 48
+                                scale: 100
+                            }
+                            GraphCard {
+                                title: "VRAM"
+                                value: {
+                                    const g = MonitorData.gpu;
+                                    if (!g)
+                                        return "--";
+                                    if (g.vram_total_gb && g.vram_total_gb > 0)
+                                        return (g.vram_used_gb || 0).toFixed(1) + " / " + g.vram_total_gb.toFixed(1) + " GB";
+                                    return "shared";
+                                }
+                                values: MonitorData.gpuVramHist
+                                graphColor: win.pageColor("gpu")
+                                graphHeight: 32
+                                scale: 100
+                            }
+                            Text {
+                                visible: MonitorData.gpuStatic && MonitorData.gpuStatic.model
+                                text: MonitorData.gpuStatic ? (MonitorData.gpuStatic.model || "") : ""
+                                color: Theme.foreground
+                                font.pixelSize: 12
+                                font.bold: true
+                            }
+                            Text {
+                                visible: text.length > 0
+                                text: {
+                                    const g = MonitorData.gpuStatic;
+                                    if (!g)
+                                        return "";
+                                    const parts = [];
+                                    if (g.manufacturer)
+                                        parts.push(g.manufacturer);
+                                    if (g.units)
+                                        parts.push(g.units + " compute units");
+                                    if (g.max_clock)
+                                        parts.push(g.max_clock.toLocaleString() + " MHz max");
+                                    return parts.join(" \u00b7 ");
+                                }
+                                color: Theme.dim
+                                font.pixelSize: 11
+                            }
+                            Text {
+                                visible: MonitorData.ready && !MonitorData.gpu
+                                text: "GPU monitoring unavailable"
+                                color: Theme.dim
+                                font.pixelSize: 11
+                            }
+                            GridLayout {
+                                Layout.fillWidth: true
+                                columns: 2
+                                columnSpacing: 28
+                                rowSpacing: 4
+                                Readout { glyph: "\uf03d"; label: "Utilization"; value: MonitorData.gpu && MonitorData.gpu.util_pct !== null && MonitorData.gpu.util_pct !== undefined ? Math.round(MonitorData.gpu.util_pct) + "%" : "--" }
+                                Readout { glyph: "\uf03d"; label: "VRAM"; value: {
+                                    const g = MonitorData.gpu;
+                                    if (!g)
+                                        return "--";
+                                    return (g.vram_total_gb && g.vram_total_gb > 0) ? (g.vram_used_gb || 0).toFixed(1) + " / " + g.vram_total_gb.toFixed(1) + " GB" : "shared (system RAM)";
+                                } }
+                                Readout { glyph: "\uf2c9"; label: "Temperature"; value: MonitorData.gpu && MonitorData.gpu.temps && MonitorData.gpu.temps.edge !== undefined ? Math.round(MonitorData.gpu.temps.edge) + "\u00b0C" : (MonitorData.gpu && MonitorData.gpu.temps && MonitorData.gpu.temps.temp !== undefined ? Math.round(MonitorData.gpu.temps.temp) + "\u00b0C" : "--") }
+                                Readout { glyph: "\uf0e7"; label: "Power"; value: MonitorData.gpu && MonitorData.gpu.power_w !== null && MonitorData.gpu.power_w !== undefined ? Math.round(MonitorData.gpu.power_w) + " W" : "--" }
+                                Readout { glyph: "\uf021"; label: "Fan"; value: MonitorData.gpu && MonitorData.gpu.fan_pct !== null && MonitorData.gpu.fan_pct !== undefined ? Math.round(MonitorData.gpu.fan_pct) + "%" : (MonitorData.gpu && MonitorData.gpu.fan_rpm ? MonitorData.gpu.fan_rpm + " RPM" : "--") }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
