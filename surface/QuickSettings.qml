@@ -70,11 +70,13 @@ PanelWindow {
     property int micVolume: 0
     property bool micMuted: false
     property int brightness: 100
-    property bool hasBacklight: true
+    property bool hasBacklight: false
+    property bool brightnessProbed: false
     property bool wifiOn: false
     property bool btOn: false
 
     function refresh() {
+        qs.brightnessProbed = false;
         volGet.running = true;
         micGet.running = true;
         brightGet.running = true;
@@ -109,18 +111,39 @@ PanelWindow {
     Process {
         id: brightGet
         command: ["brightnessctl", "-m"]
-        // No kernel backlight (e.g. a desktop with an external monitor): fall
-        // back to hyprsunset gamma, as the GTK bar does.
-        onExited: (code) => { qs.hasBacklight = (code === 0); }
+        // brightnessctl exits 0 even for LED-class devices (keyboard lights),
+        // so only accept a real backlight/kbd_backlight device. With no kernel
+        // backlight (e.g. a desktop with an external monitor), fall back to
+        // hyprsunset gamma, as the GTK bar does.
         stdout: SplitParser {
             onRead: line => {
-                const m = line.match(/([0-9]+)%/);
-                if (m) {
-                    qs.brightness = parseInt(m[1]);
-                    qs.hasBacklight = true;
-                }
+                const f = line.split(",");
+                if (f.length < 5 || (f[1] !== "backlight" && f[1] !== "kbd_backlight"))
+                    return;
+                const max = parseInt(f[4]);
+                if (!(max > 0))
+                    return;
+                qs.brightness = Math.round(parseInt(f[3]) || 0);
+                qs.hasBacklight = true;
+                qs.brightnessProbed = true;
             }
         }
+        onExited: (code) => {
+            if (!qs.brightnessProbed)
+                gammaGet.running = true;
+        }
+    }
+    Process {
+        id: gammaGet
+        command: ["hyprctl", "hyprsunset", "profile"]
+        stdout: SplitParser {
+            onRead: line => {
+                const m = line.match(/gamma[:\s=]+([0-9]+)\s*%?/i);
+                if (m)
+                    qs.brightness = Math.max(30, Math.min(parseInt(m[1]), 100));
+            }
+        }
+        onExited: (code) => { qs.hasBacklight = false; }
     }
     Process {
         id: wifiGet
@@ -248,15 +271,19 @@ PanelWindow {
                 Text { text: "\u263c"; color: Theme.warn; font.pixelSize: 15 }
                 TSlider {
                     Layout.fillWidth: true
-                    from: 0
+                    from: qs.hasBacklight ? 0 : 30
                     to: 100
                     stepSize: 1
                     value: qs.brightness
                     onMoved: {
-                        if (qs.hasBacklight)
+                        if (qs.hasBacklight) {
                             Quickshell.execDetached(["brightnessctl", "set", Math.round(value) + "%"]);
-                        else
-                            Quickshell.execDetached(["hyprctl", "hyprsunset", "gamma", String(Math.max(30, Math.round(value)))]);
+                            qs.brightness = Math.round(value);
+                        } else {
+                            const g = Math.max(30, Math.round(value));
+                            Quickshell.execDetached(["hyprctl", "hyprsunset", "gamma", String(g)]);
+                            qs.brightness = g;
+                        }
                     }
                 }
                 Text { text: qs.brightness + "%"; color: Theme.foreground; font.pixelSize: 12; Layout.preferredWidth: 38 }

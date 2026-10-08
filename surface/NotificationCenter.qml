@@ -135,7 +135,6 @@ PanelWindow {
                 Layout.fillHeight: true
                 contentHeight: list.implicitHeight
                 clip: true
-                visible: NotifyData.tracked.length > 0
                 ColumnLayout {
                     id: list
                     width: parent.width

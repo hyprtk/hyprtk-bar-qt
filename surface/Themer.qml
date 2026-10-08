@@ -24,9 +24,26 @@ PanelWindow {
     implicitWidth: 760
     implicitHeight: 620
 
-    // Open on the focused monitor (captured when shown).
+    // Open under the wallpaper/themer glyph on its monitor (registered by the
+    // trigger), else the focused monitor.
     property var targetScreen: null
-    screen: targetScreen
+    screen: Screens.byName(BarAnchors.themerScreen) || targetScreen
+
+    readonly property real screenW: win.screen ? win.screen.width : 0
+    readonly property var insets: BarGeom.insets(win.screenW)
+    // Left edge under the wallpaper/themer glyph, clamped inside the bar's
+    // extent so the panel never spills past the bar/screen boundary.
+    readonly property real leftMargin: Math.max(
+        win.insets.left,
+        Math.min(win.insets.left + Math.max(0, BarAnchors.themerX),
+                 win.screenW - win.insets.right - win.implicitWidth))
+
+    anchors.top: BarConfig.barPosition === "top"
+    anchors.bottom: BarConfig.barPosition === "bottom"
+    anchors.left: true
+    margins.top: BarConfig.barPosition === "top" ? BarConfig.barHeight + BarConfig.gapOut + BarConfig.gapIn + 6 : 0
+    margins.bottom: BarConfig.barPosition === "bottom" ? BarConfig.barHeight + BarConfig.gapOut + BarConfig.gapIn + 6 : 0
+    margins.left: win.leftMargin
 
     readonly property string home: Quickshell.env("HOME") || ""
     readonly property string base: Qt.resolvedUrl("../backend/hyprtk_bar_qt/").toString().replace("file://", "")

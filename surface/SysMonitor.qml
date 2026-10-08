@@ -21,16 +21,26 @@ PanelWindow {
     focusable: true
     exclusionMode: ExclusionMode.Ignore
 
-    // Open on the focused monitor (captured when shown).
+    // Open under the sysmon module on its monitor (registered by the module),
+    // else the focused monitor.
     property var targetScreen: null
-    screen: targetScreen
+    screen: Screens.byName(BarAnchors.sysmonScreen) || targetScreen
 
-    // Anchor to the same edge as the bar, centred horizontally (no left/right
-    // anchor => the compositor centres the surface).
+    readonly property real screenW: win.screen ? win.screen.width : 0
+    readonly property var insets: BarGeom.insets(win.screenW)
+    // Left edge under the sysmon module, clamped inside the bar's extent so the
+    // panel never spills past the bar/screen boundary.
+    readonly property real leftMargin: Math.max(
+        win.insets.left,
+        Math.min(win.insets.left + Math.max(0, BarAnchors.sysmonX),
+                 win.screenW - win.insets.right - win.implicitWidth))
+
     anchors.top: BarConfig.barPosition === "top"
     anchors.bottom: BarConfig.barPosition === "bottom"
+    anchors.left: true
     margins.top: BarConfig.barPosition === "top" ? BarConfig.barHeight + BarConfig.gapOut + BarConfig.gapIn + 6 : 0
     margins.bottom: BarConfig.barPosition === "bottom" ? BarConfig.barHeight + BarConfig.gapOut + BarConfig.gapIn + 6 : 0
+    margins.left: win.leftMargin
     implicitWidth: 920
     implicitHeight: 600
 

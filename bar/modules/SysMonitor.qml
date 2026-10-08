@@ -4,6 +4,7 @@
 // per-widget process. Percentages colour at 70% (warn) / 90% (high).
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import "../../theme"
 import "../../state"
 import "../../data"
@@ -16,6 +17,16 @@ RowLayout {
 
     readonly property int fs: BarConfig.fontSize(11)
     readonly property bool monitorEnabled: BarConfig.sysmon.monitor !== false
+
+    // Our monitor (the bar window's screen), so the monitor dialog opens here.
+    readonly property string screenName: (QsWindow.window && QsWindow.window.screen) ? QsWindow.window.screen.name : ""
+
+    // Register our window-relative position so the dialog lines up under us.
+    function _register() { BarAnchors.setSysmon(mapToItem(null, 0, 0).x, width, root.screenName); }
+    Component.onCompleted: _register()
+    onXChanged: _register()
+    onWidthChanged: _register()
+    onScreenNameChanged: _register()
 
     function levelColor(pct) {
         return pct >= 90 ? Theme.err : (pct >= 70 ? Theme.warn : Theme.foreground);

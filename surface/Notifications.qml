@@ -18,10 +18,8 @@ PanelWindow {
 
     anchors.top: BarConfig.barPosition === "top"
     anchors.bottom: BarConfig.barPosition === "bottom"
-    anchors.right: true
     margins.top: BarConfig.barPosition === "top" ? BarConfig.barHeight + BarConfig.gapOut + BarConfig.gapIn + 8 : 0
     margins.bottom: BarConfig.barPosition === "bottom" ? BarConfig.barHeight + BarConfig.gapOut + BarConfig.gapIn + 8 : 0
-    margins.right: 8
     implicitWidth: 340
     implicitHeight: column.implicitHeight + 24
     color: "transparent"

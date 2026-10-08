@@ -57,6 +57,24 @@ RowLayout {
                     ? Tooltips.showTip(link, link.modelData.label || link.modelData.id)
                     : Tooltips.hideTip()
             }
+
+            // Register our window-relative position so the clipboard/themer
+            // panels line up under the glyph that opens them.
+            readonly property string screenName: (QsWindow.window && QsWindow.window.screen) ? QsWindow.window.screen.name : ""
+            function _registerAnchor() {
+                const id = link.modelData.id || "";
+                const action = link.modelData.action || "";
+                const x = link.mapToItem(null, 0, 0).x;
+                if (id === "cliphist" || action === "clipboard")
+                    BarAnchors.setClip(x, link.width, link.screenName);
+                if (id === "wallpaper" || action === "themer")
+                    BarAnchors.setThemer(x, link.width, link.screenName);
+            }
+            Component.onCompleted: _registerAnchor()
+            onXChanged: _registerAnchor()
+            onWidthChanged: _registerAnchor()
+            onScreenNameChanged: _registerAnchor()
+
             MouseArea {
                 anchors.fill: parent
                 acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton

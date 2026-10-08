@@ -24,14 +24,26 @@ PanelWindow {
     focusable: true
     exclusionMode: ExclusionMode.Ignore
 
-    // Open on the focused monitor (captured when shown).
+    // Open under the clipboard quicklink on its monitor (registered by the
+    // link), else the focused monitor.
     property var targetScreen: null
-    screen: targetScreen
+    screen: Screens.byName(BarAnchors.clipScreen) || targetScreen
+
+    readonly property real screenW: clip.screen ? clip.screen.width : 0
+    readonly property var insets: BarGeom.insets(clip.screenW)
+    // Left edge under the cliphist glyph, clamped inside the bar's extent so the
+    // panel never spills past the bar/screen boundary.
+    readonly property real leftMargin: Math.max(
+        clip.insets.left,
+        Math.min(clip.insets.left + Math.max(0, BarAnchors.clipX),
+                 clip.screenW - clip.insets.right - clip.implicitWidth))
 
     anchors.top: BarConfig.barPosition === "top"
     anchors.bottom: BarConfig.barPosition === "bottom"
+    anchors.left: true
     margins.top: BarConfig.barPosition === "top" ? BarConfig.barHeight + BarConfig.gapOut + BarConfig.gapIn + 6 : 0
     margins.bottom: BarConfig.barPosition === "bottom" ? BarConfig.barHeight + BarConfig.gapOut + BarConfig.gapIn + 6 : 0
+    margins.left: clip.leftMargin
     implicitWidth: 420
     implicitHeight: 480
 
@@ -198,7 +210,6 @@ PanelWindow {
                 Layout.fillHeight: true
                 contentHeight: list.implicitHeight
                 clip: true
-                visible: clip.filtered().length > 0
                 ColumnLayout {
                     id: list
                     width: parent.width

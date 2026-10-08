@@ -34,6 +34,42 @@ Singleton {
             root.qsScreen = screen;
     }
 
+    // System-monitor module: x/width in bar-window coords + its screen name.
+    property real sysmonX: -1
+    property real sysmonW: 22
+    property string sysmonScreen: ""
+
+    function setSysmon(x, w, screen) {
+        root.sysmonX = x;
+        root.sysmonW = w;
+        if (screen)
+            root.sysmonScreen = screen;
+    }
+
+    // Clipboard quicklink: x/width in bar-window coords + its screen name.
+    property real clipX: -1
+    property real clipW: 22
+    property string clipScreen: ""
+
+    function setClip(x, w, screen) {
+        root.clipX = x;
+        root.clipW = w;
+        if (screen)
+            root.clipScreen = screen;
+    }
+
+    // Themer trigger (wallpaper quicklink / themer button): x/width + screen.
+    property real themerX: -1
+    property real themerW: 22
+    property string themerScreen: ""
+
+    function setThemer(x, w, screen) {
+        root.themerX = x;
+        root.themerW = w;
+        if (screen)
+            root.themerScreen = screen;
+    }
+
     // Screen that last opened the start menu / bar context menu (set on click).
     property string menuScreen: ""
     property string barMenuScreen: ""
