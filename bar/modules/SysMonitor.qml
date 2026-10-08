@@ -19,7 +19,7 @@ RowLayout {
 
     RowLayout {
         spacing: 4
-        Text { text: "CPU"; color: Theme.dim; font.pixelSize: root.fs }
+        Text { text: "\uf2db"; color: Theme.accent; font.family: BarConfig.glyphFont; font.pixelSize: root.fs + 1 }
         Sparkline {
             Layout.preferredWidth: 46
             Layout.preferredHeight: 16
@@ -37,7 +37,7 @@ RowLayout {
 
     RowLayout {
         spacing: 4
-        Text { text: "MEM"; color: Theme.dim; font.pixelSize: root.fs }
+        Text { text: "\uefc5"; color: Theme.accent2; font.family: BarConfig.glyphFont; font.pixelSize: root.fs + 1 }
         Sparkline {
             Layout.preferredWidth: 46
             Layout.preferredHeight: 16

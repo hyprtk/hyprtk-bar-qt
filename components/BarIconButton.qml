@@ -1,6 +1,7 @@
 // Small rounded icon button used by the bar's action modules.
 import QtQuick
 import "../theme"
+import "../data"
 
 Rectangle {
     id: btn
@@ -18,6 +19,7 @@ Rectangle {
         anchors.centerIn: parent
         text: btn.glyph
         color: btn.active ? "#000000" : Theme.foreground
+        font.family: BarConfig.glyphFont
         font.pixelSize: 13
     }
 

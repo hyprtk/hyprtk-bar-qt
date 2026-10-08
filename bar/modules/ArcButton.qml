@@ -4,7 +4,7 @@ import "../../state"
 import "../../data"
 
 BarIconButton {
-    glyph: "\u229e"
+    glyph: "\uf0e7"
     visible: BarConfig.arcmenu.enabled !== false
     active: UiState.arcMenuOpen
     onActivated: UiState.arcMenuOpen = !UiState.arcMenuOpen

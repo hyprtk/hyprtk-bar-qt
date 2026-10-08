@@ -31,13 +31,14 @@ RowLayout {
             // resolve it here and hand it to the (QtObject) menu anchor.
             readonly property var barWindow: QsWindow.window
 
-            Image {
-                anchors.fill: parent
-                source: item.modelData.icon
-                sourceSize.width: root.iconSize
-                sourceSize.height: root.iconSize
-                smooth: true
-                fillMode: Image.PreserveAspectFit
+            // Generic glyph instead of the app-provided SNI icon, so the tray
+            // matches the bar's Nerd Font glyph style (icon/image → glyph).
+            Text {
+                anchors.centerIn: parent
+                text: "\uf2d0"
+                color: Theme.foreground
+                font.family: BarConfig.glyphFont
+                font.pixelSize: Math.round(root.iconSize * 0.8)
             }
 
             QsMenuAnchor {

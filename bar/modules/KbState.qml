@@ -35,15 +35,15 @@ RowLayout {
     }
 
     Text {
-        text: "C"
+        text: "\uf023"
         color: root.caps ? Theme.accent : Theme.dim
-        font.pixelSize: root.fs
-        font.bold: true
+        font.family: BarConfig.glyphFont
+        font.pixelSize: root.fs + 1
     }
     Text {
-        text: "N"
+        text: "\uf11c"
         color: root.num ? Theme.accent : Theme.dim
-        font.pixelSize: root.fs
-        font.bold: true
+        font.family: BarConfig.glyphFont
+        font.pixelSize: root.fs + 1
     }
 }

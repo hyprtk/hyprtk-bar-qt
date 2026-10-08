@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.29.0 — unreleased
+
+Bar icons standardised on Nerd Font glyphs.
+
+- **All bar glyphs pinned to a Nerd Font family** (`BarConfig.glyphFont`,
+  default `Symbols Nerd Font`, overridable via `quicklinks.glyph_font`) instead
+  of relying on per-codepoint font fallback — which rendered some glyphs wrong
+  or blank (e.g. the start button).
+- **Text/unicode symbols → glyphs** (matching the GTK bar): start button now
+  reads the shared `center.start_glyph` (`\uf015`), quick settings `\uf013`,
+  sysmon `\uf2db`/`\uefc5`, kbstate `\uf023`/`\uf11c`, updates `\uf0ab`,
+  net `\uf063`/`\uf062`, arc button `\uf0e7`.
+- **System tray** now shows a generic glyph (`\uf2d0`) instead of the
+  app-provided SNI icon, so the whole bar reads as one glyph set.
+
 ## 0.28.0 — unreleased
 
 Dialogue polish: floating panels.

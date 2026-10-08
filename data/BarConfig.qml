@@ -59,6 +59,7 @@ Singleton {
     readonly property var clock: block("clock")
     readonly property var tray: block("tray")
     readonly property var windowBlock: block("window")
+    readonly property var center: block("center")
     readonly property var updates: block("updates")
     readonly property var sysmon: block("sysmon")
     readonly property var quicklinks: block("quicklinks")
@@ -78,5 +79,12 @@ Singleton {
     function fontSize(fallback) {
         const s = root.font.size;
         return (typeof s === "number" && s > 0) ? s : fallback;
+    }
+
+    // Nerd Font family for every bar glyph (matches the GTK bar's GLYPH_FONT),
+    // overridable via quicklinks.glyph_font.
+    readonly property string glyphFont: {
+        const f = root.quicklinks.glyph_font;
+        return (typeof f === "string" && f.length > 0) ? f : "Symbols Nerd Font";
     }
 }
