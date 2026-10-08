@@ -49,7 +49,7 @@ PanelWindow {
     readonly property var allPages: [
         { key: "cpu", glyph: "\uf2db", label: "CPU" },        // fa-microchip
         { key: "memory", glyph: "\uefc5", label: "Memory" },  // fa-memory
-        { key: "disks", glyph: "\uDBC0\uDECA", label: "Disks" },// md-harddisk
+        { key: "disks", glyph: String.fromCodePoint(0xf02ca), label: "Disks" },// md-harddisk
         { key: "network", glyph: "\uf1eb", label: "Network" },// fa-wifi
         { key: "gpu", glyph: "\uf03d", label: "GPU" },        // fa-video-camera
         { key: "apps", glyph: "\uf0ae", label: "Apps" }       // fa-tasks
@@ -664,7 +664,7 @@ PanelWindow {
                                 columnSpacing: 28
                                 rowSpacing: 4
                                 Readout {
-                                    glyph: "\uDBC0\uDECA"; label: "Used"
+                                    glyph: String.fromCodePoint(0xf02ca); label: "Used"
                                     value: {
                                         const d = MonitorData.selectedDriveInfo();
                                         return win.stat(d && d.used_b ? MonitorData.fmtBytes(d.used_b) + " / " + MonitorData.fmtBytes(d.size_b) : "not mounted");

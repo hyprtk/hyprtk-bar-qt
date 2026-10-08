@@ -76,41 +76,37 @@ Rectangle {
         }
     }
 
+    // Sections are anchored independently so the centre sits on the bar's
+    // centre (like Gtk.CenterBox), independent of the left/right widths.
     RowLayout {
-        anchors.fill: parent
+        anchors.left: parent.left
         anchors.leftMargin: 12
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 8
+        Repeater {
+            model: root.leftMods
+            delegate: ModuleChooser {}
+        }
+    }
+
+    RowLayout {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 8
+        Repeater {
+            model: root.centerMods
+            delegate: ModuleChooser {}
+        }
+    }
+
+    RowLayout {
+        anchors.right: parent.right
         anchors.rightMargin: 12
-        spacing: 10
-
-        RowLayout {
-            Layout.alignment: Qt.AlignVCenter
-            spacing: 8
-            Repeater {
-                model: root.leftMods
-                delegate: ModuleChooser {}
-            }
-        }
-
-        Item { Layout.fillWidth: true }
-
-        RowLayout {
-            Layout.alignment: Qt.AlignVCenter
-            spacing: 8
-            Repeater {
-                model: root.centerMods
-                delegate: ModuleChooser {}
-            }
-        }
-
-        Item { Layout.fillWidth: true }
-
-        RowLayout {
-            Layout.alignment: Qt.AlignVCenter
-            spacing: 8
-            Repeater {
-                model: root.rightMods
-                delegate: ModuleChooser {}
-            }
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: 8
+        Repeater {
+            model: root.rightMods
+            delegate: ModuleChooser {}
         }
     }
 }

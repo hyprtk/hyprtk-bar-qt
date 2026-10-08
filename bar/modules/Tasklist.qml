@@ -9,6 +9,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Widgets
 import "../../theme"
 import "../../data"
 
@@ -20,6 +21,19 @@ RowLayout {
 
     function _appId(t) {
         return (t.wayland && t.wayland.appId) ? t.wayland.appId : (t.title || "app");
+    }
+    // Resolve an appId to a theme icon (desktop entry, symbolic preferred).
+    function iconFor(appId) {
+        let e = null;
+        try {
+            e = DesktopEntries.byId(appId)
+                || DesktopEntries.byId(appId + ".desktop")
+                || DesktopEntries.heuristicLookup(appId);
+        } catch (err) {}
+        let name = (e && e.icon) ? e.icon : appId;
+        if (name && Quickshell.hasThemeIcon(name + "-symbolic"))
+            name = name + "-symbolic";
+        return Quickshell.iconPath(name, "application-x-executable");
     }
     function _match(a, b) {
         a = String(a || "").toLowerCase().replace(/\.desktop$/, "");
@@ -38,13 +52,13 @@ RowLayout {
             let key = null;
             for (const k in map)
                 if (root._match(p.class, k)) { key = k; break; }
-            out.push({ pinned: p, wins: key ? map[key] : [] });
+            out.push({ pinned: p, appId: p.class || "", wins: key ? map[key] : [] });
             if (key)
                 seen[key] = true;
         }
         for (const k in map)
             if (!seen[k])
-                out.push({ pinned: null, wins: map[k] });
+                out.push({ pinned: null, appId: k, wins: map[k] });
         return out;
     }
     function _recent(wins) {
@@ -75,40 +89,38 @@ RowLayout {
 
             readonly property var wins: grp.modelData.wins
             readonly property var pin: grp.modelData.pinned
+            readonly property string appId: grp.modelData.appId
             readonly property bool act: grp.wins.some(w => w.activated)
             readonly property bool running: grp.wins.length > 0
             readonly property var recent: root._recent(grp.wins)
             readonly property string title: grp.running
-                ? (grp.recent.title || root._appId(grp.recent))
+                ? (grp.recent.title || grp.appId)
                 : (grp.pin && grp.pin.class ? grp.pin.class : "?")
 
-            implicitWidth: Math.min(label.implicitWidth, 180) + 16
+            implicitWidth: 26
             implicitHeight: 22
             radius: 6
             color: grp.act
                 ? Theme.alpha(Theme.accent, 0.85)
                 : (grp.running ? Theme.alpha(Theme.accent2, 0.12) : Theme.alpha(Theme.dim, 0.18))
 
-            Text {
-                id: label
+            IconImage {
                 anchors.centerIn: parent
-                width: Math.min(implicitWidth, 180)
-                elide: Text.ElideRight
-                horizontalAlignment: Text.AlignHCenter
-                text: grp.title
-                color: grp.act ? "#000000" : (grp.running ? Theme.foreground : Theme.dim)
-                font.pixelSize: root.fs
+                implicitSize: 16
+                source: root.iconFor(grp.appId)
+                opacity: grp.running ? 1.0 : 0.6
             }
 
-            // running indicator
+            // running indicator (bottom-right)
             Rectangle {
                 visible: grp.running
                 width: 4
                 height: 4
                 radius: 2
-                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.right: parent.right
+                anchors.rightMargin: 2
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: 1
+                anchors.bottomMargin: 2
                 color: grp.act ? "#000000" : Theme.accent2
             }
 

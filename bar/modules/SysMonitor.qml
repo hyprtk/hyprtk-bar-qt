@@ -26,18 +26,9 @@ RowLayout {
         id: m
         property string glyph: ""
         property color glyphColor: Theme.dim
-        property var values: []
-        property color lineColor: Theme.accent
         property real pct: 0
         spacing: 4
         Text { text: m.glyph; color: m.glyphColor; font.family: BarConfig.glyphFont; font.pixelSize: root.fs + 1 }
-        Sparkline {
-            Layout.preferredWidth: 46
-            Layout.preferredHeight: 16
-            values: m.values
-            color: m.lineColor
-            scale: 1.0
-        }
         Text {
             text: Math.round(m.pct) + "%"
             color: root.levelColor(m.pct)
@@ -46,9 +37,9 @@ RowLayout {
         }
     }
 
-    Metric { glyph: "\uf2db"; glyphColor: Theme.accent; values: SysData.cpuHist; lineColor: Theme.accent; pct: SysData.cpu * 100 }
-    Metric { glyph: "\uefc5"; glyphColor: Theme.accent2; values: SysData.memHist; lineColor: Theme.accent2; pct: SysData.mem * 100 }
-    Metric { glyph: "\uDBC0\uDECA"; glyphColor: Theme.dim; values: SysData.diskHist; lineColor: Theme.dim; pct: SysData.disk * 100 }
+    Metric { glyph: "\uf2db"; glyphColor: Theme.accent; pct: SysData.cpu * 100 }
+    Metric { glyph: "\uefc5"; glyphColor: Theme.accent2; pct: SysData.mem * 100 }
+    Metric { glyph: String.fromCodePoint(0xf02ca); glyphColor: Theme.dim; pct: SysData.disk * 100 }
 
     // Left-click opens the Mission Center-style system monitor dialog.
     TapHandler {

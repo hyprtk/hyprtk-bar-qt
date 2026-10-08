@@ -22,6 +22,13 @@ PopupWindow {
     color: "transparent"
     implicitWidth: 244
     implicitHeight: 236
+    grabFocus: true
+    onClosed: Cal.close()
+
+    Shortcut {
+        sequence: "Escape"
+        onActivated: Cal.close()
+    }
 
     anchor.window: cal.anchorWin
     anchor.item: Cal.target

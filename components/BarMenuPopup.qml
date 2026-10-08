@@ -18,6 +18,13 @@ PopupWindow {
     color: "transparent"
     implicitWidth: col.implicitWidth + 8
     implicitHeight: col.implicitHeight + 8
+    grabFocus: true
+    onClosed: PopupMenu.close()
+
+    Shortcut {
+        sequence: "Escape"
+        onActivated: PopupMenu.close()
+    }
 
     anchor.window: menu.anchorWin
     anchor.item: PopupMenu.target
