@@ -5,6 +5,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import "../theme"
 import "../config"
 import "../state"
@@ -18,14 +19,33 @@ PanelWindow {
     focusable: true
     exclusionMode: ExclusionMode.Ignore
 
+    readonly property real screenW: center.screen ? center.screen.width : 0
+    readonly property var insets: BarGeom.insets(center.screenW)
+    // Right edge of the bell in screen coords (fallback: the bar's right inset).
+    readonly property real bellRight: BarAnchors.notifX >= 0
+        ? center.insets.left + BarAnchors.notifX + BarAnchors.notifW
+        : center.screenW - center.insets.right
+    // Right-align the panel under the bell, clamped inside the bar's extent.
+    readonly property real leftMargin: Math.max(
+        center.insets.left,
+        Math.min(center.bellRight - center.implicitWidth,
+                 center.screenW - center.insets.right - center.implicitWidth))
+
     anchors.top: BarConfig.barPosition === "top"
     anchors.bottom: BarConfig.barPosition === "bottom"
-    anchors.right: true
+    anchors.left: true
     margins.top: BarConfig.barPosition === "top" ? BarConfig.barHeight + BarConfig.gapOut + 6 : 0
     margins.bottom: BarConfig.barPosition === "bottom" ? BarConfig.barHeight + BarConfig.gapOut + 6 : 0
-    margins.right: 8
+    margins.left: center.leftMargin
     implicitWidth: 380
     implicitHeight: 420
+
+    IpcHandler {
+        target: "notifications"
+        function toggle() { UiState.notificationCenterOpen = !UiState.notificationCenterOpen; }
+        function open() { UiState.notificationCenterOpen = true; }
+        function close() { UiState.notificationCenterOpen = false; }
+    }
 
     property real reveal: 0
     readonly property int animMs: Config.animations ? Config.animationDuration : 0

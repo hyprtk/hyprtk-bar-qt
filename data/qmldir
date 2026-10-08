@@ -12,3 +12,5 @@ singleton Tooltips 1.0 Tooltips.qml
 singleton PopupMenu 1.0 PopupMenu.qml
 singleton Hypr 1.0 Hypr.qml
 singleton Cal 1.0 Cal.qml
+singleton BarGeom 1.0 BarGeom.qml
+singleton BarAnchors 1.0 BarAnchors.qml

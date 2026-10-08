@@ -1,14 +1,14 @@
 // Notification daemon + history, shared by the bar bell, the toast stack and
 // the notification center.
 //
-// Only one process can own org.freedesktop.Notifications, so the daemon is
-// gated behind HYPRTK_BAR_QT_NOTIFICATIONS=1 (the GTK bar's daemon must be
-// retired first). Without the gate the singleton still exists, so the bell and
-// center render — they just never receive anything.
+// The Qt bar owns org.freedesktop.Notifications by default (the GTK bar's
+// daemon must not be running). Set HYPRTK_BAR_QT_NOTIFICATIONS=0 (or
+// notifications.enabled=false) to opt out.
 pragma Singleton
 
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.Notifications
 import "."
 
@@ -16,7 +16,7 @@ Singleton {
     id: root
 
     readonly property bool enabled:
-        Quickshell.env("HYPRTK_BAR_QT_NOTIFICATIONS") === "1"
+        Quickshell.env("HYPRTK_BAR_QT_NOTIFICATIONS") !== "0"
         && BarConfig.notifications.enabled !== false
 
     // Shared notifications config block (max_stored / default_timeout).
@@ -31,8 +31,18 @@ Singleton {
     // Transient toasts (a small subset of `tracked` shown briefly).
     property var toasts: []
 
+    // The bar is the intended daemon: stop known competitors (dunst/mako/swaync/
+    // xfce4-notifyd) BEFORE registering, or they keep org.freedesktop.Notifications.
+    property bool competitorsCleared: false
+    Process {
+        id: killProc
+        running: root.enabled && !root.competitorsCleared
+        command: ["sh", "-c", "for b in dunst mako swaync xfce4-notifyd; do pkill -x \"$b\" 2>/dev/null || true; done"]
+        onExited: (code, status) => root.competitorsCleared = true
+    }
+
     Loader {
-        active: root.enabled
+        active: root.enabled && root.competitorsCleared
         sourceComponent: Component {
             NotificationServer {
                 id: srv
@@ -43,10 +53,9 @@ Singleton {
                     const m = Object.assign({}, root.stamps);
                     m[n.id] = Date.now();
                     root.stamps = m;
+                    root.tracked = root.tracked.concat([n]).slice(-root.maxStored);
                     root._pushToast(n);
                 }
-                onTrackedNotificationsChanged: root.tracked = srv.trackedNotifications.values
-                Component.onCompleted: root.tracked = srv.trackedNotifications.values
             }
         }
     }
@@ -65,11 +74,13 @@ Singleton {
     }
     function remove(n) {
         n.dismiss();
+        root.tracked = root.tracked.filter(x => x !== n);
     }
     function clearAll() {
         const items = root.tracked.slice();
         for (let i = 0; i < items.length; i++)
             items[i].dismiss();
+        root.tracked = [];
     }
 
     // Newest-first history for the center (capped at max_stored).

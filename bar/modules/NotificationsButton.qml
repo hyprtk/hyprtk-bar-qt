@@ -6,9 +6,17 @@ import "../../state"
 import "../../data"
 
 Item {
+    id: notifBtn
     implicitWidth: 22
     implicitHeight: 22
     visible: BarConfig.notifications.enabled !== false
+
+    // Register our window-relative position so the notification center can line
+    // up under the bell (within the bar).
+    function _register() { BarAnchors.setNotif(mapToItem(null, 0, 0).x, width); }
+    Component.onCompleted: _register()
+    onXChanged: _register()
+    onWidthChanged: _register()
 
     BarIconButton {
         anchors.fill: parent

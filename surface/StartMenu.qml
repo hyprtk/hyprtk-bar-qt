@@ -44,6 +44,26 @@ PanelWindow {
     property string layout: MenuConfig.layout
     readonly property bool isGrid: layout === "win11" || layout === "plasma"
 
+    // Placement within the bar's extent (like the GTK menu: align + position).
+    readonly property real screenW: sm.screen ? sm.screen.width : 0
+    readonly property real screenH: sm.screen ? sm.screen.height : 0
+    readonly property var insets: BarGeom.insets(sm.screenW)
+    readonly property int barW: BarGeom.width(sm.screenW)
+    readonly property int menuW: Math.min(sm.isGrid ? 760 : MenuConfig.width, sm.barW - 8)
+    readonly property int menuH: Math.min(MenuConfig.height, sm.screenH - BarConfig.barHeight - 120)
+    readonly property bool atBottom: (MenuConfig.position === "bottom")
+        || (MenuConfig.position === "auto" && BarConfig.barPosition === "bottom")
+    readonly property real menuX: {
+        if (MenuConfig.align === "right")
+            return sm.screenW - sm.insets.right - sm.menuW - 4;
+        if (MenuConfig.align === "center")
+            return Math.round(sm.insets.left + (sm.barW - sm.menuW) / 2);
+        return sm.insets.left + 4;
+    }
+    readonly property real menuY: sm.atBottom
+        ? sm.screenH - BarConfig.barHeight - BarConfig.gapOut - MenuConfig.gapIn - sm.menuH
+        : BarConfig.barHeight + BarConfig.gapOut + MenuConfig.gapIn
+
     readonly property var allApps: DesktopEntries.applications.values
     function baseApps() {
         return (sm.allApps || []).filter(e => !e.noDisplay);
@@ -228,11 +248,10 @@ PanelWindow {
 
     Rectangle {
         id: panel
-        width: Math.min(sm.isGrid ? 760 : MenuConfig.width, parent.width - 40)
-        height: Math.min(MenuConfig.height, parent.height - 120)
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 64
+        x: sm.menuX
+        y: sm.menuY
+        width: sm.menuW
+        height: sm.menuH
         radius: 16
         color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Theme.opacity)
         border.color: Theme.alpha(Theme.accent2, 0.3)

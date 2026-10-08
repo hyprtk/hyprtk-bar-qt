@@ -30,6 +30,10 @@ Singleton {
     }
 
     readonly property string layout: cfg.layout || "whisker"
+    readonly property string position: cfg.position || "auto"
+    readonly property string align: cfg.align || "left"
+    readonly property int gapIn: cfg.gap_in !== undefined ? cfg.gap_in : 4
+    readonly property int gapOut: cfg.gap_out !== undefined ? cfg.gap_out : 5
     readonly property var favorites: cfg.favorites || []
     readonly property var recents: cfg.recents || []
     readonly property bool showRecents: cfg.show_recents !== false
