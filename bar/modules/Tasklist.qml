@@ -73,6 +73,12 @@ RowLayout {
                 color: grp.act ? "#000000" : Theme.accent2
             }
 
+            HoverHandler {
+                id: grpHover
+                onHoveredChanged: grpHover.hovered
+                    ? Tooltips.showTip(grp, grp.title)
+                    : Tooltips.hideTip()
+            }
             MouseArea {
                 anchors.fill: parent
                 acceptedButtons: Qt.LeftButton | Qt.MiddleButton

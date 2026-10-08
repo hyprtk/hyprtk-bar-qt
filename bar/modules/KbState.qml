@@ -34,6 +34,12 @@ RowLayout {
         }
     }
 
+    HoverHandler {
+        id: kbHover
+        onHoveredChanged: kbHover.hovered
+            ? Tooltips.showTip(root, "Caps: " + (root.caps ? "on" : "off") + "  Num: " + (root.num ? "on" : "off"))
+            : Tooltips.hideTip()
+    }
     Text {
         text: "\uf023"
         color: root.caps ? Theme.accent : Theme.dim

@@ -76,6 +76,12 @@ RowLayout {
             // resolve it here and hand it to the (QtObject) menu anchor.
             readonly property var barWindow: QsWindow.window
 
+            HoverHandler {
+                id: trayHover
+                onHoveredChanged: (trayHover.hovered && item.modelData.title)
+                    ? Tooltips.showTip(item, item.modelData.title)
+                    : Tooltips.hideTip()
+            }
             Text {
                 anchors.centerIn: parent
                 text: root.trayGlyph(item.modelData)

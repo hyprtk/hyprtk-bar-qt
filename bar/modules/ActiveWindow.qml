@@ -21,4 +21,12 @@ Text {
     font.pixelSize: BarConfig.fontSize(Theme.fontSize)
     elide: Text.ElideRight
     Layout.preferredWidth: BarConfig.windowBlock.width || 220
+
+    HoverHandler {
+        id: winHover
+        onHoveredChanged: (winHover.hovered && root.full.length)
+            ? Tooltips.showTip(root, (root.toplevel && root.toplevel.wayland && root.toplevel.wayland.appId
+                ? root.toplevel.wayland.appId + " \u2014 " : "") + root.full)
+            : Tooltips.hideTip()
+    }
 }

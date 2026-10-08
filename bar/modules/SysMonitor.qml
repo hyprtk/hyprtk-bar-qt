@@ -59,6 +59,11 @@ RowLayout {
         }
     }
     HoverHandler {
+        id: smHover
         cursorShape: root.monitorEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+        onHoveredChanged: smHover.hovered
+            ? Tooltips.showTip(root, "CPU: " + Math.round(SysData.cpu * 100) + "%\nRAM: "
+                + Math.round(SysData.mem * 100) + "% (" + SysData.diskUsed.toFixed(1) + "/" + SysData.diskTotal.toFixed(1) + " GB disk)")
+            : Tooltips.hideTip()
     }
 }

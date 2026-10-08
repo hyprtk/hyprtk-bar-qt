@@ -8,3 +8,4 @@ singleton WidgetMove 1.0 WidgetMove.qml
 singleton MenuConfig 1.0 MenuConfig.qml
 singleton BarConfig 1.0 BarConfig.qml
 singleton SignalBridge 1.0 SignalBridge.qml
+singleton Tooltips 1.0 Tooltips.qml

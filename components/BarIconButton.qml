@@ -8,6 +8,7 @@ Rectangle {
 
     property string glyph: ""
     property bool active: false
+    property string tooltip: ""
     signal activated()
 
     implicitWidth: 22
@@ -27,5 +28,12 @@ Rectangle {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
         onClicked: btn.activated()
+    }
+
+    HoverHandler {
+        id: hh
+        onHoveredChanged: (hh.hovered && btn.tooltip.length)
+            ? Tooltips.showTip(btn, btn.tooltip)
+            : Tooltips.hideTip()
     }
 }

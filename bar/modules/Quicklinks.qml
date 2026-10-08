@@ -51,7 +51,12 @@ RowLayout {
                 font.family: BarConfig.quicklinks.glyph_font || Theme.fontFamily
             }
 
-            HoverHandler { id: hover }
+            HoverHandler {
+                id: hover
+                onHoveredChanged: (hover.hovered && (link.modelData.label || link.modelData.id))
+                    ? Tooltips.showTip(link, link.modelData.label || link.modelData.id)
+                    : Tooltips.hideTip()
+            }
             MouseArea {
                 anchors.fill: parent
                 acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton

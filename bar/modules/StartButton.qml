@@ -5,6 +5,7 @@ import "../../data"
 
 BarIconButton {
     glyph: BarConfig.center.start_glyph || "\uf015"
+    tooltip: "Open menu"
     active: UiState.startMenuOpen
     onActivated: UiState.startMenuOpen = !UiState.startMenuOpen
 }

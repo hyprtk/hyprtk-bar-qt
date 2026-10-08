@@ -67,6 +67,12 @@ Text {
         onTriggered: proc.running = true
     }
 
+    HoverHandler {
+        id: updHover
+        onHoveredChanged: (updHover.hovered && root.tip.length)
+            ? Tooltips.showTip(root, root.tip)
+            : Tooltips.hideTip()
+    }
     MouseArea {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor

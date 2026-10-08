@@ -71,6 +71,12 @@ RowLayout {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: Hyprland.dispatch("workspace " + pill.modelData)
             }
+            HoverHandler {
+                id: pillHover
+                onHoveredChanged: pillHover.hovered
+                    ? Tooltips.showTip(pill, "Workspace " + pill.modelData)
+                    : Tooltips.hideTip()
+            }
         }
     }
 }

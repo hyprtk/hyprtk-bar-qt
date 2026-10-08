@@ -13,6 +13,7 @@ Item {
     BarIconButton {
         anchors.fill: parent
         glyph: "\uf0f3"
+        tooltip: "Notifications" + (NotifyData.unread > 0 ? " (" + NotifyData.unread + " unread)" : "")
         active: UiState.notificationCenterOpen
         onActivated: {
             UiState.notificationCenterOpen = !UiState.notificationCenterOpen;

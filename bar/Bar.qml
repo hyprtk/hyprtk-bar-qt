@@ -7,6 +7,7 @@ import "../theme"
 import "../config"
 import "../state"
 import "../data"
+import "../components"
 import "modules"
 
 Rectangle {
@@ -19,6 +20,9 @@ Rectangle {
 
     color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, root.bgOpacity)
     radius: BarConfig.radius
+
+    // Single shared tooltip surface (modules register via the Tooltips singleton).
+    BarTooltip { anchorWin: root.QsWindow.window }
 
     // Animated border (shared `theme.border_animation` + `animations` mode/speed).
     readonly property bool borderAnim: BarConfig.theme.border_animation !== false && Config.animations
