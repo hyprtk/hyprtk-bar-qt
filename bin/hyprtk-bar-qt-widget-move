@@ -1,16 +1,28 @@
 #!/usr/bin/env bash
-# Start/stop a desktop-widget move for the Qt bar by writing to its control FIFO.
+# Start/stop a desktop-widget move for the Qt bar by writing to the bar's
+# control FIFO.
 #
-# Bind Super + Shift + left mouse (press -> start, release -> stop):
-#   bind = SUPER SHIFT, mouse:272, exec, hyprtk-bar-qt-widget-move start
+# The Qt bar watches the SAME FIFO as the GTK bar, so the existing
+# Super + Shift + left mouse bind (which calls hyprtk-bar-widget-move.sh)
+# drives whichever bar is running:
+#   bind  = SUPER SHIFT, mouse:272, exec, hyprtk-bar-widget-move.sh start
+#   bindr = SUPER SHIFT, mouse:272, exec, hyprtk-bar-widget-move.sh stop
+#
+# This helper is for a Qt-only bind (if you ever want one):
+#   bind  = SUPER SHIFT, mouse:272, exec, hyprtk-bar-qt-widget-move start
 #   bindr = SUPER SHIFT, mouse:272, exec, hyprtk-bar-qt-widget-move stop
 set -uo pipefail
 
 action="${1:-start}"
 runtime="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-fifo="$runtime/hyprtk-bar-qt-widget-move.fifo"
+fifo="$runtime/hyprtk-bar-widget-move.fifo"
 
 if [ -p "$fifo" ]; then
-    printf '%s\n' "$action" > "$fifo" 2>/dev/null || true
+    # Open read-write so we never block waiting for a reader (a plain write
+    # open blocks while no bar is running); the bar's streamer reads the line.
+    if exec 3<>"$fifo"; then
+        printf '%s\n' "$action" >&3 2>/dev/null || true
+        exec 3>&-
+    fi
 fi
 exit 0

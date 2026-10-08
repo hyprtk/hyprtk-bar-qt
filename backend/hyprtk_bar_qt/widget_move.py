@@ -1,24 +1,29 @@
 """Desktop-widget move control channel (a FIFO).
 
 Hyprland binds ``Super + Shift + left mouse`` (press -> ``start``, release ->
-``stop``) to ``hyprtk-bar-qt-widget-move``, which writes to this FIFO. The Qt bar
-watches it (via this streamer) and drives the cursor-polling move itself — the
-same model as the GTK bar, on its own FIFO so the two never clash.
+``stop``) to ``hyprtk-bar-widget-move.sh``, which writes to the bar's control
+FIFO. The Qt bar watches that same FIFO (via this streamer) and drives the
+cursor-polling move itself — the same model (and the same FIFO) as the GTK bar,
+so the one existing keybind drives whichever bar is running.
 
 Streams one JSON line per command: ``{"cmd": "start"|"stop"}``.
 """
 
 from __future__ import annotations
 
+import ctypes
 import json
 import os
 import select
+import signal
 import stat
 import sys
 import time
 from pathlib import Path
 
-FIFO_NAME = "hyprtk-bar-qt-widget-move.fifo"
+# Shared with the GTK bar so the existing Super+Shift+left bind reaches the Qt
+# bar too (only one bar runs at a time).
+FIFO_NAME = "hyprtk-bar-widget-move.fifo"
 
 
 def fifo_path() -> Path:
@@ -47,7 +52,28 @@ def ensure_fifo(path: Path) -> bool:
     return True
 
 
+def _arm_parent_death() -> None:
+    """Ask the kernel to SIGTERM us if the bar (our parent) dies.
+
+    Quickshell does not always reap Process children on exit, so without this a
+    killed bar leaves an orphaned reader on the FIFO (and, with several, a race
+    over which reader receives a command).
+    """
+    try:
+        libc = ctypes.CDLL("libc.so.6", use_errno=True)
+        PR_SET_PDEATHSIG = 1
+        libc.prctl(PR_SET_PDEATHSIG, signal.SIGTERM, 0, 0, 0)
+    except Exception:
+        pass
+
+
 def main(argv: list[str] | None = None) -> int:
+    parent = os.getppid()
+    _arm_parent_death()
+    # If the parent already died between fork and prctl, exit now.
+    if os.getppid() != parent:
+        return 0
+
     path = fifo_path()
     if not ensure_fifo(path):
         return 1

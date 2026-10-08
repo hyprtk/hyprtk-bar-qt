@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.29.1 — unreleased
+
+Desktop-widget move fixed.
+
+- `backend/.../widget_move.py` now watches the **shared** control FIFO
+  (`hyprtk-bar-widget-move.fifo`), so the existing `Super + Shift + left mouse`
+  bind (which calls `hyprtk-bar-widget-move.sh`) drives the Qt bar too —
+  previously the bind reached only the GTK bar and, with no reader, the write
+  blocked. Also arms `PR_SET_PDEATHSIG` so a killed bar no longer leaves
+  orphaned FIFO readers (which raced over the command).
+- `bin/hyprtk-bar-qt-widget-move`: writes to the shared FIFO and opens it
+  read-write so it never blocks when no bar is running.
+
 ## 0.29.0 — unreleased
 
 Bar icons standardised on Nerd Font glyphs.
@@ -12,8 +25,9 @@ Bar icons standardised on Nerd Font glyphs.
   reads the shared `center.start_glyph` (`\uf015`), quick settings `\uf013`,
   sysmon `\uf2db`/`\uefc5`, kbstate `\uf023`/`\uf11c`, updates `\uf0ab`,
   net `\uf063`/`\uf062`, arc button `\uf0e7`.
-- **System tray** now shows a generic glyph (`\uf2d0`) instead of the
-  app-provided SNI icon, so the whole bar reads as one glyph set.
+- **System tray** draws a per-item glyph chosen from the SNI id/icon/title
+  (e.g. nm-applet's wired vs wireless icon → ethernet vs Wi-Fi glyph, blueman →
+  bluetooth glyph, dimmed when disabled) instead of the app-provided pixmap.
 
 ## 0.28.0 — unreleased
 
