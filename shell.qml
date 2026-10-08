@@ -15,6 +15,9 @@ import "data"
 ShellRoot {
     id: shell
 
+    // Instantiate the keybind signal bridge (menu/arc/clipboard toggles).
+    readonly property var signalBridge: SignalBridge
+
     // Screens that should show the bar, per the shared hyprtk-bar `monitors`
     // selector ("primary" | "all" | ["CONNECTOR", ...]).
     function _screens() {

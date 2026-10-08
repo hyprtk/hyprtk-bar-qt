@@ -14,7 +14,7 @@ Text {
     readonly property string home: Quickshell.env("HOME") || ""
     readonly property string script: BarConfig.updates.script || (root.home + "/.local/share/hyprtk-bar/scripts/updates.sh")
     readonly property string install: BarConfig.updates.install_command || (root.home + "/.local/share/hyprtk-bar/scripts/installupdates.sh")
-    readonly property int intervalS: BarConfig.updates.interval || 3600
+    readonly property int intervalS: BarConfig.updates.interval || 60
 
     visible: count > 0 && BarConfig.updates.enabled !== false
     text: "\uf0ab " + count

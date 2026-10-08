@@ -55,7 +55,7 @@ PanelWindow {
         { key: "apps", glyph: "\uf0ae", label: "Apps" }       // fa-tasks
     ]
     readonly property var enabledPages: {
-        const want = Config.sysmonPages || [];
+        const want = MonitorData.pageList || [];
         const list = win.allPages.filter(p => want.indexOf(p.key) >= 0);
         return list.length ? list : win.allPages;
     }

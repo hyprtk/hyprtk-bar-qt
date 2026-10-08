@@ -1,11 +1,16 @@
-"""Bridge the GTK bar's arc-menu keybind to the Qt bar.
+"""Bridge the dotfiles' bar keybinds to the Qt bar.
 
-The dotfiles bind ``Super + Ctrl + M`` to ``hyprtk-bar-arc-toggle.sh``, which
-reads the bar PID from ``$XDG_RUNTIME_DIR/hyprtk-bar-<uid>.lock`` and sends it
-SIGUSR2. The Qt bar has no PID file of its own, so this helper claims that lock
-file when no live bar owns it, handles SIGUSR2, and streams a ``toggle`` command
-to the bar (which flips the arc menu). Dying with the bar (PDEATHSIG) keeps the
-lock file honest.
+The GTK bar's toggle scripts read the bar PID from
+``$XDG_RUNTIME_DIR/hyprtk-bar-<uid>.lock`` and send it a signal:
+
+    SIGUSR1 → start menu   (Super+Space)
+    SIGUSR2 → arc menu     (Super+Ctrl+M)
+    SIGHUP  → clipboard    (Super+Ctrl+C)
+
+The Qt bar has no PID file of its own, so this helper claims that lock file
+when no live bar owns it, handles the three signals, and streams the matching
+command to the bar (which flips the corresponding surface). Dying with the bar
+(PDEATHSIG) keeps the lock file honest.
 """
 
 from __future__ import annotations
@@ -17,6 +22,12 @@ import signal
 import sys
 import time
 from pathlib import Path
+
+SIGNALS = {
+    signal.SIGUSR1: "menu",
+    signal.SIGUSR2: "arc",
+    signal.SIGHUP: "clipboard",
+}
 
 
 def lock_path() -> Path:
@@ -59,10 +70,13 @@ def main(argv: list[str] | None = None) -> int:
 
     claim_lock(lock_path())
 
-    def on_usr2(_signum, _frame):
-        print(json.dumps({"cmd": "toggle"}), flush=True)
+    def emit(cmd: str):
+        def handler(_signum, _frame):
+            print(json.dumps({"cmd": cmd}), flush=True)
+        return handler
 
-    signal.signal(signal.SIGUSR2, on_usr2)
+    for sig, cmd in SIGNALS.items():
+        signal.signal(sig, emit(cmd))
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
     while True:
         time.sleep(3600)

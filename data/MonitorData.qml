@@ -10,6 +10,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "../config"
+import "."
 
 Singleton {
     id: root
@@ -21,7 +22,15 @@ Singleton {
     readonly property string dimmBackend:
         Qt.resolvedUrl("../backend/hyprtk_bar_qt/dimm.py").toString().replace("file://", "")
 
-    readonly property int histLen: Math.max(10, Config.sysmonDataPoints)
+    readonly property int histLen: Math.max(10, scfg.data_points || Config.sysmonDataPoints)
+
+    // Shared hyprtk-bar `sysmon` block (so the GTK Settings and this dialog agree),
+    // falling back to the Qt bar's own config.
+    readonly property var scfg: BarConfig.sysmon
+    readonly property int intervalS: scfg.interval || Config.sysmonInterval
+    readonly property var pageList: (scfg.pages && scfg.pages.length) ? scfg.pages : Config.sysmonPages
+    readonly property string diskPath: scfg.disk_path || Config.sysmonDiskPath
+    readonly property string netIface: scfg.network_iface || Config.sysmonNetworkIface
 
     // Set true by the dialog while it is visible; starts/stops the process.
     property bool active: false
@@ -70,10 +79,10 @@ Singleton {
         running: root.active
         command: [
             "python3", "-u", root.backend,
-            "--interval", String(Config.sysmonInterval),
-            "--pages", (Config.sysmonPages || []).join(","),
-            "--disk-path", Config.sysmonDiskPath,
-            "--iface", Config.sysmonNetworkIface,
+            "--interval", String(root.intervalS),
+            "--pages", (root.pageList || []).join(","),
+            "--disk-path", root.diskPath,
+            "--iface", root.netIface,
             "--active", root.activePage
         ]
         stdout: SplitParser {

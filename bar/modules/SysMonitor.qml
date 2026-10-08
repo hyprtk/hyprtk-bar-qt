@@ -53,15 +53,17 @@ RowLayout {
         }
     }
 
+    readonly property bool monitorEnabled: BarConfig.sysmon.monitor !== false
+
     // Left-click opens the Mission Center-style system monitor dialog.
     TapHandler {
         acceptedButtons: Qt.LeftButton
         onTapped: {
-            if (Config.sysmonMonitor)
+            if (root.monitorEnabled)
                 UiState.sysMonitorOpen = true;
         }
     }
     HoverHandler {
-        cursorShape: Config.sysmonMonitor ? Qt.PointingHandCursor : Qt.ArrowCursor
+        cursorShape: root.monitorEnabled ? Qt.PointingHandCursor : Qt.ArrowCursor
     }
 }

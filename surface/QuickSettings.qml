@@ -35,6 +35,8 @@ PanelWindow {
         if (visible)
             refresh();
     }
+    // Re-probe while open so external changes (media keys, other apps) show up.
+    Timer { running: qs.visible; interval: 5000; repeat: true; onTriggered: qs.refresh() }
 
     property int volume: 0
     property bool muted: false
@@ -153,8 +155,10 @@ PanelWindow {
                     to: 100
                     stepSize: 1
                     value: qs.volume
-                    onMoved: Quickshell.execDetached(
-                        ["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", (value / 100).toFixed(2)])
+                    onMoved: {
+                        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "0"]);
+                        Quickshell.execDetached(["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", (value / 100).toFixed(2)]);
+                    }
                 }
                 Text { text: qs.volume + "%"; color: Theme.foreground; font.pixelSize: 12; Layout.preferredWidth: 38 }
                 Text {
@@ -183,8 +187,10 @@ PanelWindow {
                     to: 100
                     stepSize: 1
                     value: qs.micVolume
-                    onMoved: Quickshell.execDetached(
-                        ["wpctl", "set-volume", "@DEFAULT_AUDIO_SOURCE@", (value / 100).toFixed(2)])
+                    onMoved: {
+                        Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "0"]);
+                        Quickshell.execDetached(["wpctl", "set-volume", "@DEFAULT_AUDIO_SOURCE@", (value / 100).toFixed(2)]);
+                    }
                 }
                 Text { text: qs.micVolume + "%"; color: Theme.foreground; font.pixelSize: 12; Layout.preferredWidth: 38 }
                 Text {

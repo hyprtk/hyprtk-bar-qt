@@ -7,3 +7,4 @@ singleton WidgetLayout 1.0 WidgetLayout.qml
 singleton WidgetMove 1.0 WidgetMove.qml
 singleton MenuConfig 1.0 MenuConfig.qml
 singleton BarConfig 1.0 BarConfig.qml
+singleton SignalBridge 1.0 SignalBridge.qml

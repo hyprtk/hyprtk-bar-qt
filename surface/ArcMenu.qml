@@ -45,6 +45,7 @@ PanelWindow {
     readonly property int itemSize: cfg.item_size || 42
     readonly property int edge: cfg.margin || 8
     readonly property int radius: cfg.radius || 92
+    readonly property string shape: cfg.shape || "circle"
 
     anchors.top: pos.v === 0
     anchors.bottom: pos.v === 1
@@ -94,24 +95,6 @@ PanelWindow {
         function close() { UiState.arcMenuOpen = false; }
     }
 
-    // Bridge the dotfiles' arc keybind (hyprtk-bar-arc-toggle.sh → SIGUSR2 to the
-    // lock-file PID) to this bar, so Super+Ctrl+M works without a Qt-specific bind.
-    readonly property string toggleBackend:
-        Qt.resolvedUrl("../backend/hyprtk_bar_qt/arc_toggle.py").toString().replace("file://", "")
-    Process {
-        id: sigProc
-        running: true
-        command: ["python3", "-u", arc.toggleBackend]
-        stdout: SplitParser {
-            onRead: line => {
-                try {
-                    if (JSON.parse(line).cmd === "toggle")
-                        UiState.arcMenuOpen = !UiState.arcMenuOpen;
-                } catch (e) {}
-            }
-        }
-    }
-
     // items, fanned
     Repeater {
         model: arc.items
@@ -128,7 +111,7 @@ PanelWindow {
 
             width: arc.itemSize
             height: arc.itemSize
-            radius: arc.itemSize / 2
+            radius: arc.shape === "square" ? 8 : arc.itemSize / 2
             x: arc.fabX() + arc.fabSize / 2 + arc.radius * Math.cos(cell.ang) - width / 2
             y: arc.fabY() + arc.fabSize / 2 + arc.radius * Math.sin(cell.ang) - height / 2
             color: arc.itemColor
@@ -162,13 +145,14 @@ PanelWindow {
         y: arc.fabY()
         width: arc.fabSize
         height: arc.fabSize
-        radius: width / 2
+        radius: arc.shape === "square" ? 10 : width / 2
         color: arc.fabColor
 
         Text {
             anchors.centerIn: parent
-            text: "\u2715"
+            text: arc.cfg.fab_glyph || "\uf00a"
             color: "#000000"
+            font.family: BarConfig.glyphFont
             font.pixelSize: Math.round(arc.fabSize * 0.4)
             font.bold: true
         }
