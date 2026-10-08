@@ -6,7 +6,6 @@
 // the Matuwall TOML editor.
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls.Basic
 import Quickshell
 import Quickshell.Io
 import "../theme"
@@ -73,7 +72,6 @@ PanelWindow {
     property var iconPresets: []
     property var iconPreview: []
     property string iconCurrent: ""
-    property var lockVars: []
     property var lockItems: []
     property string lockKind: ""
     property string lockPath: ""

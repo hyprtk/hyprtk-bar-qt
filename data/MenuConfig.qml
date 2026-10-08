@@ -39,7 +39,6 @@ Singleton {
     readonly property var favorites: cfg.favorites || []
     readonly property var recents: cfg.recents || []
     readonly property bool showRecents: cfg.show_recents !== false
-    readonly property int maxRecents: cfg.max_recents || 10
     readonly property int sidebarWidth: cfg.sidebar_width || 180
     readonly property int recentsWidth: cfg.recents_width || 230
     readonly property int width: cfg.width || 920

@@ -31,9 +31,6 @@ ShellRoot {
     }
 
     // Bar width / insets are shared with the popups (data/BarGeom.qml).
-    function _width(screenW) {
-        return BarGeom.width(screenW);
-    }
     function _insets(screenW) {
         return BarGeom.insets(screenW);
     }
@@ -57,7 +54,9 @@ ShellRoot {
             margins.left: panel.insets.left
             margins.right: panel.insets.right
             implicitHeight: BarConfig.barHeight
-            exclusiveZone: BarConfig.barHeight + BarConfig.gapOut
+            // Reserve the bar plus its windows-side (gap_in) and edge-side
+            // (gap_out) breathing space, matching the GTK surface height.
+            exclusiveZone: BarConfig.barHeight + BarConfig.gapIn + BarConfig.gapOut
             color: "transparent"
 
             Bar {

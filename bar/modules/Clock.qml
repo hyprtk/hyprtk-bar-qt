@@ -57,6 +57,7 @@ Text {
 
     TapHandler {
         acceptedButtons: Qt.LeftButton
+        enabled: BarConfig.clock.calendar !== false
         onTapped: Cal.open(root)
     }
     HoverHandler {

@@ -6,7 +6,6 @@
 // Widgets. Changes are debounced and written via backend/.../barsettings.py.
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls.Basic
 import Quickshell
 import Quickshell.Io
 import "../theme"

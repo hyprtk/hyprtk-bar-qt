@@ -45,7 +45,6 @@ Singleton {
     readonly property int gapIn: top("gap_in", 0)
     readonly property int gapOut: top("gap_out", 0)
     readonly property int radius: top("radius", 12)
-    readonly property real opacity: top("opacity", 0.75)
     readonly property var barWidth: top("width", "75%")
     readonly property string barAlign: top("align", "center")
 

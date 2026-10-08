@@ -17,8 +17,8 @@ PanelWindow {
     anchors.top: BarConfig.barPosition === "top"
     anchors.bottom: BarConfig.barPosition === "bottom"
     anchors.left: true
-    margins.top: BarConfig.barPosition === "top" ? BarConfig.barHeight + BarConfig.gapOut + 6 : 0
-    margins.bottom: BarConfig.barPosition === "bottom" ? BarConfig.barHeight + BarConfig.gapOut + 6 : 0
+    margins.top: BarConfig.barPosition === "top" ? BarConfig.barHeight + BarConfig.gapOut + BarConfig.gapIn + 6 : 0
+    margins.bottom: BarConfig.barPosition === "bottom" ? BarConfig.barHeight + BarConfig.gapOut + BarConfig.gapIn + 6 : 0
     margins.left: Math.max(4, UiState.barMenuX)
     implicitWidth: 224
     implicitHeight: col.implicitHeight + 16
@@ -60,7 +60,7 @@ PanelWindow {
             Quickshell.reload(true);
             break;
         case "lock":
-            Quickshell.execDetached(["sh", "-c", Config.menuPower.lock]);
+            Quickshell.execDetached(["sh", "-c", MenuConfig.power("lock") || Config.menuPower.lock]);
             break;
         case "about":
             UiState.aboutOpen = true;

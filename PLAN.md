@@ -106,10 +106,23 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
       does not ship MPRIS either (it is on GTK's roadmap too). Optional extra,
       not a parity gap.
 
-## Batch 7 — Verification
+## Batch 7 — Verification  ✅ done
 
-- [ ] Update `PARITY.md` row-by-row from the audit result.
-- [ ] Re-run `make test` + `qmllint`; add tests for the newly wired settings.
-- [ ] Launch the bar and exercise each fixed surface (`grim` capture evidence).
-- [ ] Re-audit: advertised status must match code (no "implemented ✅" unless
-      verified).
+- [x] `PARITY.md` updated row-by-row (clock, menu, settings pages, widgets,
+      theming, `hypr_animations`); "Next passes" now honest.
+- [x] `make test` 88 passed; whole-tree `qmllint` clean; added
+      `tests/test_hypr_animations.py`.
+- [x] Live shell restarted several times; each surface exercised with `grim`
+      captures (bar, Quick Settings, Settings Widgets/Modules pages, toast).
+- [x] Independent re-audit subagent run; its remaining findings fixed here:
+      - `clock.calendar` now gates the calendar popup.
+      - top-level `gap_in` consumed (`shell.qml` exclusive zone).
+      - bar-anchored popups (QuickSettings/NotificationCenter/Clipboard/SysMonitor/
+        BarMenu/toasts/widgets) clear `barHeight + gap_in + gap_out`.
+      - `menu.gap_in`/`menu.gap_out` consumed by the start menu (follow + screen
+        -anchored branches, as GTK).
+      - Bar right-click Lock uses `MenuConfig.power("lock")`.
+      - ArcMenu opens on the focused monitor.
+      - Dead code removed (`BarConfig.opacity`, `MenuConfig.maxRecents`,
+        `Widgets.ids`/`activeIds`, `shell._width`, `Themer.lockVars`) and unused
+        `QtQuick.Controls.Basic` / `../../config` imports dropped.

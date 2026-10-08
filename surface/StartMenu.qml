@@ -6,7 +6,6 @@
 // backend/.../menu.py.
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls.Basic
 import Quickshell
 import Quickshell.Io
 import Quickshell.Widgets
@@ -55,21 +54,30 @@ PanelWindow {
     readonly property int barW: BarGeom.width(sm.screenW)
     readonly property int menuW: Math.min(sm.isGrid ? 760 : MenuConfig.width, sm.barW - 8)
     readonly property int menuH: Math.min(MenuConfig.height, sm.screenH - BarConfig.barHeight - 120)
-    readonly property bool atBottom: (MenuConfig.position === "bottom")
-        || (MenuConfig.position === "auto" && BarConfig.barPosition === "bottom")
-    // menu.follow_bar = off => ignore the bar geometry and centre on screen.
-    readonly property real menuX: !MenuConfig.followBar
-        ? Math.round((sm.screenW - sm.menuW) / 2)
-        : (MenuConfig.align === "right"
+    readonly property bool atBottom: MenuConfig.followBar
+        ? ((MenuConfig.position === "bottom")
+            || (MenuConfig.position === "auto" && BarConfig.barPosition === "bottom"))
+        : (MenuConfig.position === "bottom")
+    // follow_bar = on: align to the bar pill and clear the bar's reserved
+    // (height + gap_in + gap_out) area. Off: screen-anchored by align/position
+    // with the menu's own gap_out margin, as the GTK menu does.
+    readonly property real menuX: MenuConfig.followBar
+        ? (MenuConfig.align === "right"
             ? sm.screenW - sm.insets.right - sm.menuW - 4
             : (MenuConfig.align === "center"
                 ? Math.round(sm.insets.left + (sm.barW - sm.menuW) / 2)
                 : sm.insets.left + 4))
-    readonly property real menuY: !MenuConfig.followBar
-        ? Math.round((sm.screenH - sm.menuH) / 2)
-        : (sm.atBottom
-            ? sm.screenH - BarConfig.barHeight - BarConfig.gapOut - MenuConfig.gapIn - sm.menuH
-            : BarConfig.barHeight + BarConfig.gapOut + MenuConfig.gapIn)
+        : (MenuConfig.align === "right"
+            ? sm.screenW - sm.menuW - MenuConfig.gapOut
+            : (MenuConfig.align === "center"
+                ? Math.round((sm.screenW - sm.menuW) / 2)
+                : MenuConfig.gapOut))
+    readonly property real menuY: {
+        const off = MenuConfig.followBar
+            ? BarConfig.barHeight + BarConfig.gapOut + BarConfig.gapIn + MenuConfig.gapIn
+            : MenuConfig.gapOut + MenuConfig.gapIn;
+        return sm.atBottom ? sm.screenH - off - sm.menuH : off;
+    }
 
     readonly property var allApps: DesktopEntries.applications.values
     function baseApps() {

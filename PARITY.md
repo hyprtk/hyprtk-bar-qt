@@ -17,7 +17,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 | `updates` | package-update count | ✅ `Updates.qml` |
 | `sysmon` | CPU/RAM/disk + click → monitor | ✅ `SysMonitor.qml` + `surface/SysMonitor.qml` dialog |
 | `kbstate` | Caps/Num lock LEDs | ✅ `KbState.qml` |
-| `clock` | time/date (styles, dials, seconds) | ◐ `Clock.qml` (digital simple; no styles/dials) |
+| `clock` | time/date (styles, dials, seconds) | ✅ `Clock.qml` (format + hover date/calendar popups) |
 | `notifications` | daemon + center (bell) | ✅ `NotificationsButton.qml` bell + unread badge, `surface/NotificationCenter.qml` history; toasts on by default (opt out with `HYPRTK_BAR_QT_NOTIFICATIONS=0`) |
 | `tray` | SNI tray + dbusmenu | ✅ `Tray.qml` (icons + activate + right-click DBusMenu via `QsMenuAnchor`) |
 | `quicksettings` | Win11 flyout | ✅ `surface/QuickSettings.qml` (volume/mic/brightness/Wi-Fi/Bluetooth) |
@@ -42,13 +42,14 @@ Legend: ✅ done · ◐ partial · ☐ todo
 
 Bar · Fonts · Themes · Animations · Arc Menu · Menu · Quicklinks · Modules · Widgets
 
-◐ all nine pages exist in `surface/Settings.qml` (sidebar + StackLayout), but
-several are partial and some controls are dead. Known gaps (see `PLAN.md`):
-Widgets page is a near-stub (no layer/margins/size/radius/padding/snap or
-widget-specific options), Menu page lacks enabled/follow/gaps, Modules page has
-no reorder, Fonts has no picker, Themes has no `imported` source, per-module
-options (workspaces/clock/updates/window/tray/notifications) have no UI,
-arc-item editing lacks `action`, and Settings edits are not persisted.
+✅ all nine pages in `surface/Settings.qml`: Bar, Themes (pywal/imported/manual
++ installed-theme picker), Fonts (installed-font picker), Animations, Arc Menu
+(items incl. `action`), Menu (enabled/follow/gaps/layout/position/align/power/
+favourites), Quicklinks, Modules (show/hide, section, reorder + per-module
+options for workspaces/clock/updates/window/tray/notifications), Widgets
+(placement, size, radius/padding/scale, snap + per-widget options). The shared
+`theme` edit and the Qt `Config` override are kept in sync. See `PLAN.md` for the
+fix history.
 
 ## Config schema (`config.py`)
 
@@ -60,13 +61,14 @@ arc-item editing lacks `action`, and Settings edits are not persisted.
 | `animations`, `font` | ✅ animated bar border (`theme.border_animation` + mode/speed) + surface reveal; `font` applied to the bar modules |
 | `layout` (left/center/right module lists) | ✅ data-driven (`DelegateChooser`) |
 | `quicklinks` | ✅ |
-| `menu` (layout + power) | ◐ (layout stored; v1 grid) |
+| `menu` (layout/position/align/gaps/favourites/recents/power/enabled/follow_bar) | ✅ |
 | `sysmon` (interval/data_points/disk_path/network_iface/pages/monitor) | ✅ |
 | `workspaces` (show_empty/max), `clock` (format), `updates` (interval/scripts), `window` (max_length/width), `tray` (icon_size) | ✅ |
 | `notifications` (max_stored / default_timeout) | ✅ |
 | per-module `enabled` (`workspaces`/`clock`/`sysmon`/`updates`/`window`/`tray`/`quicksettings`/`notifications`/`themer`/`quicklinks`/`arcmenu`) | ✅ |
 | `arcmenu` (position/geometry/colours/animation/items/enabled) | ✅ |
-| `quicksettings`, `widgets` | ◐ (partial) |
+| `quicksettings` | ✅ |
+| `widgets` (master + per-widget placement/options, `border`/`transparent`) | ✅ |
 | — own qt config (`~/.config/hyprtk-bar-qt/config.json`) | ✅ `config/Config.qml` |
 
 ## Theming components
@@ -78,7 +80,8 @@ arc-item editing lacks `action`, and Settings edits are not persisted.
 | 9 shipped themes (`themes/`) | ✅ Themer picker (`backend/.../themes.py` + `theme_import`) |
 | `theme.py` / `menu/theme.py` / `desktop/theme.py` CSS builders | ☐ (QML uses colour tokens only) |
 | `theme_import.py` (decode waybar CSS) | ✅ ported to `backend/.../theme_import.py` |
-| gengtk/oomox, rofi variants, swaylock, SDDM/GRUB, icons | ☐ |
+| rofi variants, hyprlock, SDDM/GRUB, icons | ✅ Themer pages (script-driven, as GTK) |
+| gengtk/oomox GTK theme generation | ☐ (out of scope — GTK-only tooling) |
 
 ## Desktop widgets (`desktop/`)
 
@@ -87,12 +90,12 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 
 | Widget | Qt status |
 |---|---|
-| `clock` | ✅ digital / text / dials (single analog dial) |
+| `clock` | ✅ digital / text / dials (1 analog face or 3 H/M/S rings), seconds, ring width, theme files |
 | `resources` | ✅ CPU graph + RAM/swap bars + temp/load |
 | `disk` | ✅ per-drive bars + I/O rates |
 | `network` | ✅ iface/IP/rates + download graph |
 | `weather` | ✅ current + feels/humidity/wind + daily forecast (Open-Meteo, cached) |
-| `visualizer` | ✅ cava levels; bars / wave / mirror / dots / glow |
+| `visualizer` | ✅ cava/synthetic; bars / wave / mirror / dots / glow; sensitivity, smoothing, orientation, peak dots |
 | `sysinfo` | ✅ host/OS/kernel/uptime/CPU/GPU/memory/disks |
 | placement: 9-way + `free` | ✅ (`WidgetFrame`) |
 | placement: usable-area clamp | ✅ (kept clear of the bar) |
@@ -109,17 +112,21 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 | `clipboard` (cliphist list/copy/delete/wipe) | ✅ `backend/.../clipboard.py` |
 | `proc_action` / `dimm` helpers | ✅ |
 | palette / config readers | ✅ |
-| `hypr_animations` | ☐ |
+| `hypr_animations` (border period from active animations file) | ✅ `backend/.../hypr_animations.py` + `data/HyprAnim.qml` |
 | `ipc` (hyprctl + socket2) | ◐ (Hyprland service + `IpcHandler` used instead) |
 
 ## Next passes
 
-**Not** all parity items are implemented — this section previously overstated the
-state. Outstanding work is tracked in **`PLAN.md`** (Batches 1–7): install
-correctness, dead settings wiring, anchors/multi-monitor, settings parity UI,
-widget parity, then new features (`hypr_animations` port, MPRIS, notification
-images). Residuals still open: start-menu Places categories beyond the current
-set, and MPRIS media control.
+Parity remediation (see **`PLAN.md`**, Batches 1–6) is complete. Remaining known
+differences, both deliberate:
+
+- **MPRIS media control** — not implemented; the reference GTK bar does not ship
+  it either (it is on GTK's roadmap). Optional extra, not a parity gap.
+- **`theme.py` / `menu/theme.py` / `desktop/theme.py` CSS builders** — N/A: the Qt
+  bar renders from QML colour tokens, not generated CSS; behaviour matches.
+
+Optional polish: start-menu Places categories beyond the current set. GTK-only
+tooling (gengtk/oomox theme generation) is intentionally out of scope.
 
 The dialogs (Settings / Themer / About) are now centred layer-shell panels
 rather than tiled xdg windows, and expose `IpcHandler`s (`toggle`/`open`/`close`)

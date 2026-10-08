@@ -13,7 +13,6 @@ Singleton {
     id: root
 
     readonly property string home: Quickshell.env("HOME") || ""
-    readonly property var ids: ["clock", "weather", "visualizer", "disk", "network", "resources", "sysinfo"]
 
     property var cfg: ({})
 
@@ -43,8 +42,5 @@ Singleton {
     }
     function active(id) {
         return root.masterEnabled && root.block(id).enabled === true;
-    }
-    function activeIds() {
-        return root.ids.filter(id => root.active(id));
     }
 }

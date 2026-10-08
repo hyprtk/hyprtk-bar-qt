@@ -5,7 +5,6 @@
 import QtQuick
 import QtQuick.Layouts
 import "../../theme"
-import "../../config"
 import "../../state"
 import "../../data"
 import "../../components"

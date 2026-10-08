@@ -20,6 +20,11 @@ PanelWindow {
     focusable: true
     visible: UiState.arcMenuOpen
 
+    // Open on the focused monitor (captured when shown).
+    property var targetScreen: null
+    screen: targetScreen
+    onVisibleChanged: if (visible) targetScreen = Screens.focused()
+
     readonly property var cfg: BarConfig.arcmenu
     readonly property string position: cfg.position || Config.arcMenuPosition
     readonly property var items: (cfg.items && cfg.items.length) ? cfg.items : Config.arcMenuItems
