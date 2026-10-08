@@ -48,7 +48,6 @@ Singleton {
     readonly property real opacity: top("opacity", 0.75)
     readonly property var barWidth: top("width", "75%")
     readonly property string barAlign: top("align", "center")
-    readonly property bool usePywal: top("use_pywal", true)
 
     readonly property var layoutLeft: block("layout").left || []
     readonly property var layoutCenter: block("layout").center || []
@@ -79,6 +78,16 @@ Singleton {
     function fontSize(fallback) {
         const s = root.font.size;
         return (typeof s === "number" && s > 0) ? s : fallback;
+    }
+
+    // Module-icon pixel size: `font.icon_size` verbatim when > 0, else scaled
+    // from the base font (mirrors the GTK bar's icon_size_for()).
+    function iconSize(fontSize, fallback) {
+        const s = root.font.icon_size;
+        if (typeof s === "number" && s > 0)
+            return Math.max(8, Math.round(s));
+        const f = (typeof fontSize === "number" && fontSize > 0) ? fontSize : (fallback || 12);
+        return Math.max(8, Math.round(f * 1.25));
     }
 
     // Nerd Font family for every bar glyph (matches the GTK bar's GLYPH_FONT),

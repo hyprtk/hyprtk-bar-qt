@@ -31,23 +31,20 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 - [x] Nerd-Font glyphs pinned in `SysMonitor`, `QuickSettings`, `Themer`,
       `StartMenu`.
 
-## Batch 2 — Dead settings wiring
+## Batch 2 — Dead settings wiring  ✅ done
 
-- [ ] A1 Modules "Enabled" for start button writes `center.enabled` (nothing
-      reads). Wire it, or drop the control.
-- [ ] A2 Fonts "Icon size" writes `font.icon_size`, never read. Apply it to
-      module icons (GTK scales from `font.icon_size`).
-- [ ] A3 Settings never persists — the Animations toggle (and any Settings edit)
-      is lost unless Themer is opened+saved. Add a Settings save path (debounced
-      atomic write via `barsettings.py`, as Themer does).
-- [ ] A4 Qt-native `config/Config.qml` geometry keys (`barPosition/barHeight/
-      gapOut/gapIn/radius/barWidth/barAlign`) are dead (BarConfig wins). Remove
-      them or make them authoritative.
-- [ ] A5 `Config.menuLayout`, `Config.sysmonMonitor` dead → remove.
-- [ ] A6 shared `BarConfig.usePywal` ignored by `Theme.qml` → honour or remove.
-- [ ] A9 Settings hint "Low/High follow Hyprland's animation files" is false
-      (`Bar.qml` uses fixed 3200/1400 ms). Fix the hint now; real impl is Batch 6
-      (`hypr_animations`).
+- [x] A1 start-button Enabled now writes/reads `center.start_button` (new
+      `Settings.moduleEnabledKey`), and `StartButton.qml` gates on it.
+- [x] A2 `font.icon_size` honoured via new `BarConfig.iconSize()` (matches GTK
+      `icon_size_for`); applied to `BarIconButton` + Net/KbState/SysMonitor glyphs.
+- [x] A3 "UI animations" toggle now calls `Config.save()` — persists.
+- [x] A4 dead Qt geometry keys removed from `config/Config.qml` + `_keys`
+      (shared `BarConfig` is authoritative; only `opacity` override remains).
+- [x] A5 `Config.menuLayout`, `Config.sysmonMonitor` removed.
+- [x] A6 `use_pywal` honoured by `Theme.qml` (legacy seed of `theme.source`);
+      redundant `BarConfig.usePywal` removed.
+- [x] A9 Settings hint corrected (Low/High are presets; real Hyprland-follow in
+      Batch 6).
 
 ## Batch 3 — Anchors & multi-monitor
 

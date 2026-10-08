@@ -107,6 +107,14 @@ PanelWindow {
         };
         return map[id] || "";
     }
+    // Full config key backing a module's Enabled checkbox. The start button's
+    // flag is `center.start_button` (NOT `center.enabled`), so it is special-cased.
+    function moduleEnabledKey(id) {
+        if (id === "start_button")
+            return "center.start_button";
+        const b = win.moduleEnabledBlock(id);
+        return b ? b + ".enabled" : "";
+    }
 
     // ── quicklinks helpers ─────────────────────────────────────────────
     function links() { return win.g("quicklinks.links", []); }
@@ -421,7 +429,7 @@ PanelWindow {
                         spacing: 8
                         Text {
                             Layout.fillWidth: true
-                            text: "Animate the bar's border colour. Low/High follow Hyprland's animation files; Custom is independent."
+                            text: "Animate the bar's border colour. Low/High are fixed presets; Custom sets an independent speed."
                             color: Theme.dim; font.pixelSize: 11; wrapMode: Text.WordWrap
                         }
                         SRow {
@@ -442,7 +450,7 @@ PanelWindow {
                         }
                         SRow {
                             label: "UI animations"
-                            TCheckBox { checked: Config.animations; onToggled: Config.animations = checked }
+                            TCheckBox { checked: Config.animations; onToggled: { Config.animations = checked; Config.save(); } }
                         }
                         Item { Layout.fillHeight: true }
                     }
@@ -644,9 +652,9 @@ PanelWindow {
                                 Text { text: mrow.modelData; color: Theme.foreground; font.pixelSize: 12; Layout.preferredWidth: 130 }
                                 TCheckBox {
                                     text: "Enabled"
-                                    visible: win.moduleEnabledBlock(mrow.modelData) !== ""
-                                    checked: win.g(win.moduleEnabledBlock(mrow.modelData) + ".enabled", true)
-                                    onToggled: win.set(win.moduleEnabledBlock(mrow.modelData) + ".enabled", checked)
+                                    visible: win.moduleEnabledKey(mrow.modelData) !== ""
+                                    checked: win.g(win.moduleEnabledKey(mrow.modelData), true)
+                                    onToggled: win.set(win.moduleEnabledKey(mrow.modelData), checked)
                                 }
                                 TComboBox {
                                     model: ["", "left", "center", "right"]

@@ -28,7 +28,7 @@ RowLayout {
         property color glyphColor: Theme.dim
         property real pct: 0
         spacing: 4
-        Text { text: m.glyph; color: m.glyphColor; font.family: BarConfig.glyphFont; font.pixelSize: root.fs + 1 }
+        Text { text: m.glyph; color: m.glyphColor; font.family: BarConfig.glyphFont; font.pixelSize: BarConfig.iconSize(root.fs) }
         Text {
             text: Math.round(m.pct) + "%"
             color: root.levelColor(m.pct)

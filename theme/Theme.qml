@@ -68,7 +68,10 @@ Singleton {
     readonly property var colors: root.wal.colors || ({})
     readonly property var special: root.wal.special || ({})
     readonly property var theme: root.config.theme || ({})
-    readonly property string source: root.pick(Config.themeSource, root.theme.source || "pywal")
+    // `theme.source` wins; the legacy `use_pywal` flag seeds the default (as in
+    // the GTK bar's theme.py), so the setting is not dead.
+    readonly property string source: root.pick(Config.themeSource,
+        root.theme.source || (root.config.use_pywal === false ? "manual" : "pywal"))
 
     readonly property color background: root.pick(Config.themeBackground,
         root.source === "pywal"

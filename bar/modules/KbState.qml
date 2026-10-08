@@ -44,12 +44,12 @@ RowLayout {
         text: "\uf023"
         color: root.caps ? Theme.accent : Theme.dim
         font.family: BarConfig.glyphFont
-        font.pixelSize: root.fs + 1
+        font.pixelSize: BarConfig.iconSize(root.fs)
     }
     Text {
         text: "\uf11c"
         color: root.num ? Theme.accent : Theme.dim
         font.family: BarConfig.glyphFont
-        font.pixelSize: root.fs + 1
+        font.pixelSize: BarConfig.iconSize(root.fs)
     }
 }

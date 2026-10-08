@@ -13,7 +13,7 @@ RowLayout {
 
     RowLayout {
         spacing: 4
-        Text { text: "\uf063"; color: Theme.accent2; font.family: BarConfig.glyphFont; font.pixelSize: root.fs + 1 }
+        Text { text: "\uf063"; color: Theme.accent2; font.family: BarConfig.glyphFont; font.pixelSize: BarConfig.iconSize(root.fs) }
         Sparkline {
             Layout.preferredWidth: 40
             Layout.preferredHeight: 16
@@ -30,7 +30,7 @@ RowLayout {
 
     RowLayout {
         spacing: 4
-        Text { text: "\uf062"; color: Theme.accent; font.family: BarConfig.glyphFont; font.pixelSize: root.fs + 1 }
+        Text { text: "\uf062"; color: Theme.accent; font.family: BarConfig.glyphFont; font.pixelSize: BarConfig.iconSize(root.fs) }
         Sparkline {
             Layout.preferredWidth: 40
             Layout.preferredHeight: 16

@@ -21,7 +21,7 @@ Rectangle {
         text: btn.glyph
         color: btn.active ? "#000000" : Theme.foreground
         font.family: BarConfig.glyphFont
-        font.pixelSize: 13
+        font.pixelSize: BarConfig.iconSize(BarConfig.fontSize(11))
     }
 
     MouseArea {
