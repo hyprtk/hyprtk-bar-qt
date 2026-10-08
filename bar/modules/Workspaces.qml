@@ -69,7 +69,7 @@ RowLayout {
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: Hyprland.dispatch("workspace " + pill.modelData)
+                onClicked: Hyprland.dispatch(Hypr.workspace(pill.modelData))
             }
             HoverHandler {
                 id: pillHover

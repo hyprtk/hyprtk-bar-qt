@@ -43,9 +43,26 @@ Text {
             : Config.clockFormat;
     }
 
+    readonly property string dateFmt: {
+        const c = BarConfig.clock;
+        return (typeof c.date_format === "string" && c.date_format.length > 0)
+            ? root.qtFormat(c.date_format) : "ddd dd MMM";
+    }
+
     text: Qt.formatDateTime(clock.date, root.fmt)
     color: Theme.foreground
     font.bold: true
     font.pixelSize: BarConfig.fontSize(Theme.fontSize)
     font.family: BarConfig.fontFamily("Noto Sans")
+
+    TapHandler {
+        acceptedButtons: Qt.LeftButton
+        onTapped: Cal.open(root)
+    }
+    HoverHandler {
+        id: clkHover
+        onHoveredChanged: clkHover.hovered
+            ? Tooltips.showTip(root, Qt.formatDateTime(clock.date, root.dateFmt))
+            : Tooltips.hideTip()
+    }
 }

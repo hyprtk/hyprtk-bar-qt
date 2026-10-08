@@ -30,6 +30,19 @@ RowLayout {
     function _recent(wins) {
         return wins.find(w => w.activated) || wins[0];
     }
+    function _menu(grp) {
+        const w = root._recent(grp.wins);
+        const items = [];
+        if (w) {
+            items.push({ label: "Minimise", action: () => {
+                if (w.address) Hyprland.dispatch(Hypr.moveWindowTo("special:minimized", w.address));
+            } });
+            items.push({ label: "Close window", action: () => {
+                if (w.address) Hyprland.dispatch(Hypr.closeWindow(w.address));
+            } });
+        }
+        PopupMenu.open(grp, items);
+    }
 
     Repeater {
         model: root.groups()
@@ -81,9 +94,13 @@ RowLayout {
             }
             MouseArea {
                 anchors.fill: parent
-                acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+                acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
                 cursorShape: Qt.PointingHandCursor
                 onClicked: (mouse) => {
+                    if (mouse.button === Qt.RightButton) {
+                        root._menu(grp);
+                        return;
+                    }
                     const wins = grp.wins;
                     if (!wins.length)
                         return;
@@ -91,17 +108,17 @@ RowLayout {
                     if (mouse.button === Qt.MiddleButton) {
                         const w = focused || root._recent(wins);
                         if (w.address)
-                            Hyprland.dispatch("closewindow address:" + w.address);
+                            Hyprland.dispatch(Hypr.closeWindow(w.address));
                         return;
                     }
                     if (focused) {
                         if (focused.address)
-                            Hyprland.dispatch("movetoworkspacesilent special:minimized,address:" + focused.address);
+                            Hyprland.dispatch(Hypr.moveWindowTo("special:minimized", focused.address));
                         return;
                     }
                     const w = root._recent(wins);
                     if (w.address)
-                        Hyprland.dispatch("focuswindow address:" + w.address);
+                        Hyprland.dispatch(Hypr.focusWindow(w.address));
                 }
             }
         }
