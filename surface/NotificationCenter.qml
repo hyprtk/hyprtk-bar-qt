@@ -62,6 +62,18 @@ PanelWindow {
         }
     }
 
+    function iconSource(n) {
+        return (n.appIcon && String(n.appIcon).length)
+            ? Quickshell.iconPath(n.appIcon, "application-x-executable") : "";
+    }
+    function imageSource(n) {
+        const img = n.image;
+        if (!img || !String(img).length)
+            return "";
+        const s = String(img);
+        return s.startsWith("/") ? "file://" + s : s;
+    }
+
     Rectangle {
         anchors.fill: parent
         radius: 14
@@ -148,6 +160,14 @@ PanelWindow {
                                 RowLayout {
                                     Layout.fillWidth: true
                                     spacing: 6
+                                    Image {
+                                        visible: source !== ""
+                                        source: center.iconSource(row.modelData)
+                                        sourceSize.width: 16
+                                        sourceSize.height: 16
+                                        Layout.preferredWidth: 16
+                                        Layout.preferredHeight: 16
+                                    }
                                     Text { text: row.modelData.appName || "Notification"; color: Theme.dim; font.pixelSize: 10; Layout.fillWidth: true; elide: Text.ElideRight }
                                     Text { text: NotifyData.ago(row.modelData.id); color: Theme.dim; font.pixelSize: 10 }
                                     Text {
@@ -177,6 +197,14 @@ PanelWindow {
                                     Layout.fillWidth: true
                                     wrapMode: Text.WordWrap
                                     visible: text.length > 0
+                                }
+                                Image {
+                                    Layout.fillWidth: true
+                                    visible: source !== ""
+                                    source: center.imageSource(row.modelData)
+                                    fillMode: Image.PreserveAspectFit
+                                    sourceSize.width: 320
+                                    Layout.preferredHeight: visible ? Math.min(180, implicitHeight) : 0
                                 }
                                 RowLayout {
                                     Layout.fillWidth: true

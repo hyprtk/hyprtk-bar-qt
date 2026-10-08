@@ -102,6 +102,16 @@ PanelWindow {
         currentProc.running = true;
         lockFile.reload();
         mwGetProc.running = true;
+        sddmFind.running = true;
+    }
+
+    // Resolve the SDDM/GRUB updater from the live tree (no hardcoded path).
+    property string sddmScript: ""
+    Process {
+        id: sddmFind
+        command: ["bash", "-lc",
+            'for p in "$HOME/hyprtk/configs/sddm/update.sh" "$HOME"/hyprtk/distro/*/configs/sddm/update.sh; do [ -f "$p" ] && { echo "$p"; break; }; done']
+        stdout: SplitParser { onRead: line => { win.sddmScript = line.trim(); } }
     }
 
     function toast(msg) {
@@ -277,12 +287,18 @@ PanelWindow {
         applyProc.command = ["python3", win.base + "wallpapers.py", "apply", path];
         applyProc.running = true;
     }
+    // Persist Qt-config edits immediately (debounced) so closing the Themer
+    // without pressing Save does not lose them.
+    Timer { id: cfgSaveTimer; interval: 400; onTriggered: Config.save() }
+    function saveCfgSoon() { cfgSaveTimer.restart(); }
+
     function applyTheme(t) {
         Config.themeSource = "manual";
         Config.themeName = t.name;
         Config.themeBackground = t.palette.background;
         Config.themeForeground = t.palette.foreground;
         Config.themeAccent = t.palette.accent;
+        Config.save();
         win.toast("Theme: " + t.name);
     }
     function clearOverrides() {
@@ -291,6 +307,7 @@ PanelWindow {
         Config.themeBackground = "";
         Config.themeForeground = "";
         Config.themeAccent = "";
+        Config.save();
     }
     function doImport(path) {
         if (!path) { win.toast("Enter a theme path"); return; }
@@ -508,7 +525,7 @@ PanelWindow {
                                 Layout.fillWidth: true
                                 text: win.wallDir()
                                 color: Theme.foreground
-                                onEditingFinished: { Config.wallpaperDir = text; win.refreshWallpapers(); }
+                                onEditingFinished: { Config.wallpaperDir = text; Config.save(); win.refreshWallpapers(); }
                             }
                             RowLayout {
                                 spacing: 6
@@ -1021,8 +1038,12 @@ PanelWindow {
                         TButton {
                             text: "Update SDDM & GRUB Wallpaper"
                             onClicked: {
-                                Quickshell.execDetached(["pkexec", "bash", win.home + "/hyprtk/configs/sddm/update.sh"]);
-                                win.toast("Updating SDDM & GRUB\u2026");
+                                if (win.sddmScript.length) {
+                                    Quickshell.execDetached(["pkexec", "bash", win.sddmScript, "-y"]);
+                                    win.toast("Updating SDDM & GRUB\u2026");
+                                } else {
+                                    win.toast("sddm update.sh not found");
+                                }
                             }
                         }
                         Item { Layout.fillWidth: true }
@@ -1116,7 +1137,7 @@ PanelWindow {
                     Layout.preferredWidth: 160
                     from: 0.2; to: 1.0; stepSize: 0.01
                     value: Config.opacity >= 0 ? Config.opacity : Theme.opacity
-                    onMoved: Config.opacity = value
+                    onMoved: { Config.opacity = value; win.saveCfgSoon(); }
                 }
                 Text { text: win.statusMsg; color: Theme.accent; font.pixelSize: 10; Layout.fillWidth: true; elide: Text.ElideRight }
                 TButton { text: "Save"; onClicked: Config.save() }

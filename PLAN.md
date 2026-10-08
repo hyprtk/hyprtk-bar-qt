@@ -91,14 +91,20 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 - [x] QuickSettings Lock uses `MenuConfig.power("lock")`, not a hardcoded command.
 - [x] Quicklinks glyph-font fallback → `BarConfig.glyphFont`.
 
-## Batch 6 — Missing features (new work)
+## Batch 6 — Missing features  ✅ done (MPRIS deferred)
 
-- [ ] `hypr_animations` backend port (border mode/speed from Hyprland files) and
-      wire the low/high modes to it.
-- [ ] MPRIS media control module.
-- [ ] Notification images / action icons in toasts + center.
-- [ ] Themer changes persist without Save (A12).
-- [ ] SDDM/GRUB updater path discovery (no hardcoded `~/hyprtk`) (A23).
+- [x] `hypr_animations` ported to `backend/.../hypr_animations.py` (+ tests); new
+      `data/HyprAnim.qml` feeds `Bar.qml`'s `borderMs`, so low/high follow the
+      real Hyprland animation files. Settings hint restored.
+- [x] Notifications: toasts + center now render the app icon, image and action
+      buttons (action `invoke()`); toasts gained a close button.
+- [x] Themer persists Qt-config edits without Save (A12): apply/clear theme,
+      wallpaper dir, opacity (debounced).
+- [x] SDDM/GRUB updater path resolved from the live tree instead of a hardcoded
+      `~/hyprtk/configs/sddm/update.sh` (A23); errors surfaced if not found.
+- [ ] MPRIS media control — **deferred / out of parity**: the reference GTK bar
+      does not ship MPRIS either (it is on GTK's roadmap too). Optional extra,
+      not a parity gap.
 
 ## Batch 7 — Verification
 

@@ -517,7 +517,7 @@ PanelWindow {
                         spacing: 8
                         Text {
                             Layout.fillWidth: true
-                            text: "Animate the bar's border colour. Low/High are fixed presets; Custom sets an independent speed."
+                            text: "Animate the bar's border colour. Low/High follow Hyprland's animation files; Custom sets an independent speed."
                             color: Theme.dim; font.pixelSize: 11; wrapMode: Text.WordWrap
                         }
                         SRow {

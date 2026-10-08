@@ -29,7 +29,11 @@ Rectangle {
 
     // Animated border (shared `theme.border_animation` + `animations` mode/speed).
     readonly property bool borderAnim: BarConfig.theme.border_animation !== false && Config.animations
+    // Prefer the real Hyprland animation period (backend); fall back to a
+    // local estimate when the hypr config is unavailable.
     readonly property int borderMs: {
+        if (HyprAnim.periodMs > 0)
+            return HyprAnim.periodMs;
         const mode = BarConfig.animations.mode || "high";
         if (mode === "custom")
             return Math.max(200, Math.round(4000 / Math.max(1, BarConfig.animations.speed || 15)));

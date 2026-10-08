@@ -15,3 +15,4 @@ singleton Cal 1.0 Cal.qml
 singleton BarGeom 1.0 BarGeom.qml
 singleton BarAnchors 1.0 BarAnchors.qml
 singleton Screens 1.0 Screens.qml
+singleton HyprAnim 1.0 HyprAnim.qml
