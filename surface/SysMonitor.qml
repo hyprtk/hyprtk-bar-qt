@@ -30,6 +30,13 @@ PanelWindow {
     implicitWidth: 920
     implicitHeight: 600
 
+    IpcHandler {
+        target: "sysmon"
+        function toggle() { UiState.sysMonitorOpen = !UiState.sysMonitorOpen; }
+        function open() { UiState.sysMonitorOpen = true; }
+        function close() { UiState.sysMonitorOpen = false; }
+    }
+
     // Drive the backend only while the dialog is open.
     property real reveal: 0
     readonly property int animMs: Config.animations ? Config.animationDuration : 0
@@ -191,7 +198,7 @@ PanelWindow {
         property string label: ""
         property string value: ""
         spacing: 6
-        Text { text: ro.glyph; color: Theme.accent; font.pixelSize: 12 }
+        Text { text: ro.glyph; color: Theme.accent; font.family: BarConfig.glyphFont; font.pixelSize: 12 }
         Text { text: ro.label; color: Theme.dim; font.pixelSize: 11; Layout.fillWidth: true }
         Text { text: ro.value; color: Theme.foreground; font.pixelSize: 11 }
     }
@@ -213,7 +220,7 @@ PanelWindow {
             anchors.leftMargin: 10
             anchors.rightMargin: 8
             spacing: 8
-            Text { text: sb.glyph; color: sb.active ? "#000000" : Theme.accent; font.pixelSize: 13 }
+            Text { text: sb.glyph; color: sb.active ? "#000000" : Theme.accent; font.family: BarConfig.glyphFont; font.pixelSize: 13 }
             Text { text: sb.label; color: sb.active ? "#000000" : Theme.foreground; font.pixelSize: 12; Layout.fillWidth: true }
         }
         HoverHandler { id: hov }
@@ -275,7 +282,7 @@ PanelWindow {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 5
-                Text { text: dc.drive.glyph || ""; color: Theme.accent; font.pixelSize: 12 }
+                Text { text: dc.drive.glyph || ""; color: Theme.accent; font.family: BarConfig.glyphFont; font.pixelSize: 12 }
                 Text { text: dc.drive.type_label || ""; color: Theme.foreground; font.pixelSize: 10; Layout.fillWidth: true }
                 Text { text: dc.drive.size_b > 0 ? MonitorData.fmtBytes(dc.drive.size_b) : "\u2014"; color: Theme.dim; font.pixelSize: 10 }
             }
@@ -414,13 +421,13 @@ PanelWindow {
         property var iface: ({})
         Layout.fillWidth: true
         spacing: 10
-        Text { text: ir.iface.glyph || ""; color: Theme.accent; font.pixelSize: 13 }
+        Text { text: ir.iface.glyph || ""; color: Theme.accent; font.family: BarConfig.glyphFont; font.pixelSize: 13 }
         Text { text: ir.iface.name || ""; color: Theme.foreground; font.pixelSize: 11; Layout.preferredWidth: 80 }
         Text { text: ir.iface.type || ""; color: Theme.dim; font.pixelSize: 11; Layout.preferredWidth: 80 }
         Text { text: ir.iface.ip || "\u2014"; color: Theme.foreground; font.pixelSize: 11; Layout.fillWidth: true }
-        Text { text: "\uf063"; color: Theme.accent2; font.pixelSize: 10 }
+        Text { text: "\uf063"; color: Theme.accent2; font.family: BarConfig.glyphFont; font.pixelSize: 10 }
         Text { text: MonitorData.fmtRate(ir.iface.down_bps || 0); color: Theme.foreground; font.pixelSize: 11 }
-        Text { text: "\uf062"; color: Theme.warn; font.pixelSize: 10 }
+        Text { text: "\uf062"; color: Theme.warn; font.family: BarConfig.glyphFont; font.pixelSize: 10 }
         Text { text: MonitorData.fmtRate(ir.iface.up_bps || 0); color: Theme.foreground; font.pixelSize: 11 }
     }
 

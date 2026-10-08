@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.30.0 — unreleased
+
+Themer parity + arc keybind.
+
+- **Themer — Wallpaper**: search, "Apply Selected" + "Random" buttons, selectable
+  thumbnails (single-click selects, double-click applies), and a rescan that also
+  refreshes the current-wallpaper preview.
+- **Themer — Pywal**: 16-colour palette grid (was 7), click-to-inspect, special
+  background/foreground swatches, wal dir + re-run + refresh, and the saved
+  colour-scheme list from `~/.cache/wal/schemes` (click to apply).
+- **Themer — Bar Themes**: 16-colour palette swatches (was 7).
+- **Themer — Lock Screen**: lists every setting from the active lock config
+  (swaylock or hyprlock) with editable values + colour swatches, plus re-apply.
+- **Themer — Icons**: current folder colour + preview row, the 25 Papirus preset
+  grid (with folder SVGs), custom hex, and the pywal auto-match button.
+- **System monitor**: glyphs pinned to the Nerd Font family (were rendering via
+  fallback); new `sysmon` IPC handler.
+- **Arc menu**: `arc_toggle.py` bridges the dotfiles' `Super+Ctrl+M` keybind
+  (SIGUSR2 to the lock-file PID) to the Qt bar, so it opens without a Qt-specific
+  bind.
+- New toolkit-free backends: `pywal.py`, `icons.py`, `lock.py`, `arc_toggle.py`
+  (+ tests).
+
 ## 0.29.1 — unreleased
 
 Desktop-widget move fixed.

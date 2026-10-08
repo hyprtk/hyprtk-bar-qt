@@ -94,6 +94,24 @@ PanelWindow {
         function close() { UiState.arcMenuOpen = false; }
     }
 
+    // Bridge the dotfiles' arc keybind (hyprtk-bar-arc-toggle.sh → SIGUSR2 to the
+    // lock-file PID) to this bar, so Super+Ctrl+M works without a Qt-specific bind.
+    readonly property string toggleBackend:
+        Qt.resolvedUrl("../backend/hyprtk_bar_qt/arc_toggle.py").toString().replace("file://", "")
+    Process {
+        id: sigProc
+        running: true
+        command: ["python3", "-u", arc.toggleBackend]
+        stdout: SplitParser {
+            onRead: line => {
+                try {
+                    if (JSON.parse(line).cmd === "toggle")
+                        UiState.arcMenuOpen = !UiState.arcMenuOpen;
+                } catch (e) {}
+            }
+        }
+    }
+
     // items, fanned
     Repeater {
         model: arc.items

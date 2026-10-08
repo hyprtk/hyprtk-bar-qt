@@ -55,6 +55,25 @@ PanelWindow {
     property var mwConfig: ({})
     property var mwSections: []
 
+    // wallpaper selection (Apply Selected / Random)
+    property string selectedWall: ""
+    property string wallQuery: ""
+    // pywal palette + saved schemes
+    property var pywalColors: []
+    property var pywalNames: []
+    property var pywalSpecial: ({})
+    property var pywalSchemes: []
+    property string pywalInspect: ""
+    property string pywalDir: ""
+    // papirus folder icons
+    property var iconPresets: []
+    property var iconPreview: []
+    property string iconCurrent: ""
+    property var lockVars: []
+    property var lockItems: []
+    property string lockKind: ""
+    property string lockPath: ""
+
     function wallDir() {
         return Config.wallpaperDir.length > 0 ? Config.wallpaperDir : win.home + "/Pictures/Wallpapers";
     }
@@ -71,6 +90,10 @@ PanelWindow {
         win.refreshImportable();
         win.refreshWallpapers();
         win.refreshRofi();
+        win.refreshPywal();
+        win.refreshSchemes();
+        win.refreshIcons();
+        win.refreshLock();
         currentProc.running = true;
         lockFile.reload();
         mwGetProc.running = true;
@@ -174,6 +197,77 @@ PanelWindow {
     }
     Timer { id: statusTimer; interval: 3000; onTriggered: win.statusMsg = "" }
 
+    // ── pywal palette + saved schemes ──────────────────────────────────
+    Process {
+        id: pywalProc
+        command: ["python3", win.base + "pywal.py", "palette"]
+        stdout: SplitParser {
+            onRead: line => {
+                try {
+                    const o = JSON.parse(line);
+                    win.pywalColors = o.colors || [];
+                    win.pywalNames = o.names || [];
+                    win.pywalSpecial = ({ background: o.background, foreground: o.foreground, cursor: o.cursor });
+                } catch (e) {}
+            }
+        }
+    }
+    Process {
+        id: schemesProc
+        command: ["python3", win.base + "pywal.py", "schemes"]
+        stdout: SplitParser {
+            onRead: line => {
+                try { win.pywalSchemes = JSON.parse(line).schemes || []; } catch (e) { win.pywalSchemes = []; }
+            }
+        }
+    }
+    Process { id: walApplyProc; onExited: (code, status) => { pywalRefresh.restart(); } }
+    Process { id: walRerunProc; onExited: (code, status) => { win.toast(code === 0 ? "Re-ran pywal" : "wal failed"); pywalRefresh.restart(); } }
+    Timer { id: pywalRefresh; interval: 2500; onTriggered: { win.refreshPywal(); win.refreshSchemes(); } }
+
+    // ── papirus folder icons ───────────────────────────────────────────
+    Process {
+        id: iconProc
+        command: ["python3", win.base + "icons.py", "current"]
+        stdout: SplitParser {
+            onRead: line => {
+                try {
+                    const o = JSON.parse(line);
+                    win.iconCurrent = o.color || "";
+                    win.iconPreview = o.preview || [];
+                } catch (e) {}
+            }
+        }
+    }
+    Process {
+        id: iconPresetsProc
+        command: ["python3", win.base + "icons.py", "presets"]
+        stdout: SplitParser {
+            onRead: line => {
+                try { win.iconPresets = JSON.parse(line).presets || []; } catch (e) { win.iconPresets = []; }
+            }
+        }
+    }
+    Process { id: iconApplyProc; onExited: (code, status) => { iconProc.running = true; win.toast(code === 0 ? "Folder colour applied" : "papirus-folders not found"); } }
+
+    // ── lock-screen settings ───────────────────────────────────────────
+    Process {
+        id: lockReadProc
+        command: ["python3", win.base + "lock.py", "read"]
+        stdout: SplitParser {
+            onRead: line => {
+                try {
+                    const o = JSON.parse(line);
+                    win.lockItems = o.items || [];
+                    win.lockKind = o.kind || "";
+                    win.lockPath = o.path || "";
+                } catch (e) {}
+            }
+        }
+    }
+    Process { id: lockSetProc; onExited: (code, status) => { lockReadProc.running = true; win.toast(code === 0 ? "Lock setting saved" : "Could not save"); } }
+    Timer { id: lockRefresh; interval: 2500; onTriggered: win.refreshLock() }
+
     function applyWallpaper(path) {
         applyProc.command = ["python3", win.base + "wallpapers.py", "apply", path];
         applyProc.running = true;
@@ -228,6 +322,55 @@ PanelWindow {
         case "warn": return Theme.warn;
         }
         return Theme.foreground;
+    }
+
+    function refreshPywal() { if (!pywalProc.running) pywalProc.running = true; }
+    function refreshSchemes() { if (!schemesProc.running) schemesProc.running = true; }
+    function refreshIcons() {
+        if (!iconProc.running) iconProc.running = true;
+        if (!iconPresetsProc.running) iconPresetsProc.running = true;
+    }
+    function applyScheme(path) {
+        walApplyProc.command = ["python3", win.base + "pywal.py", "apply-scheme", path];
+        walApplyProc.running = true;
+        win.toast("Applied scheme: " + path.split("/").pop());
+    }
+    function rerunWal() {
+        walRerunProc.command = ["python3", win.base + "pywal.py", "rerun", win.pywalDir];
+        walRerunProc.running = true;
+    }
+    function applySelectedWall() {
+        if (!win.selectedWall) { win.toast("Select a wallpaper first"); return; }
+        win.applyWallpaper(win.selectedWall);
+    }
+    function applyRandomWall() {
+        if (!win.images.length) { win.toast("No wallpapers to choose from"); return; }
+        const p = win.images[Math.floor(Math.random() * win.images.length)];
+        win.selectedWall = p;
+        win.applyWallpaper(p);
+    }
+    function filteredWalls() {
+        const q = win.wallQuery.trim().toLowerCase();
+        if (!q)
+            return win.images;
+        return win.images.filter(p => p.toLowerCase().includes(q));
+    }
+    function applyIconPreset(color) {
+        iconApplyProc.command = ["python3", win.base + "icons.py", "apply-preset", color];
+        iconApplyProc.running = true;
+    }
+    function applyIconHex() {
+        iconApplyProc.command = ["python3", win.base + "icons.py", "apply-hex", win.iconHex];
+        iconApplyProc.running = true;
+    }
+    function iconAuto() {
+        iconApplyProc.command = ["python3", win.base + "icons.py", "auto"];
+        iconApplyProc.running = true;
+    }
+    function refreshLock() { if (!lockReadProc.running) lockReadProc.running = true; }
+    function setLock(key, value) {
+        lockSetProc.command = ["python3", win.base + "lock.py", "set", "--key", key, "--value", value];
+        lockSetProc.running = true;
     }
 
     Timer { id: rofiRefresh; interval: 800; onTriggered: win.refreshRofi() }
@@ -359,16 +502,19 @@ PanelWindow {
                     RowLayout {
                         spacing: 10
                         Image {
-                            source: win.currentWall.length ? "file://" + win.currentWall : ""
+                            source: {
+                                const p = win.selectedWall.length ? win.selectedWall : win.currentWall;
+                                return p.length ? "file://" + p : "";
+                            }
                             sourceSize.width: 200
                             sourceSize.height: 112
                             Layout.preferredWidth: 200
                             Layout.preferredHeight: 112
                             fillMode: Image.PreserveAspectCrop
-                            visible: win.currentWall.length > 0
                         }
                         ColumnLayout {
                             Layout.fillWidth: true
+                            spacing: 5
                             Text { text: "Wallpaper folder"; color: Theme.dim; font.pixelSize: 11 }
                             TTextField {
                                 Layout.fillWidth: true
@@ -376,12 +522,24 @@ PanelWindow {
                                 color: Theme.foreground
                                 onEditingFinished: { Config.wallpaperDir = text; win.refreshWallpapers(); }
                             }
-                            TButton { text: "Rescan"; onClicked: win.refreshWallpapers() }
+                            RowLayout {
+                                spacing: 6
+                                TButton { text: "Rescan"; onClicked: { win.refreshWallpapers(); currentProc.running = true; win.toast("Rescanning\u2026"); } }
+                                TButton { text: "Apply Selected"; onClicked: win.applySelectedWall() }
+                                TButton { text: "Random"; onClicked: win.applyRandomWall() }
+                                Item { Layout.fillWidth: true }
+                            }
+                            TTextField {
+                                Layout.fillWidth: true
+                                placeholderText: "Search wallpapers\u2026"
+                                color: Theme.foreground
+                                onTextChanged: win.wallQuery = text
+                            }
                         }
                     }
                     Text {
                         Layout.fillWidth: true
-                        visible: win.images.length === 0
+                        visible: win.filteredWalls().length === 0
                         text: "No images in this folder"
                         color: Theme.dim
                         font.pixelSize: 11
@@ -391,7 +549,7 @@ PanelWindow {
                         Layout.fillHeight: true
                         contentHeight: grid.implicitHeight
                         clip: true
-                        visible: win.images.length > 0
+                        visible: win.filteredWalls().length > 0
                         GridLayout {
                             id: grid
                             width: parent.width
@@ -399,16 +557,18 @@ PanelWindow {
                             columnSpacing: 8
                             rowSpacing: 8
                             Repeater {
-                                model: win.images
+                                model: win.filteredWalls()
                                 delegate: Rectangle {
                                     id: thumb
                                     required property var modelData
+                                    readonly property bool sel: win.selectedWall === thumb.modelData
                                     Layout.fillWidth: true
                                     implicitHeight: 78
                                     radius: 6
                                     color: Theme.alpha(Theme.background, 0.5)
-                                    border.width: 1
-                                    border.color: thumbHover.hovered ? Theme.accent : Theme.alpha(Theme.accent2, 0.2)
+                                    border.width: thumb.sel ? 2 : 1
+                                    border.color: thumb.sel ? Theme.accent
+                                        : (thumbHover.hovered ? Theme.accent : Theme.alpha(Theme.accent2, 0.2))
                                     Image {
                                         anchors.fill: parent
                                         anchors.margins: 2
@@ -419,7 +579,8 @@ PanelWindow {
                                         asynchronous: true
                                     }
                                     HoverHandler { id: thumbHover }
-                                    TapHandler { onTapped: win.applyWallpaper(thumb.modelData) }
+                                    TapHandler { onTapped: win.selectedWall = thumb.modelData }
+                                    TapHandler { onDoubleTapped: win.applyWallpaper(thumb.modelData) }
                                 }
                             }
                         }
@@ -428,40 +589,89 @@ PanelWindow {
 
                 // Pywal ────────────────────────────────────────────────
                 ColumnLayout {
-                    spacing: 10
-                    Text { text: "Live pywal palette"; color: Theme.dim; font.pixelSize: 11 }
-                    RowLayout {
-                        spacing: 6
+                    spacing: 8
+                    Text { text: "Live pywal palette (16 colours)"; color: Theme.dim; font.pixelSize: 11 }
+                    GridLayout {
+                        Layout.fillWidth: true
+                        columns: 8
+                        columnSpacing: 6
+                        rowSpacing: 6
                         Repeater {
-                            model: win.swatchNames
+                            model: win.pywalColors
                             delegate: Rectangle {
-                                required property string modelData
-                                width: 34; height: 34; radius: 8
-                                color: win.col(modelData)
-                                border.color: Theme.alpha(Theme.foreground, 0.3); border.width: 1
+                                id: sw
+                                required property var modelData
+                                required property int index
+                                Layout.preferredWidth: 34
+                                Layout.preferredHeight: 34
+                                radius: 8
+                                color: modelData || Theme.background
+                                border.width: win.pywalInspect === ("color" + sw.index) ? 2 : 1
+                                border.color: win.pywalInspect === ("color" + sw.index) ? Theme.accent : Theme.alpha(Theme.foreground, 0.3)
+                                HoverHandler { id: swHover }
+                                TapHandler { onTapped: win.pywalInspect = "color" + sw.index }
                             }
                         }
-                        Item { Layout.fillWidth: true }
-                    }
-                    RowLayout {
-                        spacing: 8
-                        TButton {
-                            text: "Regenerate from wallpaper"
-                            onClicked: {
-                                Quickshell.execDetached(["bash", win.scripts + "/updatewal-awww.sh"]);
-                                win.toast("Regenerating palette\u2026");
-                            }
-                        }
-                        Item { Layout.fillWidth: true }
                     }
                     Text {
                         Layout.fillWidth: true
-                        text: "Regenerating re-runs pywal on the current wallpaper and updates every themed app."
-                        color: Theme.dim
-                        font.pixelSize: 10
-                        wrapMode: Text.WordWrap
+                        text: win.pywalInspect.length
+                            ? (win.pywalInspect + ": " + win.pywalColors[parseInt(win.pywalInspect.slice(5))] + "  (" + (win.pywalNames[parseInt(win.pywalInspect.slice(5))] || "") + ")")
+                            : "Click a colour to inspect"
+                        color: Theme.foreground
+                        font.pixelSize: 11
                     }
-                    Item { Layout.fillHeight: true }
+                    RowLayout {
+                        spacing: 8
+                        Text { text: "Background"; color: Theme.dim; font.pixelSize: 10 }
+                        Rectangle { width: 18; height: 18; radius: 4; color: win.pywalSpecial.background || Theme.background; border.color: Theme.alpha(Theme.foreground, 0.3); border.width: 1 }
+                        Text { text: "Foreground"; color: Theme.dim; font.pixelSize: 10 }
+                        Rectangle { width: 18; height: 18; radius: 4; color: win.pywalSpecial.foreground || Theme.foreground; border.color: Theme.alpha(Theme.foreground, 0.3); border.width: 1 }
+                        Item { Layout.fillWidth: true }
+                    }
+                    RowLayout {
+                        spacing: 6
+                        Text { text: "wal dir"; color: Theme.dim; font.pixelSize: 10 }
+                        TTextField { Layout.fillWidth: true; placeholderText: win.wallDir(); text: win.pywalDir; color: Theme.foreground; onEditingFinished: win.pywalDir = text }
+                        TButton { text: "Re-run wal"; onClicked: win.rerunWal() }
+                        TButton { text: "Refresh"; onClicked: { win.refreshPywal(); win.refreshSchemes(); } }
+                    }
+                    Text { text: "Saved colour schemes (" + win.pywalSchemes.length + ")"; color: Theme.accent; font.bold: true; font.pixelSize: 11 }
+                    Flickable {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        contentHeight: schemeList.implicitHeight
+                        clip: true
+                        ColumnLayout {
+                            id: schemeList
+                            width: parent.width
+                            spacing: 3
+                            Repeater {
+                                model: win.pywalSchemes
+                                delegate: Rectangle {
+                                    id: sch
+                                    required property var modelData
+                                    Layout.fillWidth: true
+                                    implicitHeight: 26
+                                    radius: 6
+                                    color: schHover.hovered ? Theme.alpha(Theme.accent2, 0.15) : "transparent"
+                                    Text {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        anchors.left: parent.left
+                                        anchors.right: parent.right
+                                        anchors.leftMargin: 10
+                                        anchors.rightMargin: 10
+                                        text: sch.modelData.name
+                                        color: Theme.foreground
+                                        font.pixelSize: 11
+                                        elide: Text.ElideMiddle
+                                    }
+                                    HoverHandler { id: schHover }
+                                    TapHandler { onTapped: win.applyScheme(sch.modelData.path) }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // Rofi ─────────────────────────────────────────────────
@@ -505,18 +715,22 @@ PanelWindow {
                         Text { text: "Active: " + (Theme.themeName.length ? Theme.themeName : "(pywal)"); color: Theme.foreground; Layout.fillWidth: true }
                         TButton { text: "Follow pywal"; onClicked: win.clearOverrides() }
                     }
-                    RowLayout {
-                        spacing: 6
+                    GridLayout {
+                        Layout.fillWidth: true
+                        columns: 8
+                        columnSpacing: 5
+                        rowSpacing: 5
                         Repeater {
-                            model: win.swatchNames
+                            model: win.pywalColors
                             delegate: Rectangle {
-                                required property string modelData
-                                width: 28; height: 28; radius: 6
-                                color: win.col(modelData)
+                                required property var modelData
+                                Layout.preferredWidth: 26
+                                Layout.preferredHeight: 26
+                                radius: 5
+                                color: modelData || Theme.background
                                 border.color: Theme.alpha(Theme.foreground, 0.3); border.width: 1
                             }
                         }
-                        Item { Layout.fillWidth: true }
                     }
                     Flickable {
                         Layout.fillWidth: true
@@ -644,64 +858,154 @@ PanelWindow {
 
                 // Lock Screen ───────────────────────────────────────────
                 ColumnLayout {
-                    spacing: 10
+                    spacing: 8
                     Text {
                         Layout.fillWidth: true
-                        text: "hyprlock is themed from your wallpaper automatically: pywal renders the lock colours to ~/.cache/wal/hyprlock-colors.conf and hyprlock.conf sources them."
-                        color: Theme.foreground
-                        font.pixelSize: 11
-                        wrapMode: Text.WordWrap
-                    }
-                    TButton {
-                        text: "Re-apply Pywal Theme"
-                        onClicked: {
-                            Quickshell.execDetached(["wal", "-R", "-q"]);
-                            win.toast("Re-applying pywal theme");
-                            lockFile.reload();
-                        }
-                    }
-                    Text { text: "Current colours"; color: Theme.dim; font.pixelSize: 11 }
-                    Text {
-                        Layout.fillWidth: true
-                        text: win.lockColors()
+                        text: win.lockKind.length
+                            ? win.lockKind + "  \u00b7  " + win.lockPath
+                            : "No lock config found (swaylock or hyprlock)."
                         color: Theme.dim
                         font.pixelSize: 10
                         wrapMode: Text.WordWrap
                     }
-                    Item { Layout.fillHeight: true }
+                    RowLayout {
+                        spacing: 8
+                        TButton {
+                            text: "Re-apply Pywal Theme"
+                            onClicked: {
+                                Quickshell.execDetached(["wal", "-R", "-q"]);
+                                win.toast("Re-applying pywal theme");
+                                lockFile.reload();
+                                lockRefresh.restart();
+                            }
+                        }
+                        TButton { text: "Reload"; onClicked: win.refreshLock() }
+                        Item { Layout.fillWidth: true }
+                    }
+                    Text { text: "Editable settings (" + win.lockItems.length + ")"; color: Theme.accent; font.bold: true; font.pixelSize: 11 }
+                    Flickable {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        contentHeight: lockCol.implicitHeight
+                        clip: true
+                        ColumnLayout {
+                            id: lockCol
+                            width: parent.width
+                            spacing: 4
+                            Repeater {
+                                model: win.lockItems
+                                delegate: RowLayout {
+                                    id: lk
+                                    required property var modelData
+                                    Layout.fillWidth: true
+                                    spacing: 8
+                                    Text {
+                                        text: lk.modelData.label
+                                        color: Theme.foreground
+                                        font.pixelSize: 11
+                                        Layout.preferredWidth: 170
+                                        elide: Text.ElideRight
+                                    }
+                                    Rectangle {
+                                        visible: lk.modelData.color
+                                        width: 18; height: 18; radius: 4
+                                        color: "#" + String(lk.modelData.value).replace(/^#/, "").slice(0, 6)
+                                        border.color: Theme.alpha(Theme.foreground, 0.3); border.width: 1
+                                    }
+                                    TTextField {
+                                        Layout.fillWidth: true
+                                        text: lk.modelData.value
+                                        color: Theme.foreground
+                                        onEditingFinished: win.setLock(lk.modelData.key, text)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Text {
+                        Layout.fillWidth: true
+                        text: "Editing writes back to the active lock config; pywal regenerates it on the next wallpaper change."
+                        color: Theme.dim
+                        font.pixelSize: 9
+                        wrapMode: Text.WordWrap
+                    }
                 }
 
                 // Icons ─────────────────────────────────────────────────
                 ColumnLayout {
-                    spacing: 10
-                    Text { text: "Papirus folder colour"; color: Theme.dim; font.pixelSize: 11 }
-                    TButton {
-                        text: "Apply pywal colour match"
-                        onClicked: {
-                            Quickshell.execDetached(["bash", win.scripts + "/change-icons.sh"]);
-                            win.toast("Applying pywal folder colour match");
-                        }
-                    }
+                    spacing: 8
+                    Text { text: "Current folder colour: " + (win.iconCurrent.length ? win.iconCurrent : "unknown"); color: Theme.foreground; font.pixelSize: 12 }
                     RowLayout {
-                        spacing: 8
-                        TTextField {
-                            Layout.preferredWidth: 140
-                            text: win.iconHex
-                            color: Theme.foreground
-                            onEditingFinished: win.iconHex = text
-                        }
-                        TButton {
-                            text: "Apply custom hex"
-                            onClicked: {
-                                const hex = win.iconHex.replace(/^#/, "");
-                                Quickshell.execDetached(["papirus-folders", "-C", hex, "-t", "Papirus-Dark"]);
-                                win.toast("Folder colour: #" + hex);
+                        spacing: 10
+                        Repeater {
+                            model: win.iconPreview
+                            delegate: ColumnLayout {
+                                required property var modelData
+                                spacing: 2
+                                Image {
+                                    source: modelData.svg.length ? "file://" + modelData.svg : ""
+                                    sourceSize.width: 40
+                                    sourceSize.height: 40
+                                    Layout.preferredWidth: 40
+                                    Layout.preferredHeight: 40
+                                    Layout.alignment: Qt.AlignHCenter
+                                }
+                                Text { text: modelData.label; color: Theme.dim; font.pixelSize: 9; Layout.alignment: Qt.AlignHCenter }
                             }
                         }
                         Item { Layout.fillWidth: true }
                     }
-                    Text { text: "Sets the Papirus-Dark folder colour (needs papirus-folders on PATH)."; color: Theme.dim; font.pixelSize: 10 }
-                    Item { Layout.fillHeight: true }
+                    Text { text: "Pywal Auto-Color"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 4 }
+                    Text { text: "Matches the Papirus folder colour to pywal colour4."; color: Theme.dim; font.pixelSize: 10 }
+                    TButton { text: "Apply pywal colour match"; onClicked: win.iconAuto() }
+                    Text { text: "Manual Folder Color"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 4 }
+                    Flickable {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        contentHeight: presetGrid.implicitHeight
+                        clip: true
+                        GridLayout {
+                            id: presetGrid
+                            width: parent.width
+                            columns: 5
+                            columnSpacing: 8
+                            rowSpacing: 8
+                            Repeater {
+                                model: win.iconPresets
+                                delegate: Rectangle {
+                                    id: pr
+                                    required property var modelData
+                                    Layout.fillWidth: true
+                                    implicitHeight: 66
+                                    radius: 8
+                                    color: prHover.hovered ? Theme.alpha(Theme.accent2, 0.15) : Theme.alpha(Theme.background, 0.4)
+                                    border.width: win.iconCurrent === pr.modelData.name ? 2 : 1
+                                    border.color: win.iconCurrent === pr.modelData.name ? Theme.accent : Theme.alpha(Theme.accent2, 0.2)
+                                    ColumnLayout {
+                                        anchors.centerIn: parent
+                                        spacing: 2
+                                        Image {
+                                            source: pr.modelData.svg.length ? "file://" + pr.modelData.svg : ""
+                                            sourceSize.width: 30
+                                            sourceSize.height: 30
+                                            Layout.preferredWidth: 30
+                                            Layout.preferredHeight: 30
+                                            Layout.alignment: Qt.AlignHCenter
+                                        }
+                                        Text { text: pr.modelData.label; color: Theme.foreground; font.pixelSize: 9; Layout.alignment: Qt.AlignHCenter }
+                                    }
+                                    HoverHandler { id: prHover }
+                                    TapHandler { onTapped: win.applyIconPreset(pr.modelData.name) }
+                                }
+                            }
+                        }
+                    }
+                    RowLayout {
+                        spacing: 8
+                        TTextField { Layout.preferredWidth: 140; text: win.iconHex; color: Theme.foreground; onEditingFinished: win.iconHex = text }
+                        TButton { text: "Apply custom hex"; onClicked: win.applyIconHex() }
+                        Item { Layout.fillWidth: true }
+                    }
                 }
 
                 // SDDM & GRUB ───────────────────────────────────────────
