@@ -41,6 +41,10 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     visible: UiState.quickSettingsOpen
 
+    // Open on the button's monitor (registered by the module), else the focused one.
+    property var targetScreen: null
+    screen: Screens.byName(BarAnchors.qsScreen) || targetScreen
+
     IpcHandler {
         target: "quicksettings"
         function toggle() { UiState.quickSettingsOpen = !UiState.quickSettingsOpen; }
@@ -54,8 +58,10 @@ PanelWindow {
     Behavior on reveal { NumberAnimation { duration: qs.animMs; easing.type: Easing.OutCubic } }
     onVisibleChanged: {
         reveal = visible ? 1 : 0;
-        if (visible)
+        if (visible) {
+            targetScreen = Screens.focused();
             refresh();
+        }
     }
     // Re-probe while open so external changes (media keys, other apps) show up.
     Timer { running: qs.visible; interval: 5000; repeat: true; onTriggered: qs.refresh() }

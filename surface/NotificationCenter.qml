@@ -19,6 +19,10 @@ PanelWindow {
     focusable: true
     exclusionMode: ExclusionMode.Ignore
 
+    // Open on the bell's monitor (registered by the module), else the focused one.
+    property var targetScreen: null
+    screen: Screens.byName(BarAnchors.notifScreen) || targetScreen
+
     readonly property real screenW: center.screen ? center.screen.width : 0
     readonly property var insets: BarGeom.insets(center.screenW)
     // Right edge of the bell in screen coords (fallback: the bar's right inset).
@@ -52,8 +56,10 @@ PanelWindow {
     Behavior on reveal { NumberAnimation { duration: center.animMs; easing.type: Easing.OutCubic } }
     onVisibleChanged: {
         reveal = visible ? 1 : 0;
-        if (visible)
+        if (visible) {
+            targetScreen = Screens.focused();
             NotifyData.markRead();
+        }
     }
 
     Rectangle {

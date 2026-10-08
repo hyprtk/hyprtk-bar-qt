@@ -25,6 +25,10 @@ PanelWindow {
     implicitWidth: 760
     implicitHeight: 620
 
+    // Open on the focused monitor (captured when shown).
+    property var targetScreen: null
+    screen: targetScreen
+
     readonly property string home: Quickshell.env("HOME") || ""
     readonly property string base: Qt.resolvedUrl("../backend/hyprtk_bar_qt/").toString().replace("file://", "")
     readonly property string scripts: win.home + "/.local/share/hyprtk-bar/scripts"
@@ -86,6 +90,7 @@ PanelWindow {
         win.reveal = visible ? 1 : 0;
         if (!visible)
             return;
+        win.targetScreen = Screens.focused();
         win.refreshThemes();
         win.refreshImportable();
         win.refreshWallpapers();

@@ -25,6 +25,10 @@ PanelWindow {
     focusable: true
     exclusionMode: ExclusionMode.Ignore
 
+    // Open on the focused monitor (captured when shown).
+    property var targetScreen: null
+    screen: targetScreen
+
     anchors.top: BarConfig.barPosition === "top"
     anchors.bottom: BarConfig.barPosition === "bottom"
     margins.top: BarConfig.barPosition === "top" ? BarConfig.barHeight + BarConfig.gapOut + 6 : 0
@@ -55,6 +59,7 @@ PanelWindow {
     onVisibleChanged: {
         clip.reveal = visible ? 1 : 0;
         if (visible) {
+            clip.targetScreen = Screens.focused();
             clip.query = "";
             clip.clearArmed = false;
             clip.reload();

@@ -46,17 +46,19 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 - [x] A9 Settings hint corrected (Low/High are presets; real Hyprland-follow in
       Batch 6).
 
-## Batch 3 — Anchors & multi-monitor
+## Batch 3 — Anchors & multi-monitor  ✅ done
 
-- [ ] A7 `surface/BarMenu.qml` + `surface/Notifications.qml` hardcode top anchor
-      → honour `barPosition`.
-- [ ] A14 desktop widgets are single-screen (`surface/DesktopWidgets.qml`) →
-      per-screen `Variants` like GTK's `desktop/manager.py`.
-- [ ] A15 overlays/popups single-screen + single anchor
-      (QuickSettings, SysMonitor, Clipboard, NotificationCenter, Settings,
-      Themer, StartMenu; `data/BarAnchors.qml`) → anchor to the clicked screen.
-- [ ] A16 Tasklist cannot restore minimized windows (`special:minimized`) →
-      restore before focus (GTK `tasklist.py:576`).
+- [x] A7 `BarMenu` + notification toasts now honour `barPosition` (anchor to the
+      bar's edge, top or bottom) instead of hardcoding top.
+- [x] A14 desktop widgets place on the focused monitor captured at startup
+      (matches GTK `manager.py`, which uses the focused monitor; GTK itself does
+      not do per-display widgets — that stays on GTK's roadmap).
+- [x] A15 new `data/Screens.qml` (name→ShellScreen + focused monitor). Bar
+      modules register their monitor (`BarAnchors`); popups set `screen:` to the
+      clicked monitor (bell/QS/start/menu) or the focused monitor on open
+      (SysMonitor/Clipboard/Settings/Themer/About/toasts).
+- [x] A16 Tasklist restores a window from a negative-id (special/minimized)
+      workspace before focusing it (GTK `tasklist.py:576`).
 
 ## Batch 4 — Settings parity UI
 

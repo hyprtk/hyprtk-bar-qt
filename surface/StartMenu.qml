@@ -28,6 +28,10 @@ PanelWindow {
     focusable: true
     visible: UiState.startMenuOpen
 
+    // Open on the start button's monitor (registered on click), else focused.
+    property var targetScreen: null
+    screen: Screens.byName(BarAnchors.menuScreen) || targetScreen
+
     readonly property string backend:
         Qt.resolvedUrl("../backend/hyprtk_bar_qt/menu.py").toString().replace("file://", "")
     readonly property string filesBackend:
@@ -213,6 +217,7 @@ PanelWindow {
     onVisibleChanged: {
         sm.reveal = visible ? 1 : 0;
         if (visible) {
+            sm.targetScreen = Screens.focused();
             sm.plasmaComputer = false;
             sm.side = "all";
             sm.browseHistory = [];

@@ -66,12 +66,16 @@ Rectangle {
         DelegateChoice { delegate: Item {} }
     }
 
+    // the bar window's monitor, so popups open on the clicked screen
+    readonly property string screenName: (QsWindow.window && QsWindow.window.screen) ? QsWindow.window.screen.name : ""
+
     // right-click anywhere on the bar opens the context menu
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.RightButton
         onClicked: (mouse) => {
             UiState.barMenuX = mouse.x;
+            BarAnchors.setBarMenuScreen(root.screenName);
             UiState.barMenuOpen = true;
         }
     }

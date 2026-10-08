@@ -21,6 +21,10 @@ PanelWindow {
     focusable: true
     exclusionMode: ExclusionMode.Ignore
 
+    // Open on the focused monitor (captured when shown).
+    property var targetScreen: null
+    screen: targetScreen
+
     // Anchor to the same edge as the bar, centred horizontally (no left/right
     // anchor => the compositor centres the surface).
     anchors.top: BarConfig.barPosition === "top"
@@ -44,6 +48,8 @@ PanelWindow {
     onVisibleChanged: {
         MonitorData.active = visible;
         reveal = visible ? 1 : 0;
+        if (visible)
+            targetScreen = Screens.focused();
     }
 
     readonly property var allPages: [

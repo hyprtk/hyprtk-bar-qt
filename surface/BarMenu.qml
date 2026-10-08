@@ -10,9 +10,15 @@ import "../state"
 PanelWindow {
     id: menu
 
-    anchors.top: true
+    // Open on the clicked monitor (registered by the bar), else the focused one.
+    property var targetScreen: null
+    screen: Screens.byName(BarAnchors.barMenuScreen) || targetScreen
+
+    anchors.top: BarConfig.barPosition === "top"
+    anchors.bottom: BarConfig.barPosition === "bottom"
     anchors.left: true
-    margins.top: BarConfig.barHeight + 6
+    margins.top: BarConfig.barPosition === "top" ? BarConfig.barHeight + BarConfig.gapOut + 6 : 0
+    margins.bottom: BarConfig.barPosition === "bottom" ? BarConfig.barHeight + BarConfig.gapOut + 6 : 0
     margins.left: Math.max(4, UiState.barMenuX)
     implicitWidth: 224
     implicitHeight: col.implicitHeight + 16
@@ -65,7 +71,11 @@ PanelWindow {
     property real reveal: 0
     readonly property int animMs: Config.animations ? Config.animationDuration : 0
     Behavior on reveal { NumberAnimation { duration: menu.animMs; easing.type: Easing.OutCubic } }
-    onVisibleChanged: reveal = visible ? 1 : 0
+    onVisibleChanged: {
+        reveal = visible ? 1 : 0;
+        if (visible)
+            targetScreen = Screens.focused();
+    }
 
     Rectangle {
         anchors.fill: parent

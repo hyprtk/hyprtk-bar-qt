@@ -25,10 +25,18 @@ PanelWindow {
     implicitWidth: 820
     implicitHeight: 620
 
+    // Open on the focused monitor (captured when shown).
+    property var targetScreen: null
+    screen: targetScreen
+
     property real reveal: 0
     readonly property int animMs: Config.animations ? Config.animationDuration : 0
     Behavior on reveal { NumberAnimation { duration: win.animMs; easing.type: Easing.OutCubic } }
-    onVisibleChanged: reveal = visible ? 1 : 0
+    onVisibleChanged: {
+        reveal = visible ? 1 : 0;
+        if (visible)
+            targetScreen = Screens.focused();
+    }
 
     readonly property string backend:
         Qt.resolvedUrl("../backend/hyprtk_bar_qt/barsettings.py").toString().replace("file://", "")

@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Io
 import "../theme"
 import "../state"
+import "../data"
 
 PanelWindow {
     id: about
@@ -16,9 +17,17 @@ PanelWindow {
     implicitWidth: 440
     implicitHeight: 320
 
+    // Open on the focused monitor (captured when shown).
+    property var targetScreen: null
+    screen: targetScreen
+
     property real reveal: 0
     Behavior on reveal { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-    onVisibleChanged: reveal = visible ? 1 : 0
+    onVisibleChanged: {
+        reveal = visible ? 1 : 0;
+        if (visible)
+            targetScreen = Screens.focused();
+    }
 
     Rectangle {
         anchors.fill: parent

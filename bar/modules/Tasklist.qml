@@ -64,6 +64,18 @@ RowLayout {
     function _recent(wins) {
         return wins.find(w => w.activated) || wins[0];
     }
+    // Focus a window, restoring it first if it is parked on a special
+    // (negative-id) workspace such as special:minimized — matches the GTK bar.
+    function _focusWindow(w) {
+        if (!w || !w.address)
+            return;
+        if (w.workspace && w.workspace.id < 0) {
+            const aw = Hyprland.focusedWorkspace;
+            if (aw)
+                Hyprland.dispatch(Hypr.moveWindowTo(aw.name || String(aw.id), w.address));
+        }
+        Hyprland.dispatch(Hypr.focusWindow(w.address));
+    }
     function _menu(grp) {
         const w = root._recent(grp.wins);
         const items = [];
@@ -157,9 +169,7 @@ RowLayout {
                             Hyprland.dispatch(Hypr.moveWindowTo("special:minimized", focused.address));
                         return;
                     }
-                    const w = root._recent(wins);
-                    if (w.address)
-                        Hyprland.dispatch(Hypr.focusWindow(w.address));
+                    root._focusWindow(root._recent(wins));
                 }
             }
         }

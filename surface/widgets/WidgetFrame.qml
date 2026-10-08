@@ -50,7 +50,14 @@ PanelWindow {
     function _register() {
         WidgetMove.setGeometry(frame.widgetId, frame._gx(), frame._gy(), frame.width, frame.height);
     }
-    Component.onCompleted: _register()
+    // Place on the monitor that is focused when the shell starts (the GTK
+    // manager does the same); captured once so widgets do not hop on focus change.
+    property var targetScreen: null
+    screen: targetScreen
+    Component.onCompleted: {
+        frame.targetScreen = Screens.focused();
+        _register();
+    }
     onWidthChanged: _register()
     onHeightChanged: _register()
     onHasOverChanged: _register()
