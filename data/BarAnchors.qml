@@ -16,4 +16,13 @@ Singleton {
         root.notifX = x;
         root.notifW = w;
     }
+
+    // Quick-settings button: x/width in bar-window coordinates.
+    property real qsX: -1
+    property real qsW: 22
+
+    function setQs(x, w) {
+        root.qsX = x;
+        root.qsW = w;
+    }
 }

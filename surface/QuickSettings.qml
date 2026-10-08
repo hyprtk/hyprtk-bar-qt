@@ -11,20 +11,42 @@ import "../theme"
 import "../config"
 import "../state"
 import "../components"
+import "../data"
 
 PanelWindow {
     id: qs
 
-    anchors.top: true
-    anchors.right: true
-    margins.top: 46
-    margins.right: 8
+    readonly property real screenW: qs.screen ? qs.screen.width : 0
+    readonly property var insets: BarGeom.insets(qs.screenW)
+    // Right edge of the quick-settings button in screen coords (fallback: bar right inset).
+    readonly property real btnRight: BarAnchors.qsX >= 0
+        ? qs.insets.left + BarAnchors.qsX + BarAnchors.qsW
+        : qs.screenW - qs.insets.right
+    // Right-align the flyout under the button, clamped inside the bar's extent.
+    readonly property real leftMargin: Math.max(
+        qs.insets.left,
+        Math.min(qs.btnRight - qs.implicitWidth,
+                 qs.screenW - qs.insets.right - qs.implicitWidth))
+
+    anchors.top: BarConfig.barPosition === "top"
+    anchors.bottom: BarConfig.barPosition === "bottom"
+    anchors.left: true
+    margins.top: BarConfig.barPosition === "top" ? BarConfig.barHeight + BarConfig.gapOut + 6 : 0
+    margins.bottom: BarConfig.barPosition === "bottom" ? BarConfig.barHeight + BarConfig.gapOut + 6 : 0
+    margins.left: qs.leftMargin
     implicitWidth: 340
     implicitHeight: panel.implicitHeight + 28
     color: "transparent"
     focusable: true
     exclusionMode: ExclusionMode.Ignore
     visible: UiState.quickSettingsOpen
+
+    IpcHandler {
+        target: "quicksettings"
+        function toggle() { UiState.quickSettingsOpen = !UiState.quickSettingsOpen; }
+        function open() { UiState.quickSettingsOpen = true; }
+        function close() { UiState.quickSettingsOpen = false; }
+    }
 
     // Reveal animation (gated by the shared animations switch).
     property real reveal: 0
