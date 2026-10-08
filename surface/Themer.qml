@@ -1,6 +1,6 @@
-// Themer window: sidebar of theming pages — Wallpaper (thumbnail picker),
-// Pywal, Rofi, Bar Themes (9 shipped), Matuwall, Lock Screen, Icons,
-// SDDM & GRUB, and Import (waybar themes from disk).
+// Themer — centred layer-shell panel with a sidebar of theming pages: Wallpaper
+// (thumbnail picker), Pywal, Rofi, Bar Themes (9 shipped), Matuwall, Lock
+// Screen, Icons, SDDM & GRUB, and Import (waybar themes from disk).
 //
 // Script-driven actions call the same hyprtk scripts as the GTK bar. The
 // Matuwall TOML editor is a later pass.
@@ -14,14 +14,15 @@ import "../config"
 import "../state"
 import "../components"
 
-FloatingWindow {
+PanelWindow {
     id: win
 
-    title: "hyprtk-bar-qt themer"
     visible: UiState.themerOpen
+    color: "transparent"
+    focusable: true
+    exclusionMode: ExclusionMode.Ignore
     implicitWidth: 760
     implicitHeight: 620
-    color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Theme.opacity)
 
     readonly property string home: Quickshell.env("HOME") || ""
     readonly property string base: Qt.resolvedUrl("../backend/hyprtk_bar_qt/").toString().replace("file://", "")
@@ -275,6 +276,23 @@ FloatingWindow {
         mwSetProc.running = true;
     }
 
+    Rectangle {
+        anchors.fill: parent
+        radius: 14
+        color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Math.max(0.95, Theme.opacity))
+        border.width: 1
+        border.color: Theme.alpha(Theme.accent2, 0.2)
+        opacity: win.reveal
+        transform: Translate { y: (1 - win.reveal) * -8 }
+    }
+
+    IpcHandler {
+        target: "themer"
+        function toggle() { UiState.themerOpen = !UiState.themerOpen; }
+        function open() { UiState.themerOpen = true; }
+        function close() { UiState.themerOpen = false; }
+    }
+
     RowLayout {
         anchors.fill: parent
         spacing: 0
@@ -284,6 +302,8 @@ FloatingWindow {
         Rectangle {
             Layout.fillHeight: true
             implicitWidth: 150
+            topLeftRadius: 14
+            bottomLeftRadius: 14
             color: Theme.alpha(Theme.background, 0.6)
             ColumnLayout {
                 anchors.fill: parent

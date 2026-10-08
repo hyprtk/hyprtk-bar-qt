@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.28.0 — unreleased
+
+Dialogue polish: floating panels.
+
+- **Settings / Themer / About** converted from `FloatingWindow` (xdg toplevels,
+  which Hyprland tiles) to centred layer-shell `PanelWindow`s, so they float
+  over the desktop like the bar's other panels (own rounded background + border,
+  same reveal animation). Sidebars round their left corners to match.
+- **IPC toggles**: `settings`, `themer` and `about` surfaces gain `IpcHandler`s
+  (`toggle`/`open`/`close`), matching `clipboard`/`arcmenu`; new
+  `bin/hyprtk-bar-qt-settings-toggle` and `bin/hyprtk-bar-qt-themer-toggle`.
+
 ## 0.27.0 — unreleased
 
 Dialogue parity round 2.

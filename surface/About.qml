@@ -1,22 +1,41 @@
-// About box (bar right-click menu → About).
+// About box (bar right-click menu → About) — a centred layer-shell panel.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import "../theme"
 import "../state"
 
-FloatingWindow {
+PanelWindow {
     id: about
 
-    title: "About hyprtk-bar-qt"
     visible: UiState.aboutOpen
+    color: "transparent"
+    focusable: true
+    exclusionMode: ExclusionMode.Ignore
     implicitWidth: 440
     implicitHeight: 320
-    color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Math.max(0.96, Theme.opacity))
 
     property real reveal: 0
     Behavior on reveal { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
     onVisibleChanged: reveal = visible ? 1 : 0
+
+    Rectangle {
+        anchors.fill: parent
+        radius: 14
+        color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Math.max(0.96, Theme.opacity))
+        border.width: 1
+        border.color: Theme.alpha(Theme.accent2, 0.2)
+        opacity: about.reveal
+        transform: Translate { y: (1 - about.reveal) * -8 }
+    }
+
+    IpcHandler {
+        target: "about"
+        function toggle() { UiState.aboutOpen = !UiState.aboutOpen; }
+        function open() { UiState.aboutOpen = true; }
+        function close() { UiState.aboutOpen = false; }
+    }
 
     ColumnLayout {
         anchors.fill: parent

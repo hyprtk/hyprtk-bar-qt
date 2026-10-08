@@ -26,13 +26,14 @@ bar/
     Net.qml                   rx/tx rates + rolling sparklines
 surface/
   QuickSettings.qml           volume/brightness/Wi-Fi/Bluetooth flyout (wpctl, brightnessctl, nmcli, bluetoothctl)
-  Settings.qml                settings window (writes config/Config.qml)
+  Settings.qml                settings panel (centred layer-shell; edits the shared hyprtk-bar config)
   ArcMenu.qml                 corner FAB with an item arc; IPC-toggleable
   SysMonitor.qml              Mission Center-style system monitor dialog (CPU/Mem/Disks/Network/GPU/Apps)
   NotificationCenter.qml      notification history panel (bell)
   Notifications.qml           transient toast stack (opt-in daemon, see below)
   Clipboard.qml               cliphist history (search/copy/delete/wipe)
-  Themer.qml                  theming window (Wallpaper grid, bar themes, import)
+  Themer.qml                  theming panel (centred layer-shell; Wallpaper grid, bar themes, import)
+  About.qml                   about panel (centred layer-shell; bar menu → About)
   DesktopWidgets.qml          instantiates the enabled desktop widgets
   StartMenu.qml               start menu (whisker/win7/win11/plasma, favourites, recents)
 theme/
@@ -93,6 +94,8 @@ tests/
   test_monitor.py             monitor backend unit tests
 bin/hyprtk-bar-qt             launcher wrapper (qs -p <root>)
 bin/hyprtk-bar-qt-arc-toggle  hotkey helper (qs ipc call arcmenu toggle)
+bin/hyprtk-bar-qt-settings-toggle  hotkey helper (qs ipc call settings toggle)
+bin/hyprtk-bar-qt-themer-toggle    hotkey helper (qs ipc call themer toggle)
 bin/hyprtk-bar-qt-widget-move  desktop-widget move start/stop (Hyprland bind)
 Makefile                      make test / run / install
 install.sh                    copy into the Quickshell config dir
@@ -133,7 +136,7 @@ hyprtk-bar-qt                # launcher on ~/.local/bin
 
 Working bar: workspaces, tasklist, tray, clock, CPU/memory sparklines and a
 network-rate graph (all fed by the Python backend), plus a quick-settings
-flyout, a settings window, a corner arc menu and a Mission Center-style system
+flyout, a settings panel, a corner arc menu and a Mission Center-style system
 monitor dialog (CPU / Memory / Disks / Network / GPU / Apps, opened from the
 sysmon module), a notification center (bell + history panel), cliphist
 clipboard history, and free-floating desktop widgets (clock / resources / disk /
@@ -141,9 +144,11 @@ network) driven by the shared hyprtk-bar `widgets` config. Theming reads the liv
 palette and the existing hyprtk-bar config, so it matches the desktop while the
 GTK bar still runs alongside it.
 
-`make test` runs the toolkit-free backend unit tests. The arc menu can be bound
-to a hotkey with `hyprtk-bar-qt-arc-toggle` (it calls `qs ipc call arcmenu
-toggle`).
+`make test` runs the toolkit-free backend unit tests. The arc menu, clipboard,
+settings and themer panels can be bound to hotkeys with
+`hyprtk-bar-qt-arc-toggle`, `hyprtk-bar-qt-clipboard-toggle`,
+`hyprtk-bar-qt-settings-toggle` and `hyprtk-bar-qt-themer-toggle` (each calls
+`qs ipc call <target> toggle`).
 
 Desktop widgets can be dragged with Super + Shift + left mouse once these
 Hyprland binds are set (the bar watches its own move FIFO):

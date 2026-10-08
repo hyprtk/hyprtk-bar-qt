@@ -27,9 +27,9 @@ Legend: ✅ done · ◐ partial · ☐ todo
 
 | GTK | Qt status |
 |---|---|
-| Bar settings window (9 pages) | ✅ `surface/Settings.qml` — edits the shared hyprtk-bar config (bar geometry, theme, font, animations, arc menu, menu, quicklinks, modules, widgets) |
+| Bar settings window (9 pages) | ✅ `surface/Settings.qml` — centred layer-shell panel; edits the shared hyprtk-bar config (bar geometry, theme, font, animations, arc menu, menu, quicklinks, modules, widgets) |
 | System monitor dialog (CPU/Mem/Disks/Network/GPU/Apps, cairo graphs) | ✅ `surface/SysMonitor.qml` (six pages, QML graphs, DIMM slots) |
-| Themer dialog (Wallpaper/Pywal/Rofi/Bar themes/Matuwall/Swaylock/Icons/SDDM+GRUB) | ✅ `surface/Themer.qml` (all nine pages, incl. the Matuwall TOML editor) |
+| Themer dialog (Wallpaper/Pywal/Rofi/Bar themes/Matuwall/Swaylock/Icons/SDDM+GRUB) | ✅ `surface/Themer.qml` — centred layer-shell panel; all nine pages, incl. the Matuwall TOML editor |
 | Clipboard history dialog | ✅ `surface/Clipboard.qml` (cliphist list/copy/delete/wipe, search) |
 | Notification center | ✅ `surface/NotificationCenter.qml` (history, actions, clear all, unread badge) |
 | Quick-settings flyout | ✅ |
@@ -113,3 +113,7 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 All listed parity items are implemented. Residual refinements (not tracked as
 blocking): start-menu Places categories beyond the current set, and MPRIS media
 control on the bar (not part of the original module matrix).
+
+The dialogs (Settings / Themer / About) are now centred layer-shell panels
+rather than tiled xdg windows, and expose `IpcHandler`s (`toggle`/`open`/`close`)
+alongside `clipboard`/`arcmenu`.

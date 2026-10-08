@@ -1,5 +1,6 @@
-// Settings window — nine pages editing the shared hyprtk-bar config
-// (~/.config/hyprtk-bar/config.json), so the Qt and GTK bars share settings.
+// Settings — centred layer-shell panel with nine pages editing the shared
+// hyprtk-bar config (~/.config/hyprtk-bar/config.json), so the Qt and GTK bars
+// share settings.
 //
 // Bar / Themes / Fonts / Animations / Arc Menu / Menu / Quicklinks / Modules /
 // Widgets. Changes are debounced and written via backend/.../barsettings.py.
@@ -14,14 +15,15 @@ import "../state"
 import "../data"
 import "../components"
 
-FloatingWindow {
+PanelWindow {
     id: win
 
-    title: "hyprtk-bar-qt settings"
     visible: UiState.settingsOpen
+    color: "transparent"
+    focusable: true
+    exclusionMode: ExclusionMode.Ignore
     implicitWidth: 820
     implicitHeight: 620
-    color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Math.max(0.95, Theme.opacity))
 
     property real reveal: 0
     readonly property int animMs: Config.animations ? Config.animationDuration : 0
@@ -192,6 +194,23 @@ FloatingWindow {
         }
     }
 
+    Rectangle {
+        anchors.fill: parent
+        radius: 14
+        color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Math.max(0.95, Theme.opacity))
+        border.width: 1
+        border.color: Theme.alpha(Theme.accent2, 0.2)
+        opacity: win.reveal
+        transform: Translate { y: (1 - win.reveal) * -8 }
+    }
+
+    IpcHandler {
+        target: "settings"
+        function toggle() { UiState.settingsOpen = !UiState.settingsOpen; }
+        function open() { UiState.settingsOpen = true; }
+        function close() { UiState.settingsOpen = false; }
+    }
+
     RowLayout {
         anchors.fill: parent
         spacing: 0
@@ -202,6 +221,8 @@ FloatingWindow {
         Rectangle {
             Layout.fillHeight: true
             implicitWidth: 150
+            topLeftRadius: 14
+            bottomLeftRadius: 14
             color: Theme.alpha(Theme.background, 0.6)
             ColumnLayout {
                 anchors.fill: parent
