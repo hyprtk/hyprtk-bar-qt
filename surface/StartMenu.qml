@@ -26,7 +26,7 @@ PanelWindow {
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     focusable: true
-    visible: UiState.startMenuOpen
+    visible: UiState.startMenuOpen && MenuConfig.enabled
 
     // Open on the start button's monitor (registered on click), else focused.
     property var targetScreen: null
@@ -57,16 +57,19 @@ PanelWindow {
     readonly property int menuH: Math.min(MenuConfig.height, sm.screenH - BarConfig.barHeight - 120)
     readonly property bool atBottom: (MenuConfig.position === "bottom")
         || (MenuConfig.position === "auto" && BarConfig.barPosition === "bottom")
-    readonly property real menuX: {
-        if (MenuConfig.align === "right")
-            return sm.screenW - sm.insets.right - sm.menuW - 4;
-        if (MenuConfig.align === "center")
-            return Math.round(sm.insets.left + (sm.barW - sm.menuW) / 2);
-        return sm.insets.left + 4;
-    }
-    readonly property real menuY: sm.atBottom
-        ? sm.screenH - BarConfig.barHeight - BarConfig.gapOut - MenuConfig.gapIn - sm.menuH
-        : BarConfig.barHeight + BarConfig.gapOut + MenuConfig.gapIn
+    // menu.follow_bar = off => ignore the bar geometry and centre on screen.
+    readonly property real menuX: !MenuConfig.followBar
+        ? Math.round((sm.screenW - sm.menuW) / 2)
+        : (MenuConfig.align === "right"
+            ? sm.screenW - sm.insets.right - sm.menuW - 4
+            : (MenuConfig.align === "center"
+                ? Math.round(sm.insets.left + (sm.barW - sm.menuW) / 2)
+                : sm.insets.left + 4))
+    readonly property real menuY: !MenuConfig.followBar
+        ? Math.round((sm.screenH - sm.menuH) / 2)
+        : (sm.atBottom
+            ? sm.screenH - BarConfig.barHeight - BarConfig.gapOut - MenuConfig.gapIn - sm.menuH
+            : BarConfig.barHeight + BarConfig.gapOut + MenuConfig.gapIn)
 
     readonly property var allApps: DesktopEntries.applications.values
     function baseApps() {

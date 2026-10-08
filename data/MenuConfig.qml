@@ -29,6 +29,8 @@ Singleton {
         }
     }
 
+    readonly property bool enabled: cfg.enabled !== false
+    readonly property bool followBar: cfg.follow_bar !== false
     readonly property string layout: cfg.layout || "whisker"
     readonly property string position: cfg.position || "auto"
     readonly property string align: cfg.align || "left"

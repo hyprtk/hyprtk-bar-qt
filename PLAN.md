@@ -60,23 +60,22 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 - [x] A16 Tasklist restores a window from a negative-id (special/minimized)
       workspace before focusing it (GTK `tasklist.py:576`).
 
-## Batch 4 — Settings parity UI
+## Batch 4 — Settings parity UI  ✅ done
 
-- [ ] Widgets page: layer, margin_x/y, width/height, radius, padding,
-      snap_group/axis/order + per-widget specific options (GTK
-      `bar_settings.py:1544-1670`).
-- [ ] Menu page: `enabled`, `follow_bar`, `gap_in`, `gap_out`.
-- [ ] Modules page: reorder (up/down) + section radios; fix append-only
-      `setSection`.
-- [ ] Fonts page: installed-font picker (GTK `Gtk.FontButton`).
-- [ ] Themes page: `imported` source + imported-theme-name picker; resolve the
-      conflict with `Config.themeSource` set by Themer (A13).
-- [ ] Per-module option editors: `workspaces.show_empty/max`,
-      `clock.format/date_format/calendar`, `updates.interval/scripts`,
-      `window.max_length/width`, `tray.icon_size`,
-      `notifications.max_stored/default_timeout`.
-- [ ] Arc-item editor: add `action` field (settings/themer/clipboard).
-- [ ] Wire `Settings.addFavorite()` (currently dead → can't add menu favourites).
+- [x] Widgets page rebuilt: per widget — layer, margin X/Y, width/height,
+      radius, padding, scale, snap group/axis/order, colours, plus widget-specific
+      options (clock, weather, visualizer, disk, network, resources, sysinfo)
+      in wrapping `Flow` rows.
+- [x] Menu page: `enabled`, `follow_bar`, `gap_in`, `gap_out` added; `MenuConfig`
+      exposes enabled/followBar and `StartMenu` gates + centres when not following.
+- [x] Modules page: up/down reorder (`moveModule`) + section radios retained.
+- [x] Fonts page: installed-font picker (`Qt.fontFamilies()`).
+- [x] Themes page: `imported` source + installed-theme picker; `setTheme()`
+      keeps the shared `theme` block and the Qt `Config` override in sync (A13).
+- [x] Per-module option editors added to the Modules page (workspaces, clock,
+      updates, window, tray, notifications).
+- [x] Arc-item editor: `action` field (settings/themer/clipboard).
+- [x] Menu favourites: `addFavorite()` wired to a field + Add button.
 
 ## Batch 5 — Widget parity
 
