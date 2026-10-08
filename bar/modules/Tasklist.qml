@@ -1,9 +1,10 @@
-// Window list (tasklist): one button per app, grouped by appId.
+// Window list (tasklist): one button per app, grouped by appId, with optional
+// pinned apps from the shared `center.pinned` config.
 //
 // Left-click activates the app's most-recent window, or minimises it when it is
-// already focused; middle-click closes it. Backed by the Quickshell Hyprland
-// service (HyprlandToplevel: title / activated / address / workspace), with
-// actions dispatched by window address.
+// already focused; middle-click closes it; a pinned app with no window launches
+// its command. Backed by the Quickshell Hyprland service (HyprlandToplevel:
+// title / activated / address / workspace), with actions dispatched by address.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -15,9 +16,15 @@ RowLayout {
     id: root
     spacing: 4
     readonly property int fs: BarConfig.fontSize(11)
+    readonly property var pinned: (BarConfig.center.pinned || [])
 
     function _appId(t) {
         return (t.wayland && t.wayland.appId) ? t.wayland.appId : (t.title || "app");
+    }
+    function _match(a, b) {
+        a = String(a || "").toLowerCase().replace(/\.desktop$/, "");
+        b = String(b || "").toLowerCase().replace(/\.desktop$/, "");
+        return a.length > 0 && b.length > 0 && (a === b || a.includes(b) || b.includes(a));
     }
     function groups() {
         const map = {};
@@ -25,7 +32,20 @@ RowLayout {
             const k = root._appId(t);
             (map[k] = map[k] || []).push(t);
         }
-        return Object.keys(map).map(k => ({ appId: k, wins: map[k] }));
+        const out = [];
+        const seen = {};
+        for (const p of root.pinned) {
+            let key = null;
+            for (const k in map)
+                if (root._match(p.class, k)) { key = k; break; }
+            out.push({ pinned: p, wins: key ? map[key] : [] });
+            if (key)
+                seen[key] = true;
+        }
+        for (const k in map)
+            if (!seen[k])
+                out.push({ pinned: null, wins: map[k] });
+        return out;
     }
     function _recent(wins) {
         return wins.find(w => w.activated) || wins[0];
@@ -40,6 +60,8 @@ RowLayout {
             items.push({ label: "Close window", action: () => {
                 if (w.address) Hyprland.dispatch(Hypr.closeWindow(w.address));
             } });
+        } else if (grp.modelData.pinned && grp.modelData.pinned.command) {
+            items.push({ label: "Launch", action: () => Quickshell.execDetached(["sh", "-c", grp.modelData.pinned.command]) });
         }
         PopupMenu.open(grp, items);
     }
@@ -52,16 +74,20 @@ RowLayout {
             required property var modelData
 
             readonly property var wins: grp.modelData.wins
+            readonly property var pin: grp.modelData.pinned
             readonly property bool act: grp.wins.some(w => w.activated)
+            readonly property bool running: grp.wins.length > 0
             readonly property var recent: root._recent(grp.wins)
-            readonly property string title: grp.recent ? (grp.recent.title || root._appId(grp.recent)) : "?"
+            readonly property string title: grp.running
+                ? (grp.recent.title || root._appId(grp.recent))
+                : (grp.pin && grp.pin.class ? grp.pin.class : "?")
 
             implicitWidth: Math.min(label.implicitWidth, 180) + 16
             implicitHeight: 22
             radius: 6
             color: grp.act
                 ? Theme.alpha(Theme.accent, 0.85)
-                : Theme.alpha(Theme.accent2, 0.12)
+                : (grp.running ? Theme.alpha(Theme.accent2, 0.12) : Theme.alpha(Theme.dim, 0.18))
 
             Text {
                 id: label
@@ -70,13 +96,13 @@ RowLayout {
                 elide: Text.ElideRight
                 horizontalAlignment: Text.AlignHCenter
                 text: grp.title
-                color: grp.act ? "#000000" : Theme.foreground
+                color: grp.act ? "#000000" : (grp.running ? Theme.foreground : Theme.dim)
                 font.pixelSize: root.fs
             }
 
             // running indicator
             Rectangle {
-                visible: grp.wins.length > 0
+                visible: grp.running
                 width: 4
                 height: 4
                 radius: 2
@@ -102,8 +128,11 @@ RowLayout {
                         return;
                     }
                     const wins = grp.wins;
-                    if (!wins.length)
+                    if (!wins.length) {
+                        if (mouse.button === Qt.LeftButton && grp.pin && grp.pin.command)
+                            Quickshell.execDetached(["sh", "-c", grp.pin.command]);
                         return;
+                    }
                     const focused = wins.find(w => w.activated);
                     if (mouse.button === Qt.MiddleButton) {
                         const w = focused || root._recent(wins);
