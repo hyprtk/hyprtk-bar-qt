@@ -31,7 +31,7 @@ Singleton {
         }
     }
 
-    // Re-read when the shared config (animations mode / border_animation) changes.
+    // Re-read when the Qt config (animations mode / border_animation) changes.
     Connections {
         target: BarConfig
         function onCfgChanged() { root.reload() }

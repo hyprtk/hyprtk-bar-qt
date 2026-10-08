@@ -18,8 +18,8 @@ ShellRoot {
     // Instantiate the keybind signal bridge (menu/arc/clipboard toggles).
     readonly property var signalBridge: SignalBridge
 
-    // Screens that should show the bar, per the shared hyprtk-bar `monitors`
-    // selector ("primary" | "all" | ["CONNECTOR", ...]).
+    // Screens that should show the bar, per the `monitors` selector in the Qt
+    // bar's config ("primary" | "all" | ["CONNECTOR", ...]).
     function _screens() {
         const screens = Quickshell.screens;
         const m = BarConfig.monitors;

@@ -16,3 +16,4 @@ singleton BarGeom 1.0 BarGeom.qml
 singleton BarAnchors 1.0 BarAnchors.qml
 singleton Screens 1.0 Screens.qml
 singleton HyprAnim 1.0 HyprAnim.qml
+singleton Chrome 1.0 Chrome.qml

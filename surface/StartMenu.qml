@@ -1,7 +1,7 @@
 // Start menu: layout variants (whisker / win7 / win11 / plasma), search,
 // favourites, recents, places-style sidebar and a power footer.
 //
-// Layout/favourites/recents come from the shared hyprtk-bar `menu` block
+// Layout/favourites/recents come from the Qt bar's own `menu` block
 // (data/MenuConfig.qml); launches + favourite toggles are persisted via
 // backend/.../menu.py.
 import QtQuick
@@ -223,7 +223,7 @@ PanelWindow {
     }
 
     property real reveal: 0
-    readonly property int animMs: Config.animations ? Config.animationDuration : 0
+    readonly property int animMs: Config.uiAnimations ? Config.animationDuration : 0
     Behavior on reveal { NumberAnimation { duration: sm.animMs; easing.type: Easing.OutCubic } }
     onVisibleChanged: {
         sm.reveal = visible ? 1 : 0;
@@ -270,8 +270,14 @@ PanelWindow {
         height: sm.menuH
         radius: 16
         color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Theme.opacity)
-        border.color: Theme.alpha(Theme.accent2, 0.3)
-        border.width: 1
+        border.color: Theme.accent
+        border.width: BarConfig.borderWidth
+        SequentialAnimation on border.color {
+            running: Chrome.animated
+            loops: Animation.Infinite
+            ColorAnimation { to: Theme.accent2; duration: Chrome.periodMs; easing.type: Easing.InOutSine }
+            ColorAnimation { to: Theme.accent; duration: Chrome.periodMs; easing.type: Easing.InOutSine }
+        }
         opacity: sm.reveal
         transform: Translate { y: (1 - sm.reveal) * -8 }
 

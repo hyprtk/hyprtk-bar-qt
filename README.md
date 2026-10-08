@@ -26,7 +26,7 @@ bar/
     Net.qml                   rx/tx rates + rolling sparklines
 surface/
   QuickSettings.qml           volume/brightness/Wi-Fi/Bluetooth flyout (wpctl, brightnessctl, nmcli, bluetoothctl)
-  Settings.qml                settings panel (centred layer-shell; edits the shared hyprtk-bar config)
+  Settings.qml                settings panel (centred layer-shell; edits the Qt bar's own config)
   ArcMenu.qml                 corner FAB with an item arc; IPC-toggleable
   SysMonitor.qml              Mission Center-style system monitor dialog (CPU/Mem/Disks/Network/GPU/Apps)
   NotificationCenter.qml      notification history panel (bell)
@@ -37,7 +37,7 @@ surface/
   DesktopWidgets.qml          instantiates the enabled desktop widgets
   StartMenu.qml               start menu (whisker/win7/win11/plasma, favourites, recents)
 theme/
-  Theme.qml                   singleton: live pywal + hyprtk-bar config colours
+  Theme.qml                   singleton: live pywal + Qt config colours
   qmldir
 config/
   Config.qml                  singleton: own settings (~/.config/hyprtk-bar-qt/config.json)
@@ -47,12 +47,12 @@ data/
   SysData.qml                 singleton: runs the backend once, exposes cpu/mem/net + histories
   MonitorData.qml             singleton: runs the rich monitor backend while the dialog is open
   NotifyData.qml              singleton: notification daemon + history + unread count
-  Widgets.qml                 singleton: desktop-widget config (shared hyprtk-bar block)
+  Widgets.qml                 singleton: desktop-widget config (Qt config block)
   WidgetData.qml              singleton: telemetry for the sampled desktop widgets
   WidgetLayout.qml            singleton: snap-group layout overrides
   WidgetMove.qml              singleton: cursor-polling widget move mode
-  MenuConfig.qml              singleton: start-menu config (shared hyprtk-bar block)
-  BarConfig.qml               singleton: module/font/animation/monitors config (shared)
+  MenuConfig.qml              singleton: start-menu config (Qt config block)
+  BarConfig.qml               singleton: module/font/animation/monitors config (Qt config)
 surface/widgets/
   WidgetFrame.qml             desktop-widget base (placement, pill, pywal theming)
   ClockWidget.qml             digital / text clock
@@ -69,8 +69,8 @@ components/
   Sparkline.qml               Canvas line + gradient-area graph
 backend/
   hyprtk_bar_qt/
-    palette.py                palette resolver (mirrors Theme.qml)
-    config.py                 hyprtk-bar config reader
+    paths.py                  config paths (Qt vs GTK) + first-run seed
+    config.py                 pywal palette reader (live colours)
     sysmon.py                 /proc sampler (cpu/mem/net), streams JSON lines on stdout
     monitor.py                rich system-monitor sampler (cpu/mem/disk/net/gpu/apps), streams JSON lines
     monitor_data.py           toolkit-free readers (cpu cores/temps, mem, disk, net, gpu, drives, dimms, procs)
@@ -83,10 +83,10 @@ backend/
     weather.py                Open-Meteo weather (geocode + forecast, cached)
     sysinfo.py                host/OS/kernel/CPU/GPU/memory/disks snapshot
     visualizer.py             cava audio levels (synthetic fallback), JSON lines
-    menu.py                   start-menu favourites/recents (shared config)
+    menu.py                   start-menu favourites/recents (Qt config)
     matuwall.py               matuwall config.toml read/write (themer page)
     files.py                  directory listing for the plasma file browser
-    barsettings.py            shared hyprtk-bar config editor (settings window)
+    barsettings.py            Qt bar config editor (settings window)
     widgets_layout.py         desktop-widget snap-group layout + position save
     widget_move.py            desktop-widget move FIFO (start/stop)
 tests/
@@ -140,9 +140,9 @@ flyout, a settings panel, a corner arc menu and a Mission Center-style system
 monitor dialog (CPU / Memory / Disks / Network / GPU / Apps, opened from the
 sysmon module), a notification center (bell + history panel), cliphist
 clipboard history, and free-floating desktop widgets (clock / resources / disk /
-network) driven by the shared hyprtk-bar `widgets` config. Theming reads the live pywal
-palette and the existing hyprtk-bar config, so it matches the desktop while the
-GTK bar still runs alongside it.
+network) driven by the Qt bar's own `widgets` config. Theming reads the live
+pywal palette and the Qt config's `theme` block, so it matches the desktop while
+the GTK bar still runs alongside it with its own separate config.
 
 `make test` runs the toolkit-free backend unit tests. The arc menu, clipboard,
 settings and themer panels can be bound to hotkeys with
@@ -167,7 +167,7 @@ out with:
 HYPRTK_BAR_QT_NOTIFICATIONS=0 hyprtk-bar-qt
 ```
 
-(also settable via `notifications.enabled=false` in the shared config).
+(also settable via `notifications.enabled=false` in the Qt config).
 
 Roadmap (see `CHANGELOG.md`): arc menu, graph widgets, per-display desktop
 widgets, MPRIS media control, and theming to full visual parity.

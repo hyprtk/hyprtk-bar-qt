@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import "../../theme"
+import "../../data"
 
 WidgetFrame {
     id: win
@@ -20,7 +21,12 @@ WidgetFrame {
     marginX: block.margin_x !== undefined ? block.margin_x : 40
     marginY: block.margin_y !== undefined ? block.margin_y : 40
     layer: block.layer || "bottom"
-    widgetWidth: block.width || 280
+    // Widen to fit the forecast in one row (as the GTK bar sizes to content);
+    // when constrained (e.g. inside a snap cell) the forecast wraps instead.
+    readonly property int forecastCellW: Math.round(54 * win.scale)
+    readonly property int forecastSpacing: Math.round(8 * win.scale)
+    widgetWidth: Math.max(block.width || 280,
+        Math.round(win.days * win.forecastCellW + Math.max(0, win.days - 1) * win.forecastSpacing + 2 * win.padding))
     widgetHeight: block.height || 0
     widgetOpacity: block.opacity !== undefined ? block.opacity : 0.75
     radius: block.radius || 16
@@ -92,6 +98,7 @@ WidgetFrame {
                 visible: block.show_icon !== false
                 text: win.data.code !== undefined ? win.nowGlyph() : "\ue33d"
                 color: win.widgetAccent
+                font.family: BarConfig.glyphFont
                 font.pixelSize: Math.round(34 * win.scale)
             }
             ColumnLayout {
@@ -100,15 +107,16 @@ WidgetFrame {
                 Text {
                     visible: block.show_temp !== false
                     text: win.data.temp !== undefined && win.data.temp !== null
-                        ? Math.round(win.data.temp) + (win.data.unit || "\u00b0C") : "--"
+                        ? Math.round(win.data.temp) + "\u00b0" : "--"
                     color: win.widgetForeground
-                    font.pixelSize: Math.round(30 * win.scale)
+                    font.pixelSize: Math.round(34 * win.scale)
                     font.bold: true
                 }
                 Text {
                     text: win.data.city ? win.data.city + (win.data.country ? ", " + win.data.country : "") : win.city
                     color: win.widgetForeground
-                    font.pixelSize: Math.round(12 * win.scale)
+                    opacity: 0.85
+                    font.pixelSize: Math.round(13 * win.scale)
                 }
             }
         }
@@ -118,7 +126,7 @@ WidgetFrame {
             visible: block.show_condition !== false && win.data.code !== undefined
             text: win.data.code !== undefined ? win.describe(win.data.code)[0] : ""
             color: win.widgetAccent
-            font.pixelSize: Math.round(12 * win.scale)
+            font.pixelSize: Math.round(14 * win.scale)
         }
 
         Text {
@@ -126,44 +134,56 @@ WidgetFrame {
             visible: (block.show_feels_like !== false || block.show_humidity !== false || block.show_wind !== false) && win.data.temp !== undefined
             color: win.widgetForeground
             opacity: 0.85
-            font.pixelSize: Math.round(11 * win.scale)
+            font.pixelSize: Math.round(12 * win.scale)
             text: {
                 const parts = [];
+                const unit = win.data.unit || "\u00b0C";
                 if (block.show_feels_like !== false && win.data.feels !== undefined && win.data.feels !== null)
-                    parts.push("Feels " + Math.round(win.data.feels) + (win.data.unit || "\u00b0C"));
+                    parts.push("Feels " + Math.round(win.data.feels) + unit);
                 if (block.show_humidity !== false && win.data.humidity !== undefined && win.data.humidity !== null)
-                    parts.push(win.data.humidity + "% RH");
+                    parts.push("Humidity " + Math.round(win.data.humidity) + "%");
                 if (block.show_wind !== false && win.data.wind !== undefined && win.data.wind !== null)
-                    parts.push(win.data.wind + " " + (win.data.wind_unit || "km/h"));
+                    parts.push("Wind " + Math.round(win.data.wind) + " " + (win.data.wind_unit || "km/h"));
                 return parts.join("   ");
             }
         }
 
-        Repeater {
-            model: block.show_forecast !== false ? (win.data.daily || []) : []
-            delegate: RowLayout {
-                id: frow
-                required property var modelData
-                Layout.fillWidth: true
-                spacing: 8
-                Text {
-                    text: frow.modelData.date ? Qt.formatDate(new Date(frow.modelData.date), "ddd") : ""
-                    color: win.widgetForeground
-                    opacity: 0.85
-                    font.pixelSize: Math.round(11 * win.scale)
-                    Layout.preferredWidth: Math.round(40 * win.scale)
-                }
-                Text {
-                    text: win.describe(frow.modelData.code)[1]
-                    color: win.widgetAccent
-                    font.pixelSize: Math.round(13 * win.scale)
-                }
-                Item { Layout.fillWidth: true }
-                Text {
-                    text: (frow.modelData.hi !== null ? Math.round(frow.modelData.hi) : "--")
-                        + " / " + (frow.modelData.lo !== null ? Math.round(frow.modelData.lo) : "--")
-                    color: win.widgetForeground
-                    font.pixelSize: Math.round(11 * win.scale)
+        Flow {
+            Layout.fillWidth: true
+            Layout.topMargin: Math.round(4 * win.scale)
+            spacing: win.forecastSpacing
+            Repeater {
+                model: block.show_forecast !== false ? (win.data.daily || []) : []
+                delegate: Column {
+                    id: fcell
+                    required property var modelData
+                    width: win.forecastCellW
+                    spacing: Math.round(1 * win.scale)
+                    Text {
+                        width: parent.width
+                        horizontalAlignment: Text.AlignHCenter
+                        text: fcell.modelData.date ? Qt.formatDate(new Date(fcell.modelData.date), "ddd") : ""
+                        color: win.widgetForeground
+                        opacity: 0.8
+                        font.pixelSize: Math.round(11 * win.scale)
+                    }
+                    Text {
+                        width: parent.width
+                        horizontalAlignment: Text.AlignHCenter
+                        text: win.describe(fcell.modelData.code)[1]
+                        color: win.widgetAccent
+                        font.family: BarConfig.glyphFont
+                        font.pixelSize: Math.round(13 * win.scale)
+                    }
+                    Text {
+                        width: parent.width
+                        horizontalAlignment: Text.AlignHCenter
+                        text: (fcell.modelData.hi !== null ? Math.round(fcell.modelData.hi) : "--") + "\u00b0 / "
+                            + (fcell.modelData.lo !== null ? Math.round(fcell.modelData.lo) : "--") + "\u00b0"
+                        color: win.widgetForeground
+                        font.bold: true
+                        font.pixelSize: Math.round(12 * win.scale)
+                    }
                 }
             }
         }

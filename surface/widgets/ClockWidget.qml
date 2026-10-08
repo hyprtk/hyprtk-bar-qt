@@ -46,9 +46,9 @@ WidgetFrame {
     radius: tv("radius", 16)
     padding: tv("padding", 18)
     scale: tv("scale", 1.0)
-    backgroundOverride: tv("background", "transparent")
-    foregroundOverride: tv("foreground", "transparent")
-    accentOverride: tv("accent", "transparent")
+    backgroundOverride: tv("background", "") || "transparent"
+    foregroundOverride: tv("foreground", "") || "transparent"
+    accentOverride: tv("accent", "") || "transparent"
 
     readonly property string style: tv("style", "digital")
     readonly property bool showSeconds: tv("show_seconds", false) === true
@@ -173,7 +173,8 @@ WidgetFrame {
             }
         }
         Text {
-            Layout.alignment: Qt.AlignHCenter
+            Layout.fillWidth: true
+            horizontalAlignment: Text.AlignHCenter
             visible: win.style !== "dials"
             text: win.style === "text"
                 ? win.spell(win.now.getHours(), win.now.getMinutes())
@@ -185,7 +186,8 @@ WidgetFrame {
             wrapMode: Text.WordWrap
         }
         Text {
-            Layout.alignment: Qt.AlignHCenter
+            Layout.fillWidth: true
+            horizontalAlignment: Text.AlignHCenter
             visible: win.tv("show_date", true) !== false
             text: Qt.formatDateTime(win.now, win.qtFormat(win.tv("date_format", "%A, %d %B")))
             color: win.widgetAccent

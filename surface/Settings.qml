@@ -1,6 +1,5 @@
-// Settings — centred layer-shell panel with nine pages editing the shared
-// hyprtk-bar config (~/.config/hyprtk-bar/config.json), so the Qt and GTK bars
-// share settings.
+// Settings — centred layer-shell panel with nine pages editing the Qt bar's own
+// config (~/.config/hyprtk-bar-qt/config.json), separate from the GTK bar's.
 //
 // Bar / Themes / Fonts / Animations / Arc Menu / Menu / Quicklinks / Modules /
 // Widgets. Changes are debounced and written via backend/.../barsettings.py.
@@ -29,7 +28,7 @@ PanelWindow {
     screen: targetScreen
 
     property real reveal: 0
-    readonly property int animMs: Config.animations ? Config.animationDuration : 0
+    readonly property int animMs: Config.uiAnimations ? Config.animationDuration : 0
     Behavior on reveal { NumberAnimation { duration: win.animMs; easing.type: Easing.OutCubic } }
     onVisibleChanged: {
         reveal = visible ? 1 : 0;
@@ -46,7 +45,7 @@ PanelWindow {
     readonly property var moduleIds: ["start_button", "quicklinks", "workspaces", "tasklist", "window", "updates", "net", "tray", "kbstate", "notifications", "clock", "sysmon", "arcmenu", "themer", "settings", "quicksettings"]
     readonly property var widgetIds: ["clock", "weather", "visualizer", "disk", "network", "resources", "sysinfo"]
 
-    // ── debounced shared-config writer ─────────────────────────────────
+    // ── debounced config writer ────────────────────────────────────────
     property var pending: ({})
     Timer { id: flushTimer; interval: 200; onTriggered: win.flush() }
     Process {
@@ -73,7 +72,7 @@ PanelWindow {
         setProc.command = ["python3", win.backend, "set", "--json", JSON.stringify(patch)];
         setProc.running = true;
     }
-    // Read a dotted path from the shared config.
+    // Read a dotted path from the Qt config.
     function g(path, fallback) {
         let node = BarConfig.cfg;
         for (const p of String(path).split(".")) {
@@ -172,7 +171,7 @@ PanelWindow {
         return ["clock", "weather", "visualizer", "disk", "network", "resources", "sysinfo"].indexOf(id) >= 0;
     }
 
-    // ── theme helpers (shared theme block + Qt override kept in sync, so the
+    // ── theme helpers (theme block + Qt override kept in sync, so the
     // Settings page and the Themer window cannot shadow each other) ─────────
     function setTheme(key, value) {
         win.set("theme." + key, value);
@@ -284,8 +283,14 @@ PanelWindow {
         anchors.fill: parent
         radius: 14
         color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Math.max(0.95, Theme.opacity))
-        border.width: 1
-        border.color: Theme.alpha(Theme.accent2, 0.2)
+        border.width: BarConfig.borderWidth
+        border.color: Theme.accent
+        SequentialAnimation on border.color {
+            running: Chrome.animated
+            loops: Animation.Infinite
+            ColorAnimation { to: Theme.accent2; duration: Chrome.periodMs; easing.type: Easing.InOutSine }
+            ColorAnimation { to: Theme.accent; duration: Chrome.periodMs; easing.type: Easing.InOutSine }
+        }
         opacity: win.reveal
         transform: Translate { y: (1 - win.reveal) * -8 }
     }
@@ -396,6 +401,10 @@ PanelWindow {
                         SRow {
                             label: "Corner radius"
                             TSpinBox { from: 0; to: 40; value: win.g("radius", 12); onValueChanged: win.set("radius", value) }
+                        }
+                        SRow {
+                            label: "Border width (bar & panels)"
+                            TSpinBox { from: 0; to: 8; value: win.g("border_width", 2); onValueChanged: win.set("border_width", value) }
                         }
                         SRow {
                             label: "Opacity"
@@ -537,7 +546,7 @@ PanelWindow {
                         }
                         SRow {
                             label: "UI animations"
-                            TCheckBox { checked: Config.animations; onToggled: { Config.animations = checked; Config.save(); } }
+                            TCheckBox { checked: Config.uiAnimations; onToggled: { Config.uiAnimations = checked; Config.save(); } }
                         }
                         Item { Layout.fillHeight: true }
                     }
@@ -989,7 +998,7 @@ PanelWindow {
 
             RowLayout {
                 Layout.fillWidth: true
-                Text { text: "Saves to ~/.config/hyprtk-bar/config.json (shared with the GTK bar)"; color: Theme.dim; font.pixelSize: 10; Layout.fillWidth: true }
+                Text { text: "Saves to ~/.config/hyprtk-bar-qt/config.json (Qt bar only)"; color: Theme.dim; font.pixelSize: 10; Layout.fillWidth: true }
                 TButton { text: "Close"; onClicked: UiState.settingsOpen = false }
             }
         }

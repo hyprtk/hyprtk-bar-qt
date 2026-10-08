@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import "../../theme"
+import "../../data"
 
 WidgetFrame {
     id: win
@@ -18,7 +19,9 @@ WidgetFrame {
     marginX: block.margin_x !== undefined ? block.margin_x : 40
     marginY: block.margin_y !== undefined ? block.margin_y : 40
     layer: block.layer || "bottom"
-    widgetWidth: block.width || 320
+    // Size to the content so long CPU/GPU model names are not clipped (the GTK
+    // bar sizes its widget window to the natural content width).
+    widgetWidth: Math.max(block.width || 320, Math.round(rowsCol.implicitWidth) + 2 * win.padding)
     widgetHeight: block.height || 0
     widgetOpacity: block.opacity !== undefined ? block.opacity : 0.75
     radius: block.radius || 16
@@ -67,6 +70,7 @@ WidgetFrame {
     }
 
     ColumnLayout {
+        id: rowsCol
         Layout.fillWidth: true
         spacing: Math.round(4 * win.scale)
         Repeater {
@@ -76,12 +80,13 @@ WidgetFrame {
                 required property var modelData
                 Layout.fillWidth: true
                 spacing: 8
-                Text { text: row.modelData.glyph; color: win.widgetAccent; font.pixelSize: Math.round(14 * win.scale) }
+                Text { text: row.modelData.glyph; color: win.widgetAccent; font.family: BarConfig.glyphFont; font.pixelSize: Math.round(16 * win.scale) }
                 Text {
                     text: row.modelData.label
-                    color: win.widgetAccent
+                    color: win.widgetForeground
+                    opacity: 0.7
                     font.pixelSize: Math.round(12 * win.scale)
-                    Layout.preferredWidth: Math.round(64 * win.scale)
+                    Layout.preferredWidth: Math.round(72 * win.scale)
                 }
                 Text {
                     text: row.modelData.value

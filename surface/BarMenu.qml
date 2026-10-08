@@ -69,7 +69,7 @@ PanelWindow {
     }
 
     property real reveal: 0
-    readonly property int animMs: Config.animations ? Config.animationDuration : 0
+    readonly property int animMs: Config.uiAnimations ? Config.animationDuration : 0
     Behavior on reveal { NumberAnimation { duration: menu.animMs; easing.type: Easing.OutCubic } }
     onVisibleChanged: {
         reveal = visible ? 1 : 0;
@@ -81,8 +81,14 @@ PanelWindow {
         anchors.fill: parent
         radius: 10
         color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Theme.opacity)
-        border.color: Theme.alpha(Theme.accent2, 0.3)
-        border.width: 1
+        border.color: Theme.accent
+        border.width: BarConfig.borderWidth
+        SequentialAnimation on border.color {
+            running: Chrome.animated
+            loops: Animation.Infinite
+            ColorAnimation { to: Theme.accent2; duration: Chrome.periodMs; easing.type: Easing.InOutSine }
+            ColorAnimation { to: Theme.accent; duration: Chrome.periodMs; easing.type: Easing.InOutSine }
+        }
         opacity: menu.reveal
         transform: Translate { y: (1 - menu.reveal) * -8 }
 

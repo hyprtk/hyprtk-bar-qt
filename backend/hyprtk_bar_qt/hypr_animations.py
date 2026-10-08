@@ -15,6 +15,11 @@ import re
 import subprocess
 from pathlib import Path
 
+try:
+    from .paths import QT_CONFIG
+except ImportError:  # run as a script (python3 hypr_animations.py)
+    from paths import QT_CONFIG
+
 HYPR_DIRS = (
     Path.home() / ".config" / "hypr",
     Path.home() / "hyprtk" / "hypr",
@@ -107,7 +112,7 @@ def border_animation(cfg: dict) -> dict | None:
 
 def _load_bar_config() -> dict:
     try:
-        data = json.loads((Path.home() / ".config" / "hyprtk-bar" / "config.json").read_text())
+        data = json.loads(QT_CONFIG.read_text())
     except (OSError, json.JSONDecodeError):
         return {}
     return data if isinstance(data, dict) else {}

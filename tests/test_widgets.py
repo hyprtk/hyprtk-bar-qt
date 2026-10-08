@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 import tempfile
@@ -105,18 +106,75 @@ class SnapLayout(unittest.TestCase):
         self.assertEqual(out["a"]["y"], 10)
         self.assertEqual(out["b"]["y"], 10 + 120 + widgets_layout.SPACING)
 
+    def test_measured_heights_avoid_overlap(self) -> None:
+        # Auto-height widgets (config height 0) must not stack on top of each
+        # other: the measured heights supply the cell height.
+        cfg = {
+            "a": {"snap_group": "g", "snap_axis": "vertical", "snap_order": 1,
+                   "width": 200, "height": 0, "margin_x": 10, "margin_y": 10, "position": "free"},
+            "b": {"snap_group": "g", "snap_axis": "vertical", "snap_order": 2,
+                   "width": 200, "height": 0, "position": "free"},
+        }
+        out = widgets_layout.layout(cfg, heights={"a": {"w": 200, "h": 150}, "b": {"w": 200, "h": 90}})
+        self.assertEqual(out["a"]["h"], 150)
+        self.assertEqual(out["b"]["y"], 10 + 150 + widgets_layout.SPACING)
 
-class SetPosition(unittest.TestCase):
-    def test_writes_free_position(self) -> None:
+
+class SnapDrop(unittest.TestCase):
+    def test_snap_axis(self) -> None:
+        a = {"x": 0, "y": 0, "w": 100, "h": 100}
+        right = {"x": 108, "y": 5, "w": 100, "h": 100}   # 8px gap, vertical overlap
+        far = {"x": 400, "y": 400, "w": 100, "h": 100}
+        below = {"x": 5, "y": 108, "w": 100, "h": 100}
+        self.assertEqual(widgets_layout.snap_axis(a, right)[1], "horizontal")
+        self.assertEqual(widgets_layout.snap_axis(a, below)[1], "vertical")
+        self.assertIsNone(widgets_layout.snap_axis(a, far)[1])
+
+    def test_snap_joins_nearest_and_orders(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "config.json"
-            path.write_text('{"widgets": {"clock": {"position": "top-right"}}}')
+            path.write_text(json.dumps({"widgets": {
+                "clock": {"position": "free", "margin_x": 0, "margin_y": 0},
+                "disk": {"position": "free", "margin_x": 500, "margin_y": 500},
+            }}))
+            rects = {
+                "clock": {"x": 0, "y": 0, "w": 100, "h": 100},
+                "disk": {"x": 500, "y": 500, "w": 100, "h": 100},
+            }
+            # Drop disk just to the right of clock.
+            res = widgets_layout.snap("disk", 110, 4, rects, path)
+            self.assertTrue(res["snapped"])
+            self.assertEqual(res["axis"], "horizontal")
+            data = json.loads(path.read_text())["widgets"]
+            self.assertEqual(data["clock"]["snap_group"], data["disk"]["snap_group"])
+            self.assertNotEqual(data["clock"]["snap_group"], "")
+            self.assertEqual(data["clock"]["snap_order"], 0)  # left-most anchors
+            self.assertEqual(data["disk"]["snap_order"], 1)
+
+    def test_snap_none_detaches(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "config.json"
+            path.write_text(json.dumps({"widgets": {
+                "clock": {"position": "free", "margin_x": 0, "margin_y": 0, "snap_group": "g1"},
+            }}))
+            rects = {"clock": {"x": 1000, "y": 700, "w": 100, "h": 100}}
+            res = widgets_layout.snap("clock", 1000, 700, rects, path)
+            self.assertFalse(res["snapped"])
+            self.assertEqual(json.loads(path.read_text())["widgets"]["clock"]["snap_group"], "")
+
+
+class SetPosition(unittest.TestCase):
+    def test_writes_free_position_and_detaches(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "config.json"
+            path.write_text('{"widgets": {"clock": {"position": "top-right", "snap_group": "g3"}}}')
             self.assertTrue(widgets_layout.set_position("clock", 500, 300, path))
             import json
             data = json.loads(path.read_text())
             self.assertEqual(data["widgets"]["clock"]["position"], "free")
             self.assertEqual(data["widgets"]["clock"]["margin_x"], 500)
             self.assertEqual(data["widgets"]["clock"]["margin_y"], 300)
+            self.assertEqual(data["widgets"]["clock"]["snap_group"], "")  # detached
 
     def test_missing_config_fails(self) -> None:
         self.assertFalse(widgets_layout.set_position("clock", 1, 2, Path("/no/such/config.json")))

@@ -1,7 +1,8 @@
-"""Start-menu favourites / recents, stored in the shared hyprtk-bar `menu` block.
+"""Start-menu favourites / recents, stored in the Qt bar's own `menu` block.
 
 Toolkit-free helpers the Qt start menu calls on launch and on a favourite
-toggle. Writes are atomic; the file is shared with the GTK bar.
+toggle. Writes are atomic; the file is the Qt bar's own config
+(``~/.config/hyprtk-bar-qt/config.json``), separate from the GTK bar's.
 
 Usage::
 
@@ -21,7 +22,12 @@ import tempfile
 from copy import deepcopy
 from pathlib import Path
 
-BAR_CONFIG = Path.home() / ".config" / "hyprtk-bar" / "config.json"
+try:
+    from .paths import QT_CONFIG
+except ImportError:  # run as a script (python3 menu.py)
+    from paths import QT_CONFIG
+
+BAR_CONFIG = QT_CONFIG
 
 DEFAULT_MENU = {
     "layout": "whisker",

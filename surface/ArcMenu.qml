@@ -1,6 +1,6 @@
 // Arc menu — a corner FAB whose items fan out along an arc (MaterialArcMenu
 // concept, merged from the old hyprtk-arc-menu). Position/geometry/colours/
-// animation/items come from the shared `arcmenu` config block.
+// animation/items come from the `arcmenu` config block.
 //
 // Toggle from the bar button, the input action, or:
 //   qs ipc call arcmenu toggle
@@ -31,7 +31,7 @@ PanelWindow {
     readonly property bool usePywal: cfg.use_pywal !== false
     readonly property color fabColor: arc.usePywal ? Theme.accent : (cfg.fab_color || Theme.accent)
     readonly property color itemColor: arc.usePywal ? Theme.accent2 : (cfg.item_color || Theme.accent2)
-    readonly property bool animOn: Config.animations && (BarConfig.animations.mode || "high") !== "off"
+    readonly property bool animOn: Config.uiAnimations && (BarConfig.animations.mode || "high") !== "off"
     readonly property int animMs: arc.animOn ? (cfg.animation_time || 300) : 0
 
     // Per-position fan (angles in degrees, screen y grows downward).

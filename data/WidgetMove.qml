@@ -31,6 +31,11 @@ Singleton {
     // id -> {x, y, w, h} registered by each widget frame.
     property var rects: ({})
 
+    // id -> {x, y}: a just-dropped position held until the config reload
+    // confirms it. Without this the widget reverts to its old margin for a
+    // frame (the async save has not landed yet) — a "boomerang".
+    property var committed: ({})
+
     function setGeometry(id, x, y, w, h) {
         if (!id)
             return;
@@ -43,13 +48,33 @@ Singleton {
     }
 
     function overFor(id) {
-        if (!root.moving || root.movingId !== id)
-            return null;
-        return {
-            x: Math.round(root.baseX + (root.curX - root.startX)),
-            y: Math.round(root.baseY + (root.curY - root.startY)),
-            w: -1, h: -1
-        };
+        if (root.moving && root.movingId === id)
+            return {
+                x: Math.round(root.baseX + (root.curX - root.startX)),
+                y: Math.round(root.baseY + (root.curY - root.startY)),
+                w: -1, h: -1
+            };
+        const c = root.committed[id];
+        if (c)
+            return { x: c.x, y: c.y, w: -1, h: -1 };
+        return null;
+    }
+
+    // Drop committed overrides once the config reflects them.
+    function clearCommitted() {
+        const c = root.committed;
+        const cfg = Widgets.cfg || ({});
+        let changed = false;
+        const next = Object.assign({}, c);
+        for (const id in c) {
+            const b = cfg[id] || ({});
+            if (b.margin_x === c[id].x && b.margin_y === c[id].y) {
+                delete next[id];
+                changed = true;
+            }
+        }
+        if (changed)
+            root.committed = next;
     }
 
     function hitTest(cx, cy) {
@@ -93,11 +118,23 @@ Singleton {
         const id = root.movingId;
         const x = Math.round(root.baseX + (root.curX - root.startX));
         const y = Math.round(root.baseY + (root.curY - root.startY));
-        saveProc.command = ["python3", root.saveBackend, "set", "--id", id, "--x", String(x), "--y", String(y)];
+        // Hold the dropped position until the config reload reflects it.
+        const c = Object.assign({}, root.committed);
+        c[id] = { x: x, y: y };
+        root.committed = c;
+        // Persist + snap to the nearest adjacent widget (if any).
+        saveProc.command = ["python3", root.saveBackend, "snap",
+            "--id", id, "--x", String(x), "--y", String(y),
+            "--rects", JSON.stringify(root.rects)];
         saveProc.running = true;
         root.moving = false;
         root.movingId = "";
         root.status = "";
+    }
+
+    Connections {
+        target: Widgets
+        function onCfgChanged() { root.clearCommitted(); }
     }
 
     Process {

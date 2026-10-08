@@ -50,10 +50,11 @@ WidgetFrame {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 6
-                    Text { text: cell.modelData.glyph || ""; color: win.widgetAccent; font.pixelSize: Math.round(14 * win.scale) }
+                    Text { text: cell.modelData.glyph || ""; color: win.widgetAccent; font.family: BarConfig.glyphFont; font.pixelSize: Math.round(16 * win.scale) }
                     Text {
                         text: cell.modelData.model || cell.modelData.name || ""
                         color: win.widgetForeground
+                        font.bold: true
                         font.pixelSize: Math.round(12 * win.scale)
                         Layout.fillWidth: true
                         elide: Text.ElideRight
@@ -63,7 +64,7 @@ WidgetFrame {
                             ? MonitorData.fmtBytes(cell.modelData.used_b) + " / " + MonitorData.fmtBytes(cell.modelData.size_b)
                             : "\u2014"
                         color: win.widgetForeground
-                        opacity: 0.8
+                        opacity: 0.85
                         font.pixelSize: Math.round(11 * win.scale)
                     }
                 }
@@ -90,8 +91,8 @@ WidgetFrame {
                 ? "\uf019  " + MonitorData.fmtRate(WidgetData.disk.read_bps || 0)
                     + "    \uf093  " + MonitorData.fmtRate(WidgetData.disk.write_bps || 0)
                 : "\uf019  --    \uf093  --"
-            color: win.widgetForeground
-            font.pixelSize: Math.round(11 * win.scale)
+            color: win.widgetAccent
+            font.pixelSize: Math.round(12 * win.scale)
         }
     }
 }

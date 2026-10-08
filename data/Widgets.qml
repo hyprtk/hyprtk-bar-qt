@@ -1,8 +1,8 @@
-// Desktop-widget configuration, read from the shared hyprtk-bar config
-// (`widgets` block in ~/.config/hyprtk-bar/config.json).
+// Desktop-widget configuration, read from the Qt bar's own config
+// (`widgets` block in ~/.config/hyprtk-bar-qt/config.json).
 //
-// The Qt bar renders the same widgets as the GTK bar so the two stay in sync;
-// editing lives on the Settings → Widgets page.
+// The Qt bar keeps its own widget layout, separate from the GTK bar's; editing
+// lives on the Settings → Widgets page.
 pragma Singleton
 
 import QtQuick
@@ -18,7 +18,7 @@ Singleton {
 
     FileView {
         id: cfgFile
-        path: root.home + "/.config/hyprtk-bar/config.json"
+        path: root.home + "/.config/hyprtk-bar-qt/config.json"
         watchChanges: true
         printErrors: false
         onLoaded: root._parse()

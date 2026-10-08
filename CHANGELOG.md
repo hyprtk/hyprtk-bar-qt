@@ -1,5 +1,83 @@
 # Changelog
 
+## 0.33.0 — unreleased
+
+Widget parity, drag-to-snap, and border widths.
+
+- **Drag-to-snap**: dropping a widget next to another joins them into a snap
+  group (`widgets_layout.snap`, `SNAP_DIST=28`, axis detection) and the group
+  reflows to a uniform cell so the smaller widgets resize to the largest.
+  `WidgetMove` now passes the on-screen rects so the nearest neighbour is
+  chosen and members are ordered along the axis.
+- **Snap cell sizing**: widgets register their **natural** (unconstrained)
+  size, so the snap cell = the largest natural member instead of collapsing to
+  the last constrained height (sysinfo is no longer squashed).
+- **Border width**: new top-level `border_width` (default **2**) drives the bar,
+  the dialogue panels and the desktop-widget borders. Added a "Border width
+  (bar & panels)" spin on Settings → Bar. The bar keeps a 2px border even when
+  the border animation is off.
+- **Animated dialogue borders**: Settings / Themer / SysMonitor / Clipboard /
+  Notification Center / Quick Settings / Start Menu / Bar Menu / About now draw
+  a 2px border that cycles accent↔accent2 like the bar (new `data/Chrome.qml`,
+  honouring `theme.border_animation` + the UI-animations switch and the real
+  Hyprland animation speed).
+- **Widget content parity with GTK**:
+  - Weather: details read "Humidity X%" / "Wind X km/h", temp shows "13°", and
+    the forecast is a horizontal day/icon/hi-lo row that **wraps** (and widens
+    the widget) so a 7-day forecast is never clipped.
+  - SysInfo: glyphs pinned to the Nerd Font (restores the Uptime clock glyph)
+    and the widget sizes to its content so long CPU/GPU model names aren't cut.
+  - Resources: label dim / value accent (was reversed); SysInfo/Network/Disk
+    font sizes, weights and accent colours aligned to the GTK theme.
+
+## 0.32.0 — unreleased
+
+Desktop-widget fixes.
+
+- **Drag now sticks**: `widgets_layout.set_position` clears the widget's
+  `snap_group` when it is moved, so a dragged widget is detached from its snap
+  group instead of snapping straight back (matches the GTK bar's `_detach`).
+- **Drag keeps working after the first move**: `WidgetFrame` only re-registered
+  its hit-test rect on width/height/`hasOver` changes, so after a move (which
+  changes the margin) the rect went stale and the widget could no longer be
+  grabbed. It now re-registers when the effective position changes too.
+- **No more drop "boomerang"**: on release the move override was dropped
+  immediately, so the widget snapped back to its old margin for a frame while
+  the async save landed, then jumped to the new spot. The dropped position is
+  now held (`WidgetMove.committed`) until the config reload confirms it.
+- **Clock content centred**: the clock's time/date used `Layout.alignment:
+  Qt.AlignHCenter`, which did not centre them; they now fill the column with
+  `horizontalAlignment: Text.AlignHCenter`, so they sit centred in the widget.
+- **Snap groups actually apply**: `data/WidgetLayout.qml` re-ran its backend
+  with a stale (empty) config because the `Process` started before the config
+  binding settled; it now reloads explicitly on config/size changes, and feeds
+  the backend each widget's **measured** size so auto-height widgets no longer
+  collapse onto each other (uniform cell = tallest member), scaled/clamped to
+  fit the monitor.
+- **Clock widget theming**: `ClockWidget` passed an empty override colour to
+  `WidgetFrame`, which QML treats as opaque black — hence black-on-charcoal.
+  Empty overrides now fall back to `transparent` like every other widget, so the
+  clock uses the same pywal background/foreground/accent.
+
+## 0.31.0 — unreleased
+
+Separate config from the GTK bar.
+
+- **Own config file**: the Qt bar now reads and writes
+  `~/.config/hyprtk-bar-qt/config.json` exclusively (`data/BarConfig.qml`,
+  `data/MenuConfig.qml`, `data/Widgets.qml`, `theme/Theme.qml`,
+  `config/Config.qml`) instead of sharing `~/.config/hyprtk-bar/config.json`
+  with the GTK bar, so the two can be configured independently.
+- **First-run migration**: the launcher (`bin/hyprtk-bar-qt`) and `install.sh`
+  build the Qt config from the GTK config (full bar schema), re-applying any
+  Qt-only keys from an existing legacy Qt config, so an existing setup carries
+  over before the two diverge (new `backend/.../paths.py`).
+- **`Config.animations` → `Config.uiAnimations`**: the Qt-only "UI animations"
+  toggle no longer clashes with the shared `animations` block (mode/speed) now
+  that both live in one file.
+- Backends repointed at the Qt config: `barsettings.py`, `menu.py`,
+  `widgets_layout.py`, `hypr_animations.py`.
+
 ## 0.30.0 — unreleased
 
 Themer parity + arc keybind.

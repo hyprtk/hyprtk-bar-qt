@@ -1,5 +1,5 @@
 // Window list (tasklist): one button per app, grouped by appId, with optional
-// pinned apps from the shared `center.pinned` config.
+// pinned apps from the `center.pinned` config.
 //
 // Left-click activates the app's most-recent window, or minimises it when it is
 // already focused; middle-click closes it; a pinned app with no window launches

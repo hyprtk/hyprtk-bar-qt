@@ -1,6 +1,6 @@
-// The hyprtk-bar config blocks the Qt bar mirrors (module options, font,
-// animations and the `monitors` selector). Read from the shared config so the
-// GTK and Qt bars stay in sync.
+// The Qt bar's config blocks (module options, font, animations and the
+// `monitors` selector). Read from the Qt bar's own config
+// (~/.config/hyprtk-bar-qt/config.json), separate from the GTK bar's.
 pragma Singleton
 
 import QtQuick
@@ -15,7 +15,7 @@ Singleton {
 
     FileView {
         id: cfgFile
-        path: root.home + "/.config/hyprtk-bar/config.json"
+        path: root.home + "/.config/hyprtk-bar-qt/config.json"
         watchChanges: true
         printErrors: false
         onLoaded: root._parse()
@@ -39,12 +39,13 @@ Singleton {
         return (v === undefined || v === null) ? fallback : v;
     }
 
-    // ── top-level bar geometry (shared with the GTK bar) ───────────────
+    // ── top-level bar geometry (the Qt bar's own config) ───────────────
     readonly property string barPosition: top("position", "top")
     readonly property int barHeight: top("height", 38)
     readonly property int gapIn: top("gap_in", 0)
     readonly property int gapOut: top("gap_out", 0)
     readonly property int radius: top("radius", 12)
+    readonly property int borderWidth: top("border_width", 2)
     readonly property var barWidth: top("width", "75%")
     readonly property string barAlign: top("align", "center")
 

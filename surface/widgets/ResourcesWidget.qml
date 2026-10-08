@@ -51,8 +51,8 @@ WidgetFrame {
         spacing: Math.round(3 * win.scale)
         RowLayout {
             Layout.fillWidth: true
-            Text { text: m.label; color: win.widgetAccent; font.pixelSize: Math.round(12 * win.scale); Layout.fillWidth: true }
-            Text { text: m.value; color: win.widgetForeground; font.pixelSize: Math.round(12 * win.scale) }
+            Text { text: m.label; color: win.widgetForeground; opacity: 0.9; font.pixelSize: Math.round(12 * win.scale); Layout.fillWidth: true }
+            Text { text: m.value; color: win.widgetAccent; font.bold: true; font.pixelSize: Math.round(13 * win.scale) }
         }
         Rectangle {
             Layout.fillWidth: true
@@ -107,7 +107,7 @@ WidgetFrame {
             visible: win.showTemp || win.showLoad
             text: win.meta()
             color: win.widgetForeground
-            opacity: 0.75
+            opacity: 0.8
             font.pixelSize: Math.round(11 * win.scale)
         }
     }

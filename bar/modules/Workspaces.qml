@@ -1,5 +1,5 @@
 // Workspace pills from the Quickshell Hyprland service. Click to switch.
-// Honours the shared `workspaces` block (show_empty, max) and `font` size.
+// Honours the `workspaces` block (show_empty, max) and `font` size.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Hyprland

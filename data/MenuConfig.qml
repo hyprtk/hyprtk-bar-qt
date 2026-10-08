@@ -1,4 +1,4 @@
-// Start-menu configuration, read from the shared hyprtk-bar `menu` block.
+// Start-menu configuration, read from the Qt bar's own `menu` block.
 pragma Singleton
 
 import QtQuick
@@ -14,7 +14,7 @@ Singleton {
 
     FileView {
         id: cfgFile
-        path: root.home + "/.config/hyprtk-bar/config.json"
+        path: root.home + "/.config/hyprtk-bar-qt/config.json"
         watchChanges: true
         printErrors: false
         onLoaded: root._parse()

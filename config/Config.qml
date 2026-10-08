@@ -1,8 +1,9 @@
 // hyprtk-bar-qt's own settings.
 //
 // Loaded from ~/.config/hyprtk-bar-qt/config.json at startup and written back
-// by the Settings/Themer windows. Distinct from the GTK bar's config (which
-// Theme still reads for colours/opacity), so the two bars can coexist.
+// by the Settings/Themer windows. The Qt bar's config is fully separate from
+// the GTK bar's (~/.config/hyprtk-bar/config.json), so the two bars can be
+// configured independently.
 pragma Singleton
 
 import QtQuick
@@ -14,6 +15,11 @@ Singleton {
 
     readonly property string home: Quickshell.env("HOME") || ""
     readonly property string filePath: root.home + "/.config/hyprtk-bar-qt/config.json"
+    // Qt-only keys are merged into the config by the backend (atomic
+    // read-modify-write) so the bar schema written by Settings/barsettings is
+    // never clobbered by a plain overwrite.
+    readonly property string backend:
+        Qt.resolvedUrl("../backend/hyprtk_bar_qt/barsettings.py").toString().replace("file://", "")
 
     // ── appearance override ────────────────────────────────────────────
     // Bar geometry/layout is authoritative in the SHARED hyprtk-bar config
@@ -25,7 +31,7 @@ Singleton {
     property string clockFormat: "ddd HH:mm:ss"
     property string fontFamily: "Noto Sans"
     property int fontSize: 12
-    property bool animations: true
+    property bool uiAnimations: true
     property int animationDuration: 140
 
     // ── module layout (data-driven) ────────────────────────────────────
@@ -78,7 +84,7 @@ Singleton {
     readonly property var _keys: [
         "opacity",
         "clockFormat", "fontFamily", "fontSize",
-        "animations", "animationDuration", "layoutLeft", "layoutCenter", "layoutRight",
+        "uiAnimations", "animationDuration", "layoutLeft", "layoutCenter", "layoutRight",
         "wallpaperDir", "themeSource", "themeName", "themeBackground", "themeForeground", "themeAccent",
         "quicklinksLinks", "arcMenuPosition", "arcMenuItems", "menuPower",
         "sysmonInterval", "sysmonDataPoints", "sysmonDiskPath",
@@ -115,6 +121,13 @@ Singleton {
         const o = ({});
         for (const k of root._keys)
             o[k] = root[k];
-        file.setText(JSON.stringify(o, null, 2) + "\n");
+        saveProc.command = ["python3", root.backend, "set", "--json", JSON.stringify(o)];
+        saveProc.running = true;
+    }
+
+    // Persist the Qt-only keys via the backend (merges into the existing file).
+    Process {
+        id: saveProc
+        command: []
     }
 }

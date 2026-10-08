@@ -1,5 +1,5 @@
 // Clock module: time from Quickshell's SystemClock. Format/font follow the
-// shared hyprtk-bar `clock` / `font` config (strftime formats converted to Qt).
+// `clock` / `font` config blocks (strftime formats converted to Qt).
 import QtQuick
 import Quickshell
 import "../../theme"

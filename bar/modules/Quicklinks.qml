@@ -1,5 +1,5 @@
-// Quick links: a configurable row of launcher glyphs (shared hyprtk-bar
-// `quicklinks.links`). Left-click runs `command`; right/middle-click runs
+// Quick links: a configurable row of launcher glyphs (the Qt `quicklinks.links`
+// block). Left-click runs `command`; right/middle-click runs
 // `command_right` / `command_middle` when set; a few ids open a Qt surface.
 import QtQuick
 import QtQuick.Layouts

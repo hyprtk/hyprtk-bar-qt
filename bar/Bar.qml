@@ -28,7 +28,7 @@ Rectangle {
     BarCalendar { anchorWin: root.QsWindow.window }
 
     // Animated border (shared `theme.border_animation` + `animations` mode/speed).
-    readonly property bool borderAnim: BarConfig.theme.border_animation !== false && Config.animations
+    readonly property bool borderAnim: BarConfig.theme.border_animation !== false && Config.uiAnimations
     // Prefer the real Hyprland animation period (backend); fall back to a
     // local estimate when the hypr config is unavailable.
     readonly property int borderMs: {
@@ -39,7 +39,7 @@ Rectangle {
             return Math.max(200, Math.round(4000 / Math.max(1, BarConfig.animations.speed || 15)));
         return mode === "low" ? 3200 : 1400;
     }
-    border.width: root.borderAnim ? 1 : 0
+    border.width: BarConfig.borderWidth
     border.color: Theme.accent
     SequentialAnimation on border.color {
         running: root.borderAnim

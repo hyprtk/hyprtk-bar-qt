@@ -1,6 +1,6 @@
 // The hyprtk theme, resolved live from (in order of precedence):
 //   1. hyprtk-bar-qt's own overrides (config/Config)
-//   2. the running hyprtk-bar config's theme block
+//   2. the Qt bar config's theme block (~/.config/hyprtk-bar-qt/config.json)
 //   3. live pywal colours
 //
 // Singleton: import "../theme" anywhere.
@@ -46,11 +46,11 @@ Singleton {
         }
     }
 
-    // ── hyprtk-bar config (theme block + opacity) ──────────────────────
+    // ── Qt bar config (theme block + opacity) ──────────────────────────
     property var config: ({})
     FileView {
         id: cfgFile
-        path: root.home + "/.config/hyprtk-bar/config.json"
+        path: root.home + "/.config/hyprtk-bar-qt/config.json"
         watchChanges: true
         printErrors: false
         onLoaded: root._parseCfg()

@@ -33,5 +33,9 @@ for s in "$dest"/bin/*; do
     ln -sf "$s" "$bindir/$(basename "$s")"
 done
 
+# Migrate the Qt bar's own config from the GTK bar's config (full copy + any
+# Qt-only overrides), so an existing setup carries over before the two diverge.
+python3 "$here/backend/hyprtk_bar_qt/paths.py" >/dev/null 2>&1 || true
+
 echo "installed to $dest"
 echo "launcher: $bindir/hyprtk-bar-qt  (or: qs -c hyprtk-bar-qt)"

@@ -27,7 +27,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 
 | GTK | Qt status |
 |---|---|
-| Bar settings window (9 pages) | ✅ `surface/Settings.qml` — centred layer-shell panel; edits the shared hyprtk-bar config (bar geometry, theme, font, animations, arc menu, menu, quicklinks, modules, widgets) |
+| Bar settings window (9 pages) | ✅ `surface/Settings.qml` — centred layer-shell panel; edits the Qt bar's own config (bar geometry, theme, font, animations, arc menu, menu, quicklinks, modules, widgets) |
 | System monitor dialog (CPU/Mem/Disks/Network/GPU/Apps, cairo graphs) | ✅ `surface/SysMonitor.qml` (six pages, QML graphs, DIMM slots) |
 | Themer dialog (Wallpaper/Pywal/Rofi/Bar themes/Matuwall/Swaylock/Icons/SDDM+GRUB) | ✅ `surface/Themer.qml` — centred layer-shell panel; all nine pages, incl. the Matuwall TOML editor |
 | Clipboard history dialog | ✅ `surface/Clipboard.qml` (cliphist list/copy/delete/wipe, search) |
@@ -47,11 +47,15 @@ Bar · Fonts · Themes · Animations · Arc Menu · Menu · Quicklinks · Module
 (items incl. `action`), Menu (enabled/follow/gaps/layout/position/align/power/
 favourites), Quicklinks, Modules (show/hide, section, reorder + per-module
 options for workspaces/clock/updates/window/tray/notifications), Widgets
-(placement, size, radius/padding/scale, snap + per-widget options). The shared
-`theme` edit and the Qt `Config` override are kept in sync. See `PLAN.md` for the
+(placement, size, radius/padding/scale, snap + per-widget options). The `theme`
+edit and the Qt `Config` override are kept in sync. See `PLAN.md` for the
 fix history.
 
-## Config schema (`config.py`)
+## Config schema (`~/.config/hyprtk-bar-qt/config.json`)
+
+The Qt bar reads its **own** config, separate from the GTK bar's
+(`~/.config/hyprtk-bar/config.json`); on first run it is migrated from the GTK
+config so an existing setup carries over (see `backend/.../paths.py`).
 
 | Section | Qt status |
 |---|---|
@@ -69,7 +73,7 @@ fix history.
 | `arcmenu` (position/geometry/colours/animation/items/enabled) | ✅ |
 | `quicksettings` | ✅ |
 | `widgets` (master + per-widget placement/options, `border`/`transparent`) | ✅ |
-| — own qt config (`~/.config/hyprtk-bar-qt/config.json`) | ✅ `config/Config.qml` |
+| reader/writer | ✅ `config/Config.qml` (Qt-only keys) + `data/BarConfig.qml` / `MenuConfig.qml` / `Widgets.qml` / `theme/Theme.qml` (blocks); written by `surface/Settings.qml` via `backend/.../barsettings.py` |
 
 ## Theming components
 
@@ -86,7 +90,7 @@ fix history.
 ## Desktop widgets (`desktop/`)
 
 `surface/DesktopWidgets.qml` + `surface/widgets/` — free-floating layer-shell
-surfaces reading the shared hyprtk-bar `widgets` config.
+surfaces reading the Qt bar's own `widgets` config.
 
 | Widget | Qt status |
 |---|---|

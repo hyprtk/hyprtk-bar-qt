@@ -1,4 +1,4 @@
-"""Unit tests for the shared bar-config editor (no Qt)."""
+"""Unit tests for the bar-config editor (no Qt)."""
 
 from __future__ import annotations
 

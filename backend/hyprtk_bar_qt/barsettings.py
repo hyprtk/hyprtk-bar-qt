@@ -1,8 +1,9 @@
-"""Read/write the shared hyprtk-bar config for the Qt settings window.
+"""Read/write the Qt bar's own config for the settings window.
 
-The Qt bar reads the same ``~/.config/hyprtk-bar/config.json`` as the GTK bar
-(top-level bar geometry, font, animations, theme, layout and the module /
-arcmenu / menu / widgets blocks). This applies small JSON patches atomically.
+The Qt bar reads its own ``~/.config/hyprtk-bar-qt/config.json`` (top-level bar
+geometry, font, animations, theme, layout and the module / arcmenu / menu /
+widgets blocks), separate from the GTK bar's config. This applies small JSON
+patches atomically.
 
 Usage::
 
@@ -19,7 +20,12 @@ import os
 import tempfile
 from pathlib import Path
 
-BAR_CONFIG = Path.home() / ".config" / "hyprtk-bar" / "config.json"
+try:
+    from .paths import QT_CONFIG
+except ImportError:  # run as a script (python3 barsettings.py)
+    from paths import QT_CONFIG
+
+BAR_CONFIG = QT_CONFIG
 
 
 def load() -> dict:
@@ -62,7 +68,7 @@ def apply(patch: dict, path: Path = BAR_CONFIG) -> bool:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="shared hyprtk-bar config editor")
+    ap = argparse.ArgumentParser(description="Qt bar config editor")
     sub = ap.add_subparsers(dest="action", required=True)
     sub.add_parser("get")
     sp = sub.add_parser("set")

@@ -33,8 +33,14 @@ PanelWindow {
         anchors.fill: parent
         radius: 14
         color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Math.max(0.96, Theme.opacity))
-        border.width: 1
-        border.color: Theme.alpha(Theme.accent2, 0.2)
+        border.width: BarConfig.borderWidth
+        border.color: Theme.accent
+        SequentialAnimation on border.color {
+            running: Chrome.animated
+            loops: Animation.Infinite
+            ColorAnimation { to: Theme.accent2; duration: Chrome.periodMs; easing.type: Easing.InOutSine }
+            ColorAnimation { to: Theme.accent; duration: Chrome.periodMs; easing.type: Easing.InOutSine }
+        }
         opacity: about.reveal
         transform: Translate { y: (1 - about.reveal) * -8 }
     }

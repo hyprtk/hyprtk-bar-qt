@@ -1,6 +1,6 @@
 // Desktop widgets — free-floating layer-shell surfaces owned by the shell.
 //
-// Config is read from the shared hyprtk-bar `widgets` block (data/Widgets.qml);
+// Config is read from the Qt bar's own `widgets` block (data/Widgets.qml);
 // all seven widgets are implemented (Clock / Resources / Disk / Network /
 // Weather / Visualizer / SysInfo).
 import QtQuick

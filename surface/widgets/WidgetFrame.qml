@@ -46,8 +46,18 @@ PanelWindow {
             return sh - frame.effMarginY - frame.height;
         return Math.round((sh - frame.height) / 2);
     }
+    // Natural (unconstrained) content size — used for snap-group cells so a
+    // constrained member still reports the size it *wants* (the cell is the
+    // largest natural member; without this the cell collapses to the last
+    // constrained height and the big member gets squashed).
+    readonly property int naturalWidth: frame.widgetWidth
+    readonly property int naturalHeight: frame.widgetHeight > 0
+        ? frame.widgetHeight
+        : (contentCol.implicitHeight + frame.padding * 2)
+
     function _register() {
         WidgetMove.setGeometry(frame.widgetId, frame._gx(), frame._gy(), frame.width, frame.height);
+        WidgetLayout.setSize(frame.widgetId, frame.naturalWidth, frame.naturalHeight);
     }
     // Place on the monitor that is focused when the shell starts (the GTK
     // manager does the same); captured once so widgets do not hop on focus change.
@@ -60,6 +70,17 @@ PanelWindow {
     onWidthChanged: _register()
     onHeightChanged: _register()
     onHasOverChanged: _register()
+    // A persisted move (or a snap-group reflow) changes the effective position
+    // without changing width/height/hasOver, so re-register on those too — else
+    // the hit-test rect goes stale and the widget can no longer be grabbed.
+    onEffMarginXChanged: _register()
+    onEffMarginYChanged: _register()
+    // Natural height can change as content loads (e.g. sysinfo/weather), so
+    // re-register the size when the content's implicit height changes.
+    Connections {
+        target: contentCol
+        function onImplicitHeightChanged() { frame._register() }
+    }
 
     // ── appearance ─────────────────────────────────────────────────────
     property int widgetWidth: 280
@@ -131,7 +152,7 @@ PanelWindow {
         color: Widgets.transparent
             ? "transparent"
             : Qt.rgba(frame.widgetBackground.r, frame.widgetBackground.g, frame.widgetBackground.b, frame.widgetOpacity)
-        border.width: (Widgets.transparent || !Widgets.border) ? 0 : 1
+        border.width: (Widgets.transparent || !Widgets.border) ? 0 : BarConfig.borderWidth
         border.color: Qt.rgba(frame.widgetAccent.r, frame.widgetAccent.g, frame.widgetAccent.b, 0.25)
 
         ColumnLayout {
