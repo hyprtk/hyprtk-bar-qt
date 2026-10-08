@@ -18,7 +18,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 | `sysmon` | CPU/RAM/disk + click → monitor | ✅ `SysMonitor.qml` + `surface/SysMonitor.qml` dialog |
 | `kbstate` | Caps/Num lock LEDs | ✅ `KbState.qml` |
 | `clock` | time/date (styles, dials, seconds) | ◐ `Clock.qml` (digital simple; no styles/dials) |
-| `notifications` | daemon + center (bell) | ✅ `NotificationsButton.qml` bell + unread badge, `surface/NotificationCenter.qml` history, opt-in toasts |
+| `notifications` | daemon + center (bell) | ✅ `NotificationsButton.qml` bell + unread badge, `surface/NotificationCenter.qml` history; toasts on by default (opt out with `HYPRTK_BAR_QT_NOTIFICATIONS=0`) |
 | `tray` | SNI tray + dbusmenu | ✅ `Tray.qml` (icons + activate + right-click DBusMenu via `QsMenuAnchor`) |
 | `quicksettings` | Win11 flyout | ✅ `surface/QuickSettings.qml` (volume/mic/brightness/Wi-Fi/Bluetooth) |
 | graphs | cpu/mem/net history | ✅ `components/Sparkline.qml`, `Net.qml` |
@@ -42,9 +42,13 @@ Legend: ✅ done · ◐ partial · ☐ todo
 
 Bar · Fonts · Themes · Animations · Arc Menu · Menu · Quicklinks · Modules · Widgets
 
-✅ all nine pages in `surface/Settings.qml` (sidebar + StackLayout). Some controls
-are partial: arc-item editing, live font application, and the Widgets page is a
-stub.
+◐ all nine pages exist in `surface/Settings.qml` (sidebar + StackLayout), but
+several are partial and some controls are dead. Known gaps (see `PLAN.md`):
+Widgets page is a near-stub (no layer/margins/size/radius/padding/snap or
+widget-specific options), Menu page lacks enabled/follow/gaps, Modules page has
+no reorder, Fonts has no picker, Themes has no `imported` source, per-module
+options (workspaces/clock/updates/window/tray/notifications) have no UI,
+arc-item editing lacks `action`, and Settings edits are not persisted.
 
 ## Config schema (`config.py`)
 
@@ -110,9 +114,12 @@ surfaces reading the shared hyprtk-bar `widgets` config.
 
 ## Next passes
 
-All listed parity items are implemented. Residual refinements (not tracked as
-blocking): start-menu Places categories beyond the current set, and MPRIS media
-control on the bar (not part of the original module matrix).
+**Not** all parity items are implemented — this section previously overstated the
+state. Outstanding work is tracked in **`PLAN.md`** (Batches 1–7): install
+correctness, dead settings wiring, anchors/multi-monitor, settings parity UI,
+widget parity, then new features (`hypr_animations` port, MPRIS, notification
+images). Residuals still open: start-menu Places categories beyond the current
+set, and MPRIS media control.
 
 The dialogs (Settings / Themer / About) are now centred layer-shell panels
 rather than tiled xdg windows, and expose `IpcHandler`s (`toggle`/`open`/`close`)

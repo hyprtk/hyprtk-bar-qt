@@ -21,10 +21,10 @@ Themer parity + arc keybind.
   grid (with folder SVGs), custom hex, and the pywal auto-match button.
 - **System monitor**: glyphs pinned to the Nerd Font family (were rendering via
   fallback); new `sysmon` IPC handler.
-- **Arc menu**: `arc_toggle.py` bridges the dotfiles' `Super+Ctrl+M` keybind
+- **Arc menu**: `signal_bridge.py` handles the dotfiles' `Super+Ctrl+M` keybind
   (SIGUSR2 to the lock-file PID) to the Qt bar, so it opens without a Qt-specific
   bind.
-- New toolkit-free backends: `pywal.py`, `icons.py`, `lock.py`, `arc_toggle.py`
+- New toolkit-free backends: `pywal.py`, `icons.py`, `lock.py`, `signal_bridge.py`
   (+ tests).
 
 ## 0.29.1 — unreleased

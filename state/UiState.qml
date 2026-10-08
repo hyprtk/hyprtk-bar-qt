@@ -21,17 +21,4 @@ Singleton {
     property bool aboutOpen: false
     property bool barMenuOpen: false
     property real barMenuX: 40      // cursor x within the bar window (for the context menu)
-
-    function closeAll() {
-        root.quickSettingsOpen = false;
-        root.settingsOpen = false;
-        root.arcMenuOpen = false;
-        root.startMenuOpen = false;
-        root.themerOpen = false;
-        root.sysMonitorOpen = false;
-        root.notificationCenterOpen = false;
-        root.clipboardOpen = false;
-        root.aboutOpen = false;
-        root.barMenuOpen = false;
-    }
 }

@@ -1,8 +1,8 @@
 // Desktop-widget configuration, read from the shared hyprtk-bar config
 // (`widgets` block in ~/.config/hyprtk-bar/config.json).
 //
-// The Qt bar renders the same widgets as the GTK bar so the two stay in sync
-// during the migration. Editing stays in the GTK settings for now.
+// The Qt bar renders the same widgets as the GTK bar so the two stay in sync;
+// editing lives on the Settings → Widgets page.
 pragma Singleton
 
 import QtQuick

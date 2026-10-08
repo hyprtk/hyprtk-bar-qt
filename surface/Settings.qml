@@ -42,7 +42,13 @@ PanelWindow {
     // ── debounced shared-config writer ─────────────────────────────────
     property var pending: ({})
     Timer { id: flushTimer; interval: 200; onTriggered: win.flush() }
-    Process { id: setProc; onExited: (code, status) => {} }
+    Process {
+        id: setProc
+        onExited: (code, status) => {
+            if (code !== 0)
+                console.warn("hyprtk-bar-qt settings: write failed (exit " + code + ")");
+        }
+    }
 
     function set(path, value) {
         const parts = String(path).split(".");

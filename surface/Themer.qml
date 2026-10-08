@@ -2,8 +2,8 @@
 // (thumbnail picker), Pywal, Rofi, Bar Themes (9 shipped), Matuwall, Lock
 // Screen, Icons, SDDM & GRUB, and Import (waybar themes from disk).
 //
-// Script-driven actions call the same hyprtk scripts as the GTK bar. The
-// Matuwall TOML editor is a later pass.
+// Script-driven actions call the same hyprtk scripts as the GTK bar, including
+// the Matuwall TOML editor.
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls.Basic
@@ -13,6 +13,7 @@ import "../theme"
 import "../config"
 import "../state"
 import "../components"
+import "../data"
 
 PanelWindow {
     id: win
@@ -40,7 +41,6 @@ PanelWindow {
         { key: "import", glyph: "\uf019", label: "Import" }
     ]
     property int page: 0
-    readonly property var swatchNames: ["bg", "fg", "accent", "accent2", "dim", "err", "warn"]
 
     property var themes: []
     property var importable: []
@@ -307,23 +307,6 @@ PanelWindow {
         win.toast("Regenerating rofi variant\u2026");
         rofiRefresh.restart();
     }
-    function lockColors() {
-        const lines = (win.lockConf || "").split("\n").filter(l => l.trim().startsWith("$lock_"));
-        return lines.length ? lines.join("\n") : "No pywal colours rendered yet \u2014 pick a wallpaper first.";
-    }
-    function col(name) {
-        switch (name) {
-        case "bg": return Theme.background;
-        case "fg": return Theme.foreground;
-        case "accent": return Theme.accent;
-        case "accent2": return Theme.accent2;
-        case "dim": return Theme.dim;
-        case "err": return Theme.err;
-        case "warn": return Theme.warn;
-        }
-        return Theme.foreground;
-    }
-
     function refreshPywal() { if (!pywalProc.running) pywalProc.running = true; }
     function refreshSchemes() { if (!schemesProc.running) schemesProc.running = true; }
     function refreshIcons() {
@@ -468,7 +451,7 @@ PanelWindow {
                             anchors.leftMargin: 10
                             anchors.rightMargin: 8
                             spacing: 8
-                            Text { text: modelData.glyph; color: win.page === index ? "#000000" : Theme.accent; font.pixelSize: 13 }
+                            Text { text: modelData.glyph; color: win.page === index ? "#000000" : Theme.accent; font.family: BarConfig.glyphFont; font.pixelSize: 13 }
                             Text { text: modelData.label; color: win.page === index ? "#000000" : Theme.foreground; font.pixelSize: 12; Layout.fillWidth: true }
                         }
                         HoverHandler { id: sbHover }

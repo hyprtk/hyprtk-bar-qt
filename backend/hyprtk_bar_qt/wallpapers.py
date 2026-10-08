@@ -11,14 +11,7 @@ import argparse
 import json
 import os
 import subprocess
-import sys
 from pathlib import Path
-
-if __package__ in (None, ""):
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-    from hyprtk_bar_qt import config
-else:
-    from . import config
 
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".jxl", ".avif"}
 CURRENT = Path.home() / ".cache" / "current-wallpaper.png"

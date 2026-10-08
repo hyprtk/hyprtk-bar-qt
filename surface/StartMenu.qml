@@ -410,6 +410,7 @@ PanelWindow {
                             Text {
                                 text: sm.isFavorite(lrow.modelData.id) ? "\uf005" : "\uf006"
                                 color: sm.isFavorite(lrow.modelData.id) ? Theme.warn : Theme.dim
+                                font.family: BarConfig.glyphFont
                                 font.pixelSize: 12
                                 MouseArea {
                                     anchors.fill: parent
@@ -516,7 +517,7 @@ PanelWindow {
                                 anchors.leftMargin: 8
                                 anchors.rightMargin: 8
                                 spacing: 8
-                                Text { text: modelData.glyph; color: Theme.accent; font.pixelSize: 13 }
+                                Text { text: modelData.glyph; color: Theme.accent; font.family: BarConfig.glyphFont; font.pixelSize: 13 }
                                 Text { text: modelData.label; color: Theme.foreground; font.pixelSize: 12; Layout.fillWidth: true }
                             }
                             HoverHandler { id: placeHover }
@@ -597,7 +598,7 @@ PanelWindow {
                                     anchors.leftMargin: 8
                                     anchors.rightMargin: 8
                                     spacing: 8
-                                    Text { text: frow.modelData.is_dir ? "\uf07b" : "\uf15b"; color: Theme.accent; font.pixelSize: 13 }
+                                    Text { text: frow.modelData.is_dir ? "\uf07b" : "\uf15b"; color: Theme.accent; font.family: BarConfig.glyphFont; font.pixelSize: 13 }
                                     Text { text: frow.modelData.name; color: Theme.foreground; font.pixelSize: 12; Layout.fillWidth: true; elide: Text.ElideRight }
                                     Text {
                                         visible: !frow.modelData.is_dir

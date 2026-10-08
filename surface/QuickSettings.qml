@@ -202,7 +202,7 @@ PanelWindow {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 10
-                Text { text: qs.micMuted ? "\uf131" : "\uf130"; color: Theme.foreground; font.pixelSize: 15 }
+                Text { text: qs.micMuted ? "\uf131" : "\uf130"; color: Theme.foreground; font.family: BarConfig.glyphFont; font.pixelSize: 15 }
                 TSlider {
                     Layout.fillWidth: true
                     from: 0

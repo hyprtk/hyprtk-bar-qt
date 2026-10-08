@@ -380,6 +380,7 @@ PanelWindow {
                 Text {
                     text: "\uefc5"
                     color: dcard.slot.populated ? Theme.accent : Theme.dim
+                    font.family: BarConfig.glyphFont
                     font.pixelSize: 13
                 }
                 Text {
