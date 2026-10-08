@@ -1,5 +1,7 @@
 // Package-update indicator: runs the hyprtk updates script periodically and
-// shows the pending count, coloured by threshold. Click runs the installer.
+// shows the pending count, coloured by the script's JSON class. Click runs the
+// installer. Mirrors the GTK bar: the script must live under a bar/repo-owned
+// root (it runs on a timer), and its JSON `{text,class,tooltip}` is honoured.
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -9,33 +11,57 @@ import "../../data"
 Text {
     id: root
 
-    property int count: 0
+    property string label: "0"
+    property string cssClass: "green"
+    property string tip: ""
 
     readonly property string home: Quickshell.env("HOME") || ""
     readonly property string script: BarConfig.updates.script || (root.home + "/.local/share/hyprtk-bar/scripts/updates.sh")
     readonly property string install: BarConfig.updates.install_command || (root.home + "/.local/share/hyprtk-bar/scripts/installupdates.sh")
     readonly property int intervalS: BarConfig.updates.interval || 60
 
-    visible: count > 0 && BarConfig.updates.enabled !== false
-    text: "\uf0ab " + count
-    color: count >= 20 ? Theme.err : (count > 0 ? Theme.warn : Theme.dim)
+    // Only run scripts from bar/repo-owned roots (never an arbitrary path).
+    readonly property bool scriptAllowed: {
+        const roots = [
+            root.home + "/.local/share/hyprtk-bar",
+            root.home + "/.local/bin",
+            root.home + "/hyprtk/installer/scripts"
+        ];
+        const p = root.script;
+        return roots.some(r => p === r || p.startsWith(r + "/"));
+    }
+
+    visible: BarConfig.updates.enabled !== false && root.scriptAllowed
+    text: "\uf0ab " + root.label
+    color: root.cssClass === "red" ? Theme.err : (root.cssClass === "yellow" ? Theme.warn : Theme.foreground)
     font.family: BarConfig.glyphFont
     font.pixelSize: BarConfig.fontSize(Theme.fontSize)
 
     Process {
         id: proc
-        command: ["sh", "-c", "[ -x '" + root.script + "' ] && '" + root.script + "' 2>/dev/null || true"]
+        command: ["bash", root.script]
         stdout: StdioCollector {
             onStreamFinished: {
-                const m = (text || "").match(/[0-9]+/);
-                root.count = m ? parseInt(m[0]) : 0;
+                const out = (text || "").trim();
+                try {
+                    const d = JSON.parse(out);
+                    root.label = String(d.text !== undefined ? d.text : "0");
+                    root.cssClass = String(d.class || "green");
+                    root.tip = String(d.tooltip || "");
+                } catch (e) {
+                    const m = out.match(/[0-9]+/);
+                    const n = m ? parseInt(m[0]) : 0;
+                    root.label = String(n);
+                    root.cssClass = n >= 20 ? "red" : (n > 0 ? "yellow" : "green");
+                    root.tip = root.label + " update(s)";
+                }
             }
         }
     }
 
     Timer {
         interval: Math.max(30, root.intervalS) * 1000
-        running: true
+        running: root.visible
         repeat: true
         triggeredOnStart: true
         onTriggered: proc.running = true
@@ -44,6 +70,9 @@ Text {
     MouseArea {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
-        onClicked: Quickshell.execDetached(["sh", "-c", "'" + root.install + "' 2>/dev/null || true"])
+        onClicked: {
+            if (root.install.length && root.install.startsWith(root.home + "/.local"))
+                Quickshell.execDetached(["bash", root.install]);
+        }
     }
 }

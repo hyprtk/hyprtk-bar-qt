@@ -44,5 +44,17 @@ class MemFraction(unittest.TestCase):
         self.assertLessEqual(f, 1.0)
 
 
+class DiskUsage(unittest.TestCase):
+    def test_root_reports_totals(self) -> None:
+        frac, used, total = sysmon.disk_usage("/")
+        self.assertGreater(total, 0.0)
+        self.assertGreaterEqual(frac, 0.0)
+        self.assertLessEqual(frac, 1.0)
+        self.assertGreaterEqual(used, 0.0)
+
+    def test_bad_path_is_zero(self) -> None:
+        self.assertEqual(sysmon.disk_usage("/no/such/path/here"), (0.0, 0.0, 0.0))
+
+
 if __name__ == "__main__":
     unittest.main()

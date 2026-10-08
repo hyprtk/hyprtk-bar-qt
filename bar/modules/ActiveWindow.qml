@@ -20,5 +20,5 @@ Text {
     color: Theme.foreground
     font.pixelSize: BarConfig.fontSize(Theme.fontSize)
     elide: Text.ElideRight
-    Layout.preferredWidth: Math.min(implicitWidth, (BarConfig.windowBlock.width || 220))
+    Layout.preferredWidth: BarConfig.windowBlock.width || 220
 }

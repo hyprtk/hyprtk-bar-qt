@@ -20,6 +20,17 @@ RowLayout {
         return (l && l.length) ? l : Config.quicklinksLinks;
     }
 
+    // Empty terminal/files/web commands resolve to the session default.
+    function defaultCommand(id) {
+        if (id === "terminal")
+            return Quickshell.env("TERMINAL") || "alacritty";
+        if (id === "files")
+            return Quickshell.env("FILEMANAGER") || "thunar";
+        if (id === "web")
+            return Quickshell.env("BROWSER") || "brave";
+        return "";
+    }
+
     Repeater {
         model: root.links
 
@@ -56,7 +67,8 @@ RowLayout {
                         if (id === "apps") { UiState.startMenuOpen = !UiState.startMenuOpen; return; }
                         if (d.action === "clipboard") { UiState.clipboardOpen = !UiState.clipboardOpen; return; }
                         if (d.action === "themer") { UiState.themerOpen = !UiState.themerOpen; return; }
-                        if (d.command) Quickshell.execDetached(["sh", "-c", d.command]);
+                        const cmd = d.command || root.defaultCommand(id);
+                        if (cmd) Quickshell.execDetached(["sh", "-c", cmd]);
                     } else if (mouse.button === Qt.RightButton) {
                         if (right) Quickshell.execDetached(["sh", "-c", right]);
                     } else if (mouse.button === Qt.MiddleButton) {

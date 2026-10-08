@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import time
 
 
@@ -79,7 +80,22 @@ def byte_rates(prev: tuple[int, int], cur: tuple[int, int], dt: float) -> tuple[
             max(0.0, (cur[1] - prev[1]) / dt))
 
 
-def sample(state: dict | None) -> tuple[dict, dict]:
+def disk_usage(path: str = "/") -> tuple[float, float, float]:
+    """(used_fraction, used_gb, total_gb) for the filesystem at ``path``."""
+    try:
+        st = os.statvfs(path)
+    except OSError:
+        return 0.0, 0.0, 0.0
+    total = st.f_blocks * st.f_frsize
+    free = st.f_bavail * st.f_frsize
+    if total <= 0:
+        return 0.0, 0.0, 0.0
+    used = total - free
+    gib = 1024.0 ** 3
+    return max(0.0, min(1.0, used / total)), used / gib, total / gib
+
+
+def sample(state: dict | None, disk_path: str = "/") -> tuple[dict, dict]:
     """Take one sample; return (new_state, output_dict).
 
     ``state`` is the previous sample's state (or None on the first call).
@@ -87,8 +103,13 @@ def sample(state: dict | None) -> tuple[dict, dict]:
     now = time.monotonic()
     cpu = _cpu_times()
     net = _net_bytes()
+    disk_pct, disk_used, disk_total = disk_usage(disk_path)
 
-    out = {"cpu": 0.0, "mem": round(mem_fraction(), 4), "rx": 0.0, "tx": 0.0}
+    out = {
+        "cpu": 0.0, "mem": round(mem_fraction(), 4), "rx": 0.0, "tx": 0.0,
+        "disk": round(disk_pct, 4), "disk_used": round(disk_used, 2),
+        "disk_total": round(disk_total, 2),
+    }
     if state is not None:
         out["cpu"] = round(cpu_fraction(state["cpu"], cpu), 4)
         rx, tx = byte_rates(state["net"], net, now - state["t"])
@@ -101,12 +122,13 @@ def sample(state: dict | None) -> tuple[dict, dict]:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="stream /proc system samples as JSON lines")
     ap.add_argument("--interval", type=float, default=1.0, help="seconds between samples")
+    ap.add_argument("--disk-path", default="/", help="filesystem to report usage for")
     args = ap.parse_args(argv)
 
     state: dict | None = None
     try:
         while True:
-            state, data = sample(state)
+            state, data = sample(state, args.disk_path)
             print(json.dumps(data), flush=True)
             time.sleep(max(0.1, args.interval))
     except KeyboardInterrupt:

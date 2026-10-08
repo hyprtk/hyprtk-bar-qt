@@ -12,32 +12,56 @@ RowLayout {
     visible: BarConfig.workspaces.enabled !== false
 
     readonly property bool showEmpty: BarConfig.workspaces.show_empty !== false
-    readonly property int maxWs: BarConfig.workspaces.max || 10
+    readonly property int maxWs: BarConfig.workspaces.max || 6
 
-    function visibleWs() {
-        let list = Hyprland.workspaces.values || [];
-        if (!root.showEmpty)
-            list = list.filter(w => w.active || (w.toplevels && w.toplevels.values.length > 0));
-        return list.slice(0, root.maxWs);
+    function _ws(id) {
+        const list = Hyprland.workspaces.values || [];
+        return list.find(w => w.id === id) || null;
+    }
+    function visibleIds() {
+        const ids = new Set();
+        let active = 0;
+        for (const w of (Hyprland.workspaces.values || [])) {
+            if (typeof w.id === "number" && w.id > 0)
+                ids.add(w.id);
+            if (w.active)
+                active = w.id;
+        }
+        ids.add(active > 0 ? active : 1);
+        if (root.showEmpty)
+            for (let i = 1; i <= root.maxWs; i++)
+                ids.add(i);
+        return Array.from(ids).sort((a, b) => a - b);
+    }
+    function occupied(id) {
+        const w = root._ws(id);
+        return !!(w && w.toplevels && w.toplevels.values.length > 0);
+    }
+    function isActive(id) {
+        const w = root._ws(id);
+        return !!(w && w.active);
     }
 
     Repeater {
-        model: root.visibleWs()
+        model: root.visibleIds()
 
         delegate: Rectangle {
             id: pill
             required property var modelData
+
+            readonly property bool act: root.isActive(pill.modelData)
+            readonly property bool occ: root.occupied(pill.modelData)
+
             implicitWidth: 22
             implicitHeight: 22
             radius: 6
-            color: modelData.active
-                ? Theme.accent
-                : Theme.alpha(Theme.accent2, 0.15)
+            color: pill.act ? Theme.accent
+                : (pill.occ ? Theme.alpha(Theme.accent2, 0.32) : Theme.alpha(Theme.accent2, 0.15))
 
             Text {
                 anchors.centerIn: parent
-                text: pill.modelData.id
-                color: pill.modelData.active ? "#000000" : Theme.foreground
+                text: pill.modelData
+                color: pill.act ? "#000000" : Theme.foreground
                 font.pixelSize: Math.max(9, BarConfig.fontSize(Theme.fontSize) - 1)
                 font.bold: true
             }
@@ -45,7 +69,7 @@ RowLayout {
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: Hyprland.dispatch("workspace " + pill.modelData.id)
+                onClicked: Hyprland.dispatch("workspace " + pill.modelData)
             }
         }
     }
