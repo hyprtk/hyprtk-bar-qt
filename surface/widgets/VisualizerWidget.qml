@@ -1,4 +1,6 @@
 // Desktop audio visualizer (cava): bars / wave / mirror / dots / glow.
+// source (cava/synthetic), sensitivity, smoothing, orientation and peak dots
+// are applied here; the raw frames come from backend/.../visualizer.py.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -14,6 +16,18 @@ WidgetFrame {
         Qt.resolvedUrl("../../backend/hyprtk_bar_qt/visualizer.py").toString().replace("file://", "")
     readonly property int bars: Math.max(8, block.bars || 48)
 
+    readonly property real sensitivity: {
+        const s = block.sensitivity;
+        return (typeof s === "number" && s > 0) ? s : 1.0;
+    }
+    readonly property real smoothing: {
+        const s = block.smoothing;
+        return (typeof s === "number" && s >= 0) ? Math.min(0.95, s) : 0.0;
+    }
+    readonly property bool peakDots: block.peak_dots === true
+    readonly property bool flip: block.orientation === "down"
+    readonly property string source: block.source || "auto"
+
     position: block.position || "bottom-center"
     marginX: block.margin_x !== undefined ? block.margin_x : 40
     marginY: block.margin_y !== undefined ? block.margin_y : 40
@@ -28,16 +42,34 @@ WidgetFrame {
     foregroundOverride: block.foreground || "transparent"
     accentOverride: block.accent || "transparent"
 
-    property var levels: []
+    property var levels: []     // displayed (smoothed + sensitivity)
+    property var peaks: []
     readonly property string style: block.style || "bars"
+
+    // Apply sensitivity + temporal smoothing and track peaks.
+    function applyFrame(vals) {
+        const n = vals.length;
+        const out = [];
+        const pk = [];
+        for (let i = 0; i < n; i++) {
+            const v = Math.min(1, Math.max(0, vals[i]) * win.sensitivity);
+            const prev = win.levels[i] !== undefined ? win.levels[i] : 0;
+            out.push(prev * win.smoothing + v * (1 - win.smoothing));
+            const prevP = win.peaks[i] !== undefined ? win.peaks[i] : 0;
+            pk.push(v >= prevP ? v : Math.max(0, prevP - 0.01));
+        }
+        win.levels = out;
+        win.peaks = pk;
+    }
 
     Process {
         id: proc
         command: ["python3", "-u", win.backend, "--bars", String(win.bars),
-                  "--fps", String(block.fps || 60), "--binary", block.cava_binary || "cava"]
+                  "--fps", String(block.fps || 60), "--binary", block.cava_binary || "cava",
+                  "--source", win.source]
         stdout: SplitParser {
             onRead: line => {
-                try { win.levels = JSON.parse(line).levels || []; } catch (e) {}
+                try { win.applyFrame(JSON.parse(line).levels || []); } catch (e) {}
             }
         }
     }
@@ -99,12 +131,13 @@ WidgetFrame {
             const glow = style === "glow";
             if (glow)
                 ctx.shadowBlur = 10;
+            function yFor(v) { return win.flip ? v * height : height - v * height; }
 
             if (style === "wave") {
                 ctx.beginPath();
                 for (let i = 0; i < n; i++) {
                     const x = i * slot + slot / 2;
-                    const y = height - Math.min(1, vals[i]) * height;
+                    const y = yFor(Math.min(1, vals[i]));
                     if (i === 0)
                         ctx.moveTo(x, y);
                     else
@@ -126,16 +159,29 @@ WidgetFrame {
                 const x = i * slot + (slot - bw) / 2;
                 if (style === "dots") {
                     const r = Math.max(1, bw / 2);
-                    const y = height - v * height;
                     ctx.beginPath();
-                    ctx.arc(x + r, y, r * (0.5 + 0.5 * v), 0, Math.PI * 2);
+                    ctx.arc(x + r, yFor(v), r * (0.5 + 0.5 * v), 0, Math.PI * 2);
                     ctx.fill();
                 } else if (style === "mirror") {
                     const h = v * height / 2;
                     ctx.fillRect(x, height / 2 - h, bw, h * 2);
                 } else {
                     const h = v * height;
-                    ctx.fillRect(x, height - h, bw, h);
+                    ctx.fillRect(x, win.flip ? 0 : height - h, bw, h);
+                }
+            }
+
+            // peak dots
+            if (win.peakDots && style !== "mirror") {
+                for (let i = 0; i < n; i++) {
+                    const p = win.peaks[i] || 0;
+                    if (p <= 0.01)
+                        continue;
+                    ctx.fillStyle = win.colorFor(i, n, "peak");
+                    const x = i * slot + slot / 2;
+                    ctx.beginPath();
+                    ctx.arc(x, yFor(p), 1.5, 0, Math.PI * 2);
+                    ctx.fill();
                 }
             }
         }

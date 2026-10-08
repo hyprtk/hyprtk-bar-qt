@@ -147,12 +147,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--bars", type=int, default=48)
     ap.add_argument("--fps", type=int, default=60)
     ap.add_argument("--binary", default="cava")
+    ap.add_argument("--source", choices=("auto", "cava", "synthetic"), default="auto",
+                    help="auto = cava if available else synthetic; synthetic forces the fallback")
     args = ap.parse_args(argv)
 
     bars = max(8, args.bars)
     interval = 1.0 / max(15, args.fps)
 
-    resolved = resolve_binary(args.binary)
+    resolved = None if args.source == "synthetic" else resolve_binary(args.binary)
     source = CavaSource(resolved, bars, args.fps) if resolved else None
     started = source.start() if source is not None else False
 

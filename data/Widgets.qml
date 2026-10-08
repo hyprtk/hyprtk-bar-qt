@@ -36,6 +36,7 @@ Singleton {
 
     readonly property bool masterEnabled: root.cfg.enabled === true
     readonly property bool transparent: root.cfg.transparent === true
+    readonly property bool border: root.cfg.border !== false
 
     function block(id) {
         return root.cfg[id] || ({});

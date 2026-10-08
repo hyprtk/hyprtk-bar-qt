@@ -132,7 +132,7 @@ PanelWindow {
         color: Widgets.transparent
             ? "transparent"
             : Qt.rgba(frame.widgetBackground.r, frame.widgetBackground.g, frame.widgetBackground.b, frame.widgetOpacity)
-        border.width: Widgets.transparent ? 0 : 1
+        border.width: (Widgets.transparent || !Widgets.border) ? 0 : 1
         border.color: Qt.rgba(frame.widgetAccent.r, frame.widgetAccent.g, frame.widgetAccent.b, 0.25)
 
         ColumnLayout {

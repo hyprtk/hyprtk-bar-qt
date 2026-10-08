@@ -48,7 +48,7 @@ RowLayout {
                 text: link.modelData.icon || link.modelData.glyph || "\u2022"
                 color: Theme.accent
                 font.pixelSize: root.fs
-                font.family: BarConfig.quicklinks.glyph_font || Theme.fontFamily
+                font.family: BarConfig.quicklinks.glyph_font || BarConfig.glyphFont
             }
 
             HoverHandler {

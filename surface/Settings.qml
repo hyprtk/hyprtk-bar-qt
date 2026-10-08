@@ -823,6 +823,10 @@ PanelWindow {
                         label: "Transparent pills"
                         TCheckBox { checked: win.g("widgets.transparent", false); onToggled: win.set("widgets.transparent", checked) }
                     }
+                    SRow {
+                        label: "Widget borders"
+                        TCheckBox { checked: win.g("widgets.border", true); onToggled: win.set("widgets.border", checked) }
+                    }
                     Flickable {
                         Layout.fillWidth: true; Layout.fillHeight: true
                         contentHeight: wCol.implicitHeight; clip: true
@@ -899,7 +903,11 @@ PanelWindow {
                                         WOpt { label: "time fmt"; TTextField { Layout.preferredWidth: 130; text: win.widgetVal(wr.modelData, "time_format", "HH:mm"); onEditingFinished: win.setWidget(wr.modelData, "time_format", text) } }
                                         WOpt { label: "date fmt"; TTextField { Layout.preferredWidth: 150; text: win.widgetVal(wr.modelData, "date_format", "dddd, dd MMMM"); onEditingFinished: win.setWidget(wr.modelData, "date_format", text) } }
                                         WOpt { label: "font"; TTextField { Layout.preferredWidth: 130; text: win.widgetVal(wr.modelData, "font", ""); onEditingFinished: win.setWidget(wr.modelData, "font", text) } }
-                                        WOpt { label: "show date"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_date", false); onToggled: win.setWidget(wr.modelData, "show_date", checked) } }
+                                        WOpt { label: "theme"; TTextField { Layout.preferredWidth: 110; placeholderText: "theme name"; text: win.widgetVal(wr.modelData, "theme", ""); onEditingFinished: win.setWidget(wr.modelData, "theme", text) } }
+                                        WOpt { label: "show date"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_date", true); onToggled: win.setWidget(wr.modelData, "show_date", checked) } }
+                                        WOpt { label: "seconds"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_seconds", false); onToggled: win.setWidget(wr.modelData, "show_seconds", checked) } }
+                                        WOpt { label: "dials (1/3)"; TSpinBox { from: 1; to: 3; value: win.widgetVal(wr.modelData, "dial_count", 1); onValueChanged: win.setWidget(wr.modelData, "dial_count", value) } }
+                                        WOpt { label: "ring width"; TSpinBox { from: 2; to: 24; value: win.widgetVal(wr.modelData, "ring_thickness", 6); onValueChanged: win.setWidget(wr.modelData, "ring_thickness", value) } }
                                     }
                                     Flow {
                                         Layout.fillWidth: true
@@ -930,6 +938,11 @@ PanelWindow {
                                         WOpt { label: "colour"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wr.modelData, "color", ""); onEditingFinished: win.setWidget(wr.modelData, "color", text) } }
                                         WOpt { label: "grad from"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wr.modelData, "gradient_from", ""); onEditingFinished: win.setWidget(wr.modelData, "gradient_from", text) } }
                                         WOpt { label: "grad to"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wr.modelData, "gradient_to", ""); onEditingFinished: win.setWidget(wr.modelData, "gradient_to", text) } }
+                                        WOpt { label: "source"; TComboBox { Layout.preferredWidth: 100; model: ["auto", "cava", "synthetic"]; currentIndex: win.idx(model, win.widgetVal(wr.modelData, "source", "auto")); onActivated: win.setWidget(wr.modelData, "source", model[currentIndex]) } }
+                                        WOpt { label: "sensitivity%"; TSpinBox { from: 50; to: 300; stepSize: 10; value: Math.round((win.widgetVal(wr.modelData, "sensitivity", 1) || 1) * 100); onValueChanged: win.setWidget(wr.modelData, "sensitivity", value / 100) } }
+                                        WOpt { label: "smoothing%"; TSpinBox { from: 0; to: 90; stepSize: 5; value: Math.round((win.widgetVal(wr.modelData, "smoothing", 0) || 0) * 100); onValueChanged: win.setWidget(wr.modelData, "smoothing", value / 100) } }
+                                        WOpt { label: "orientation"; TComboBox { Layout.preferredWidth: 90; model: ["up", "down"]; currentIndex: win.idx(model, win.widgetVal(wr.modelData, "orientation", "up")); onActivated: win.setWidget(wr.modelData, "orientation", model[currentIndex]) } }
+                                        WOpt { label: "peak dots"; TCheckBox { checked: win.widgetVal(wr.modelData, "peak_dots", false); onToggled: win.setWidget(wr.modelData, "peak_dots", checked) } }
                                     }
                                     Flow {
                                         Layout.fillWidth: true

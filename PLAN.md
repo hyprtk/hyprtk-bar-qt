@@ -77,17 +77,19 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
 - [x] Arc-item editor: `action` field (settings/themer/clipboard).
 - [x] Menu favourites: `addFavorite()` wired to a field + Add button.
 
-## Batch 5 — Widget parity
+## Batch 5 — Widget parity  ✅ done
 
-- [ ] Clock widget: `theme` files, `show_seconds`, `dial_count`,
-      `ring_thickness` (currently one dial).
-- [ ] Visualizer widget: `source`, `sensitivity`, `smoothing`, `orientation`,
-      `peak_dots`.
-- [ ] Widget global border (`widgets.border`) — currently only driven by
-      `transparent`.
-- [ ] QuickSettings brightness gamma fallback via `hyprsunset` when no backlight.
-- [ ] QuickSettings Lock honours config (`menu.power.lock`), not hardcoded.
-- [ ] Quicklinks glyph-font fallback → `BarConfig.glyphFont`.
+- [x] Clock widget: theme-file loading (user dir, widget block wins),
+      `show_seconds` (precision + hand/ring), `dial_count` (1 face or 3 H/M/S
+      rings), `ring_thickness`.
+- [x] Visualizer widget: `source` (backend `--source` auto/cava/synthetic),
+      `sensitivity`, `smoothing` (temporal), `orientation` (up/down), `peak_dots`.
+- [x] Widget global border (`widgets.border`) wired in `WidgetFrame` + a master
+      toggle in Settings.
+- [x] QuickSettings brightness falls back to `hyprctl hyprsunset gamma` (min 30%)
+      when there is no kernel backlight.
+- [x] QuickSettings Lock uses `MenuConfig.power("lock")`, not a hardcoded command.
+- [x] Quicklinks glyph-font fallback → `BarConfig.glyphFont`.
 
 ## Batch 6 — Missing features (new work)
 

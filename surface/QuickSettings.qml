@@ -70,7 +70,8 @@ PanelWindow {
     property bool muted: false
     property int micVolume: 0
     property bool micMuted: false
-    property int brightness: 0
+    property int brightness: 100
+    property bool hasBacklight: true
     property bool wifiOn: false
     property bool btOn: false
 
@@ -109,11 +110,16 @@ PanelWindow {
     Process {
         id: brightGet
         command: ["brightnessctl", "-m"]
+        // No kernel backlight (e.g. a desktop with an external monitor): fall
+        // back to hyprsunset gamma, as the GTK bar does.
+        onExited: (code) => { qs.hasBacklight = (code === 0); }
         stdout: SplitParser {
             onRead: line => {
                 const m = line.match(/([0-9]+)%/);
-                if (m)
+                if (m) {
                     qs.brightness = parseInt(m[1]);
+                    qs.hasBacklight = true;
+                }
             }
         }
     }
@@ -247,7 +253,12 @@ PanelWindow {
                     to: 100
                     stepSize: 1
                     value: qs.brightness
-                    onMoved: Quickshell.execDetached(["brightnessctl", "set", Math.round(value) + "%"])
+                    onMoved: {
+                        if (qs.hasBacklight)
+                            Quickshell.execDetached(["brightnessctl", "set", Math.round(value) + "%"]);
+                        else
+                            Quickshell.execDetached(["hyprctl", "hyprsunset", "gamma", String(Math.max(30, Math.round(value)))]);
+                    }
                 }
                 Text { text: qs.brightness + "%"; color: Theme.foreground; font.pixelSize: 12; Layout.preferredWidth: 38 }
             }
@@ -295,7 +306,10 @@ PanelWindow {
                 }
                 TButton {
                     text: "Lock"
-                    onClicked: Quickshell.execDetached(["sh", "-c", "hyprlock || loginctl lock-session"])
+                    onClicked: {
+                        const cmd = MenuConfig.power("lock") || "hyprlock || loginctl lock-session";
+                        Quickshell.execDetached(["sh", "-c", cmd]);
+                    }
                 }
                 Item { Layout.fillWidth: true }
             }

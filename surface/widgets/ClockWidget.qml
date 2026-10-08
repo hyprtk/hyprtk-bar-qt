@@ -1,7 +1,9 @@
-// Desktop clock widget (digital / text styles; dials fall back to digital).
+// Desktop clock widget: digital / text / dials (single face or 3 H/M/S rings).
+// Optional clock theme files override the look; the widget's own config wins.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import "../../theme"
 
 WidgetFrame {
@@ -10,21 +12,51 @@ WidgetFrame {
     property var block: ({})
     widgetId: "clock"
 
-    position: block.position || "top-left"
-    marginX: block.margin_x !== undefined ? block.margin_x : 40
-    marginY: block.margin_y !== undefined ? block.margin_y : 40
-    layer: block.layer || "bottom"
-    widgetWidth: block.width || 220
-    widgetHeight: block.height || 0
-    widgetOpacity: block.opacity !== undefined ? block.opacity : 0.75
-    radius: block.radius || 16
-    padding: block.padding || 18
-    scale: block.scale || 1.0
-    backgroundOverride: block.background || "transparent"
-    foregroundOverride: block.foreground || "transparent"
-    accentOverride: block.accent || "transparent"
+    readonly property string home: Quickshell.env("HOME") || ""
 
-    property SystemClock clock: SystemClock { precision: SystemClock.Seconds }
+    // ── clock theme file (user dir), merged under the widget's own block ──
+    property var themeCfg: ({})
+    FileView {
+        id: themeFile
+        path: win.block.theme
+            ? win.home + "/.config/hyprtk-bar/widget-themes/clock/" + String(win.block.theme).replace(/[^A-Za-z0-9_-]/g, "") + ".json"
+            : ""
+        printErrors: false
+        onLoaded: {
+            try { win.themeCfg = JSON.parse(themeFile.text()) || ({}); }
+            catch (e) { win.themeCfg = ({}); }
+        }
+    }
+    // widget block wins over the theme file; fallback last.
+    function tv(key, fallback) {
+        if (win.block[key] !== undefined)
+            return win.block[key];
+        if (win.themeCfg && win.themeCfg[key] !== undefined)
+            return win.themeCfg[key];
+        return fallback;
+    }
+
+    position: tv("position", "top-left")
+    marginX: tv("margin_x", 40)
+    marginY: tv("margin_y", 40)
+    layer: tv("layer", "bottom")
+    widgetWidth: tv("width", 220)
+    widgetHeight: tv("height", 0)
+    widgetOpacity: tv("opacity", 0.75)
+    radius: tv("radius", 16)
+    padding: tv("padding", 18)
+    scale: tv("scale", 1.0)
+    backgroundOverride: tv("background", "transparent")
+    foregroundOverride: tv("foreground", "transparent")
+    accentOverride: tv("accent", "transparent")
+
+    readonly property string style: tv("style", "digital")
+    readonly property bool showSeconds: tv("show_seconds", false) === true
+    readonly property int dialCount: Math.max(1, tv("dial_count", 1))
+    readonly property int ringThickness: Math.max(2, tv("ring_thickness", 6))
+    readonly property string fontFamily: tv("font", "") || Theme.fontFamily
+
+    property SystemClock clock: SystemClock { precision: win.showSeconds ? SystemClock.Seconds : SystemClock.Minutes }
 
     function qtFormat(fmt) {
         return (fmt || "%H:%M").replace(/%[HIpMSAadyBbm]/g, m => {
@@ -64,7 +96,6 @@ WidgetFrame {
     }
 
     readonly property var now: win.clock.date
-    readonly property string style: block.style || "digital"
 
     ColumnLayout {
         Layout.fillWidth: true
@@ -87,6 +118,32 @@ WidgetFrame {
                 const cx = width / 2, cy = height / 2;
                 const R = Math.min(width, height) / 2 - 3;
                 const d = win.clock.date;
+                const sec = d.getSeconds(), min = d.getMinutes(), hr = d.getHours() % 12;
+
+                if (win.dialCount >= 3) {
+                    // Three concentric progress rings: hours, minutes, seconds.
+                    const tw = win.ringThickness;
+                    const gap = tw + 3;
+                    function ring(radius, frac, color) {
+                        ctx.lineWidth = tw;
+                        ctx.strokeStyle = Theme.alpha(Theme.dim, 0.30);
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                        ctx.stroke();
+                        if (frac > 0) {
+                            ctx.strokeStyle = color;
+                            ctx.beginPath();
+                            ctx.arc(cx, cy, radius, -Math.PI / 2, -Math.PI / 2 + frac * Math.PI * 2);
+                            ctx.stroke();
+                        }
+                    }
+                    ring(R, (hr + min / 60) / 12, win.widgetAccent);
+                    ring(R - gap, (min + sec / 60) / 60, win.widgetAccent);
+                    if (win.showSeconds)
+                        ring(R - gap * 2, sec / 60, win.widgetForeground);
+                    return;
+                }
+
                 ctx.strokeStyle = win.widgetAccent;
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -109,10 +166,10 @@ WidgetFrame {
                     ctx.lineTo(cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
                     ctx.stroke();
                 }
-                const sec = d.getSeconds(), min = d.getMinutes(), hr = d.getHours() % 12;
                 hand((hr + min / 60) * Math.PI / 6 - Math.PI / 2, R * 0.5, 3, win.widgetForeground);
                 hand((min + sec / 60) * Math.PI / 30 - Math.PI / 2, R * 0.72, 2, win.widgetForeground);
-                hand(sec * Math.PI / 30 - Math.PI / 2, R * 0.82, 1, win.widgetAccent);
+                if (win.showSeconds)
+                    hand(sec * Math.PI / 30 - Math.PI / 2, R * 0.82, 1, win.widgetAccent);
             }
         }
         Text {
@@ -120,20 +177,20 @@ WidgetFrame {
             visible: win.style !== "dials"
             text: win.style === "text"
                 ? win.spell(win.now.getHours(), win.now.getMinutes())
-                : Qt.formatDateTime(win.now, win.qtFormat(win.block.time_format || "%H:%M"))
+                : Qt.formatDateTime(win.now, win.qtFormat(win.tv("time_format", "%H:%M")))
             color: win.widgetForeground
             font.pixelSize: Math.round((win.style === "text" ? 22 : 42) * win.scale)
             font.bold: win.style !== "text"
-            font.family: win.block.font && win.block.font.length ? win.block.font : Theme.fontFamily
+            font.family: win.fontFamily
             wrapMode: Text.WordWrap
         }
         Text {
             Layout.alignment: Qt.AlignHCenter
-            visible: win.block.show_date !== false
-            text: Qt.formatDateTime(win.now, win.qtFormat(win.block.date_format || "%A, %d %B"))
+            visible: win.tv("show_date", true) !== false
+            text: Qt.formatDateTime(win.now, win.qtFormat(win.tv("date_format", "%A, %d %B")))
             color: win.widgetAccent
             font.pixelSize: Math.round(13 * win.scale)
-            font.family: win.block.font && win.block.font.length ? win.block.font : Theme.fontFamily
+            font.family: win.fontFamily
         }
     }
 }
