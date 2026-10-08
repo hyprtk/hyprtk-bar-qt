@@ -4,6 +4,10 @@
 
 Themer parity + arc keybind.
 
+- **Notifications on by default**: the `org.freedesktop.Notifications` daemon is
+  now enabled automatically (competing daemons — dunst/mako/swaync/xfce4-notifyd
+  — are killed so the bar owns the bus name); opt out with
+  `HYPRTK_BAR_QT_NOTIFICATIONS=0` or `notifications.enabled=false`.
 - **Themer — Wallpaper**: search, "Apply Selected" + "Random" buttons, selectable
   thumbnails (single-click selects, double-click applies), and a rescan that also
   refreshes the current-wallpaper preview.

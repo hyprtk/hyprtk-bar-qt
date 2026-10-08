@@ -97,7 +97,7 @@ PanelWindow {
             Text {
                 Layout.fillWidth: true
                 visible: !NotifyData.enabled
-                text: "Notification daemon disabled. Start the bar with HYPRTK_BAR_QT_NOTIFICATIONS=1."
+                text: "Notification daemon disabled (HYPRTK_BAR_QT_NOTIFICATIONS=0)."
                 color: Theme.warn
                 font.pixelSize: 11
                 wrapMode: Text.WordWrap

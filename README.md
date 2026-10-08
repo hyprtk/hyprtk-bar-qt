@@ -159,14 +159,15 @@ bindr = SUPER SHIFT, mouse:272, exec, hyprtk-bar-qt-widget-move stop
 ```
 
 Notifications (the `org.freedesktop.Notifications` daemon + toasts) are
-implemented but **opt-in**, because only one process can own that bus name:
+**enabled by default**; only one process can own that bus name, so the bar kills
+any competing daemon (dunst/mako/swaync/xfce4-notifyd) before registering. Opt
+out with:
 
 ```sh
-HYPRTK_BAR_QT_NOTIFICATIONS=1 hyprtk-bar-qt
+HYPRTK_BAR_QT_NOTIFICATIONS=0 hyprtk-bar-qt
 ```
 
-Enable it only once the GTK bar's daemon is retired; otherwise it just warns and
-waits to take over.
+(also settable via `notifications.enabled=false` in the shared config).
 
 Roadmap (see `CHANGELOG.md`): arc menu, graph widgets, per-display desktop
 widgets, MPRIS media control, and theming to full visual parity.

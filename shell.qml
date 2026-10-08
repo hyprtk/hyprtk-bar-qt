@@ -79,7 +79,7 @@ ShellRoot {
     DesktopWidgets {}
 
     Loader {
-        active: Quickshell.env("HYPRTK_BAR_QT_NOTIFICATIONS") === "1"
+        active: Quickshell.env("HYPRTK_BAR_QT_NOTIFICATIONS") !== "0"
         source: "surface/Notifications.qml"
     }
 }

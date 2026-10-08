@@ -1,8 +1,8 @@
 // Notification toast stack, via the shared NotifyData singleton.
 //
 // The daemon (and history) live in data/NotifyData.qml; this surface only
-// renders the transient toasts. It is loaded by shell.qml behind the
-// HYPRTK_BAR_QT_NOTIFICATIONS=1 env gate.
+// renders the transient toasts. It is loaded by shell.qml (enabled unless
+// HYPRTK_BAR_QT_NOTIFICATIONS=0).
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
