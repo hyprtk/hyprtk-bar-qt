@@ -195,6 +195,20 @@ PanelWindow {
             win.refreshImportable();
         }
     }
+    // rofi folder picker for the Import path field.
+    Process {
+        id: pickProc
+        stdout: SplitParser {
+            onRead: line => {
+                const p = line.trim();
+                if (p) {
+                    win.importPath = p;
+                    importField.text = p;
+                }
+            }
+        }
+        onExited: (code, status) => { if (code === 0) win.toast("Folder selected"); }
+    }
     Process {
         id: removeProc
         onExited: (code, status) => { win.refreshThemes(); win.refreshImportable(); }
@@ -328,6 +342,10 @@ PanelWindow {
         if (!path) { win.toast("Enter a theme path"); return; }
         importProc.command = ["python3", win.base + "themes.py", "import", path];
         importProc.running = true;
+    }
+    function browseImport() {
+        pickProc.command = ["python3", win.base + "pickdir.py", win.importPath || ""];
+        pickProc.running = true;
     }
     function doRemove(name) {
         removeProc.command = ["python3", win.base + "themes.py", "remove", name];
@@ -1110,11 +1128,13 @@ PanelWindow {
                         RowLayout {
                             Layout.fillWidth: true
                             TTextField {
+                                id: importField
                                 Layout.fillWidth: true
                                 placeholderText: "Path to a theme folder or style.css"
                                 color: Theme.foreground
                                 onTextChanged: win.importPath = text
                             }
+                            TButton { text: "Browse\u2026"; onClicked: win.browseImport() }
                             TButton { text: "Import"; onClicked: win.doImport(win.importPath) }
                         }
                     }

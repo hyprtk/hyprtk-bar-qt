@@ -18,12 +18,22 @@ PanelWindow {
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     focusable: true
-    visible: UiState.arcMenuOpen
+    visible: UiState.arcMenuOpen && BarConfig.arcmenu.enabled !== false
 
     // Open on the focused monitor (captured when shown).
     property var targetScreen: null
     screen: targetScreen
-    onVisibleChanged: if (visible) targetScreen = Screens.focused()
+    // The FAB starts collapsed; left-click fans the items out, left-click again
+    // tucks them away, middle-click closes the whole menu.
+    property bool itemsOpen: false
+    onVisibleChanged: {
+        if (visible) {
+            targetScreen = Screens.focused();
+            itemsOpen = false;
+        } else {
+            itemsOpen = false;
+        }
+    }
 
     readonly property var cfg: BarConfig.arcmenu
     readonly property string position: cfg.position || Config.arcMenuPosition
@@ -117,14 +127,20 @@ PanelWindow {
             width: arc.itemSize
             height: arc.itemSize
             radius: arc.shape === "square" ? 8 : arc.itemSize / 2
-            x: arc.fabX() + arc.fabSize / 2 + arc.radius * Math.cos(cell.ang) - width / 2
-            y: arc.fabY() + arc.fabSize / 2 + arc.radius * Math.sin(cell.ang) - height / 2
+            readonly property real openX: arc.fabX() + arc.fabSize / 2 + arc.radius * Math.cos(cell.ang) - width / 2
+            readonly property real openY: arc.fabY() + arc.fabSize / 2 + arc.radius * Math.sin(cell.ang) - height / 2
+            readonly property real closedX: arc.fabX() + arc.fabSize / 2 - width / 2
+            readonly property real closedY: arc.fabY() + arc.fabSize / 2 - height / 2
+            x: arc.itemsOpen ? cell.openX : cell.closedX
+            y: arc.itemsOpen ? cell.openY : cell.closedY
+            opacity: arc.itemsOpen ? 1 : 0
             color: arc.itemColor
             border.color: arc.fabColor
             border.width: 1
 
             Behavior on x { enabled: arc.animOn; NumberAnimation { duration: arc.animMs; easing.type: Easing.OutBack } }
             Behavior on y { enabled: arc.animOn; NumberAnimation { duration: arc.animMs; easing.type: Easing.OutBack } }
+            Behavior on opacity { enabled: arc.animOn; NumberAnimation { duration: arc.animMs } }
 
             Text {
                 anchors.centerIn: parent
@@ -136,6 +152,7 @@ PanelWindow {
 
             MouseArea {
                 anchors.fill: parent
+                enabled: arc.itemsOpen
                 cursorShape: Qt.PointingHandCursor
                 hoverEnabled: true
                 onClicked: arc.run(cell.modelData)
@@ -164,8 +181,16 @@ PanelWindow {
 
         MouseArea {
             anchors.fill: parent
+            acceptedButtons: Qt.LeftButton | Qt.MiddleButton
             cursorShape: Qt.PointingHandCursor
-            onClicked: UiState.arcMenuOpen = false
+            onClicked: (mouse) => {
+                if (mouse.button === Qt.MiddleButton) {
+                    arc.itemsOpen = false;
+                    UiState.arcMenuOpen = false;
+                } else {
+                    arc.itemsOpen = !arc.itemsOpen;
+                }
+            }
         }
     }
 }

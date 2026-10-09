@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.39.0 — unreleased
+
+Theme Manager import browse + arc menu interactions.
+
+- **Theme Manager → Import**: added a **Browse…** button that opens a rofi
+  folder picker (`backend/.../pickdir.py`) and fills the path field.
+- **Arc menu**:
+  - The FAB now **left-clicks to open/close the items** (fan in/out) and
+    **middle-clicks to close** the menu, instead of any click closing it.
+  - Respects `arcmenu.enabled` (it drives `visible`).
+- **Keybind helpers** (`hyprtk-bar-qt-*-toggle`) now target the **running**
+  instance (they resolve the live root via `pgrep`), so hotkeys work whether the
+  bar runs from the installed dir or a dev checkout — previously they always
+  addressed the installed copy and missed the running bar.
+
 ## 0.38.0 — unreleased
 
 - Fixed the bar right-click menu opening shifted left: `barMenuX` is the cursor
