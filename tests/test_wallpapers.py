@@ -6,6 +6,7 @@ import os
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
@@ -30,6 +31,34 @@ class Scan(unittest.TestCase):
 
     def test_apply_missing_file_fails(self) -> None:
         self.assertFalse(wallpapers.apply("/no/such/image.png"))
+
+
+class Thumbs(unittest.TestCase):
+    def test_thumb_path_deterministic(self) -> None:
+        self.assertEqual(wallpapers.thumb_path("/tmp/x.png"),
+                         wallpapers.thumb_path("/tmp/x.png"))
+        self.assertTrue(str(wallpapers.thumb_path("/tmp/x.png")).endswith(".jpg"))
+
+    def test_ensure_thumb_and_scan_items(self) -> None:
+        try:
+            from PIL import Image
+        except ImportError:  # pragma: no cover
+            self.skipTest("PIL and no thumbnailer available")
+        with tempfile.TemporaryDirectory() as tmp:
+            Image.new("RGB", (8, 8), (200, 100, 50)).save(str(Path(tmp) / "a.png"))
+            with unittest.mock.patch.object(wallpapers, "THUMB_DIR", Path(tmp) / "thumbs"):
+                items = wallpapers.scan_items(tmp)
+                self.assertEqual(len(items), 1)
+                self.assertIn("path", items[0])
+                self.assertEqual(items[0]["path"], str((Path(tmp) / "a.png").resolve()))
+                thumb = items[0]["thumb"]
+                if thumb is not None:  # only if a thumbnailer exists
+                    self.assertTrue(Path(thumb).is_file())
+    def test_scan_items_no_thumbs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "a.png").write_bytes(b"x")
+            items = wallpapers.scan_items(tmp, with_thumbs=False)
+            self.assertEqual(items[0]["thumb"], None)
 
 
 if __name__ == "__main__":

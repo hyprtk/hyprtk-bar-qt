@@ -366,14 +366,14 @@ PanelWindow {
     function applyRandomWall() {
         if (!win.images.length) { win.toast("No wallpapers to choose from"); return; }
         const p = win.images[Math.floor(Math.random() * win.images.length)];
-        win.selectedWall = p;
-        win.applyWallpaper(p);
+        win.selectedWall = p.path || p;
+        win.applyWallpaper(p.path || p);
     }
     function filteredWalls() {
         const q = win.wallQuery.trim().toLowerCase();
         if (!q)
             return win.images;
-        return win.images.filter(p => p.toLowerCase().includes(q));
+        return win.images.filter(it => (it.path || it).toLowerCase().includes(q));
     }
     function applyIconPreset(color) {
         iconApplyProc.command = ["python3", win.base + "icons.py", "apply-preset", color];
@@ -587,7 +587,9 @@ PanelWindow {
                                 delegate: Rectangle {
                                     id: thumb
                                     required property var modelData
-                                    readonly property bool sel: win.selectedWall === thumb.modelData
+                                    readonly property string wpath: modelData.path || modelData
+                                    readonly property string wthumb: modelData.thumb || modelData.path || modelData
+                                    readonly property bool sel: win.selectedWall === thumb.wpath
                                     Layout.fillWidth: true
                                     implicitHeight: 78
                                     radius: 6
@@ -598,15 +600,16 @@ PanelWindow {
                                     Image {
                                         anchors.fill: parent
                                         anchors.margins: 2
-                                        source: "file://" + thumb.modelData
+                                        source: "file://" + thumb.wthumb
                                         sourceSize.width: 160
                                         sourceSize.height: 72
                                         fillMode: Image.PreserveAspectCrop
                                         asynchronous: true
+                                        cache: true
                                     }
                                     HoverHandler { id: thumbHover }
-                                    TapHandler { onTapped: win.selectedWall = thumb.modelData }
-                                    TapHandler { onDoubleTapped: win.applyWallpaper(thumb.modelData) }
+                                    TapHandler { onTapped: win.selectedWall = thumb.wpath }
+                                    TapHandler { onDoubleTapped: win.applyWallpaper(thumb.wpath) }
                                 }
                             }
                         }

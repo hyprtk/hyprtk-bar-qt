@@ -70,6 +70,9 @@ for l in (d.get("quicklinks", {}) or {}).get("links", []) or []:
     for k in ("command", "command_right", "command_middle"):
         if isinstance(l.get(k), str) and "/hyprtk-bar/scripts" in l[k]:
             l[k] = fix(l[k]); changed = True
+    # The wallpaper quicklink opens the themer; label it "Theme Manager".
+    if l.get("id") == "wallpaper" and l.get("label") == "Wallpaper":
+        l["label"] = "Theme Manager"; changed = True
 u = d.get("updates", {}) or {}
 for k in ("script", "install_command"):
     if isinstance(u.get(k), str) and "/hyprtk-bar/scripts" in u[k]:
@@ -77,6 +80,23 @@ for k in ("script", "install_command"):
 if changed:
     json.dump(d, open(p, "w"), indent=2)
 PY
+
+# Pre-build the wallpaper thumbnail cache so the Theme Manager opens with every
+# thumbnail visible instantly instead of decoding full-resolution images.
+wall_dir="$(python3 - <<'PY'
+import json, os
+p = os.path.expanduser("~/.config/hyprtk-bar-qt/config.json")
+try:
+    d = json.load(open(p))
+except Exception:
+    d = {}
+print(d.get("wallpaperDir") or os.path.expanduser("~/Pictures/Wallpapers"))
+PY
+)"
+if [ -d "$wall_dir" ]; then
+    echo "building wallpaper thumbnail cache for $wall_dir …"
+    python3 "$here/backend/hyprtk_bar_qt/wallpapers.py" build-thumbs "$wall_dir" >/dev/null 2>&1 || true
+fi
 
 echo "installed to $dest"
 echo "scripts:  $scripts_dest"

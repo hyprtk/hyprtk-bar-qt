@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.36.0 — unreleased
+
+Wallpaper thumbnails are cached — the Theme Manager opens with every thumbnail
+visible instantly.
+
+- **Thumbnail cache** in the Qt bar's own tree (`~/.cache/hyprtk-bar-qt/thumbs/`):
+  `wallpapers.py scan` now returns `{path, thumb}` items and generates missing
+  thumbnails (PIL, falling back to ImageMagick/vips). The Wallpaper grid no
+  longer decodes full-resolution images (up to ~30s for a large folder).
+- **Pre-built on install**: `install.sh` runs `wallpapers.py build-thumbs` for
+  the configured wallpaper folder, so thumbnails are ready on first open.
+- The `wallpaper` quicklink is renamed to **Theme Manager** (it opens the
+  themer); `install.sh` migrates the label.
+
 ## 0.35.0 — unreleased
 
 **Fully separated from the GTK `hyprtk-bar`.** The Qt bar now owns its own
