@@ -15,7 +15,7 @@ Singleton {
         Qt.resolvedUrl("../backend/hyprtk_bar_qt/sysmon.py").toString().replace("file://", "")
     readonly property int histLen: 40
 
-    // Shared hyprtk-bar `sysmon` block (fallback to sane defaults).
+    // The Qt bar's own `sysmon` block (fallback to sane defaults).
     readonly property int intervalS: BarConfig.sysmon.interval || 1
     readonly property string diskPath: BarConfig.sysmon.disk_path || "/"
 

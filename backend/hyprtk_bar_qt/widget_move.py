@@ -1,7 +1,7 @@
 """Desktop-widget move control channel (a FIFO).
 
 Hyprland binds ``Super + Shift + left mouse`` (press -> ``start``, release ->
-``stop``) to ``hyprtk-bar-widget-move.sh``, which writes to the bar's control
+``stop``) to ``hyprtk-bar-qt-widget-move``, which writes to the bar's control
 FIFO. The Qt bar watches that same FIFO (via this streamer) and drives the
 cursor-polling move itself — the same model (and the same FIFO) as the GTK bar,
 so the one existing keybind drives whichever bar is running.
@@ -23,7 +23,7 @@ from pathlib import Path
 
 # Shared with the GTK bar so the existing Super+Shift+left bind reaches the Qt
 # bar too (only one bar runs at a time).
-FIFO_NAME = "hyprtk-bar-widget-move.fifo"
+FIFO_NAME = "hyprtk-bar-qt-widget-move.fifo"
 
 
 def fifo_path() -> Path:

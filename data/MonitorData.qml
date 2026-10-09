@@ -24,7 +24,7 @@ Singleton {
 
     readonly property int histLen: Math.max(10, scfg.data_points || Config.sysmonDataPoints)
 
-    // Shared hyprtk-bar `sysmon` block (so the GTK Settings and this dialog agree),
+    // The Qt bar's own `sysmon` block (what this dialog and the Settings page edit),
     // falling back to the Qt bar's own config.
     readonly property var scfg: BarConfig.sysmon
     readonly property int intervalS: scfg.interval || Config.sysmonInterval

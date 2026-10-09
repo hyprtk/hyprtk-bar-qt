@@ -7,7 +7,7 @@ error it returns a zero/empty value rather than raising. Rate readers (CPU,
 disk I/O, network) are sampler classes that keep a previous sample and compute
 deltas.
 
-Caches are shared with the GTK bar (``~/.cache/hyprtk-bar``), so the two bars
+Caches live in the Qt bar's own tree (``~/.cache/hyprtk-bar-qt``), separate
 do not each re-run dmidecode / rocminfo.
 """
 
@@ -32,9 +32,12 @@ _GB = 1024 ** 3
 
 HWMON = Path("/sys/class/hwmon")
 DRM = Path("/sys/class/drm")
-DIMM_CACHE = Path.home() / ".cache" / "hyprtk-bar" / "dimm.json"
-DIMM_TTL = 24 * 3600
-GPU_CACHE = Path.home() / ".cache" / "hyprtk-bar" / "gpu.json"
+try:
+    from .paths import QT_CACHE
+except ImportError:  # run as a script (python3 monitor_data.py)
+    from paths import QT_CACHE
+DIMM_CACHE = QT_CACHE / "dimm.json"
+GPU_CACHE = QT_CACHE / "gpu.json"
 GPU_TTL = 24 * 3600
 
 _GPU_VENDORS = {"1002": "AMD", "10de": "NVIDIA", "8086": "Intel"}
@@ -1103,7 +1106,7 @@ def gpu_static(use_cache: bool = True) -> dict | None:
     """Static GPU info (model/manufacturer/units/max clock), cached.
 
     Fetched via rocminfo / lspci which need no root here; the result is cached
-    in ~/.cache/hyprtk-bar/gpu.json. Call the fetch off the UI thread.
+    in ~/.cache/hyprtk-bar-qt/gpu.json. Call the fetch off the UI thread.
     """
     if use_cache:
         if _cache_fresh(GPU_CACHE, GPU_TTL):
@@ -1358,7 +1361,7 @@ def _dimm_fetch() -> str:
 def dimm_slots(use_cache: bool = True) -> list[dict] | None:
     """DIMM slot list, or None when unavailable.
 
-    With ``use_cache`` a fresh ~/.cache/hyprtk-bar/dimm.json is served directly
+    With ``use_cache`` a fresh ~/.cache/hyprtk-bar-qt/dimm.json is served directly
     (no prompt). Otherwise the data is fetched via sudo/pkexec and cached; the
     fetch may show a polkit password dialog, so call it off the UI thread.
     """

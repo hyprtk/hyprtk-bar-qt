@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.35.0 — unreleased
+
+**Fully separated from the GTK `hyprtk-bar`.** The Qt bar now owns its own
+scripts, themes, caches and runtime channels instead of reaching into the GTK
+bar's tree.
+
+- **Own runtime tree**: scripts + rofi config are vendored into the repo
+  (`scripts/`) and installed to `~/.local/share/hyprtk-bar-qt/scripts/`
+  (`appsmenu.sh`, `change-icons.sh`, `wallpaper-colors.sh`, `updatewal-awww.sh`,
+  `updates.sh`, `installupdates.sh`, `sync-rofi-theme.sh`, `wal-watcher.sh`,
+  `rofi/`, …). `Themer`, `Updates`, `icons`, `wallpapers` all point there.
+- **Own themes/widget-themes**: the 9 bar themes and the clock widget themes are
+  vendored (`themes/`, `assets/widgets/clock/`) and installed to
+  `~/.config/hyprtk-bar-qt/{themes,widget-themes/clock}/`.
+- **Own caches**: `~/.cache/hyprtk-bar-qt/` (`weather.json`, `dimm.json`,
+  `gpu.json`, `cava-hyprtk.conf`).
+- **Own runtime channels**: the widget-move FIFO is `hyprtk-bar-qt-widget-move.fifo`
+  and the keybind lock is `hyprtk-bar-qt-<uid>.lock` (no longer shared with the
+  GTK bar). New `startmenu` IPC + `hyprtk-bar-qt-menu-toggle` helper.
+- **install.sh** lays down the scripts/themes/widget-themes and rewrites any
+  `hyprtk-bar/scripts` command paths in the Qt config to the Qt tree.
+- **Hyprland config** (`keybindings.lua` / `autostart.lua`) switched to bar-qt:
+  Super+Space → `hyprtk-bar-qt-menu-toggle`, Super+D / Super+Ctrl+Return →
+  `~/.local/share/hyprtk-bar-qt/scripts/appsmenu.sh`, Super+Shift+W → its
+  `updatewal-awww.sh`, Super+Ctrl+C/M → the Qt clipboard/arc toggles,
+  Super+Shift+LMB → `hyprtk-bar-qt-widget-move`, autostart launches
+  `hyprtk-bar-qt`.
+- The GTK config is still read **once** for first-run migration (`paths.py`),
+  but nothing else crosses over.
+- **Quicklink fix**: the `apps` quicklink now runs its configured command
+  (`appsmenu.sh` → rofi drun) instead of opening the Qt start menu.
+
 ## 0.34.0 — unreleased
 
 Optional extras and remaining parity polish (the non-blocking frontier from the

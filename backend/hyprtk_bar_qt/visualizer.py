@@ -22,7 +22,7 @@ import threading
 import time
 from pathlib import Path
 
-CAVA_CONF_PATH = Path.home() / ".cache" / "hyprtk-bar" / "cava-hyprtk.conf"
+CAVA_CONF_PATH = Path.home() / ".cache" / "hyprtk-bar-qt" / "cava-hyprtk.conf"
 
 
 def resolve_binary(name: str) -> str | None:

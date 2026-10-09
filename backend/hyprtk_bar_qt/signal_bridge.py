@@ -1,7 +1,7 @@
 """Bridge the dotfiles' bar keybinds to the Qt bar.
 
 The GTK bar's toggle scripts read the bar PID from
-``$XDG_RUNTIME_DIR/hyprtk-bar-<uid>.lock`` and send it a signal:
+``$XDG_RUNTIME_DIR/hyprtk-bar-qt-<uid>.lock`` and send it a signal:
 
     SIGUSR1 → start menu   (Super+Space)
     SIGUSR2 → arc menu     (Super+Ctrl+M)
@@ -32,7 +32,7 @@ SIGNALS = {
 
 def lock_path() -> Path:
     runtime = os.environ.get("XDG_RUNTIME_DIR") or f"/run/user/{os.getuid()}"
-    return Path(runtime) / f"hyprtk-bar-{os.getuid()}.lock"
+    return Path(runtime) / f"hyprtk-bar-qt-{os.getuid()}.lock"
 
 
 def _alive(pid: int) -> bool:

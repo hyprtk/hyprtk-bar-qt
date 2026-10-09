@@ -16,10 +16,14 @@ import sys
 from pathlib import Path
 
 HOME = Path.home()
+try:
+    from .paths import QT_SCRIPTS
+except ImportError:  # run as a script (python3 icons.py)
+    from paths import QT_SCRIPTS
 ICON_THEME_DIR = HOME / ".local" / "share" / "icons" / "Papirus-Dark" / "48x48" / "places"
 PAPIRUS_FOLDERS = HOME / ".local" / "bin" / "papirus-folders"
 PAPIRUS_FOLDERS_SH = HOME / ".local" / "share" / "icons" / "papirus-folders.sh"
-CHANGE_ICONS_SH = HOME / ".local" / "share" / "hyprtk-bar" / "scripts" / "change-icons.sh"
+CHANGE_ICONS_SH = QT_SCRIPTS / "change-icons.sh"
 
 # (display label, papirus colour name) — mirrors the GTK bar's _COLOR_PRESETS.
 PRESETS = [

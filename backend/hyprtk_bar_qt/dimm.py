@@ -2,7 +2,7 @@
 
 SMBIOS needs root, so the fetch goes through ``monitor_data.dimm_slots`` (which
 tries ``sudo -n`` then ``pkexec``) and the result is cached to
-``~/.cache/hyprtk-bar/dimm.json``. The QML calls this off the UI thread.
+``~/.cache/hyprtk-bar-qt/dimm.json``. The QML calls this off the UI thread.
 
 Usage::
 

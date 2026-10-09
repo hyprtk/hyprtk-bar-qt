@@ -659,4 +659,11 @@ PanelWindow {
             }
         }
     }
+
+    IpcHandler {
+        target: "startmenu"
+        function toggle() { UiState.startMenuOpen = !UiState.startMenuOpen; }
+        function open() { UiState.startMenuOpen = true; }
+        function close() { UiState.startMenuOpen = false; }
+    }
 }

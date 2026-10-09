@@ -35,9 +35,13 @@ def current() -> str | None:
 
 
 def _wallpaper_script() -> Path | None:
+    try:
+        from .paths import QT_SCRIPTS
+    except ImportError:  # run as a script (python3 wallpapers.py)
+        from paths import QT_SCRIPTS
     home = Path.home()
     for candidate in (
-        home / ".local" / "share" / "hyprtk-bar" / "scripts" / "wallpaper-colors.sh",
+        QT_SCRIPTS / "wallpaper-colors.sh",
         home / "hyprtk" / "configs" / "hypr" / "scripts" / "wallpaper-colors.sh",
     ):
         if candidate.is_file():

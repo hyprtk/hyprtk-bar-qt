@@ -19,7 +19,7 @@ WidgetFrame {
     FileView {
         id: themeFile
         path: win.block.theme
-            ? win.home + "/.config/hyprtk-bar/widget-themes/clock/" + String(win.block.theme).replace(/[^A-Za-z0-9_-]/g, "") + ".json"
+            ? win.home + "/.config/hyprtk-bar-qt/widget-themes/clock/" + String(win.block.theme).replace(/[^A-Za-z0-9_-]/g, "") + ".json"
             : ""
         printErrors: false
         onLoaded: {

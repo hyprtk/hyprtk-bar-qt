@@ -646,7 +646,7 @@ PanelWindow {
                             TCheckBox { checked: win.g("menu.enabled", true); onToggled: win.set("menu.enabled", checked) }
                         }
                         SRow {
-                            label: "Follow hyprtk-bar"
+                            label: "Follow pywal"
                             TCheckBox { checked: win.g("menu.follow_bar", true); onToggled: win.set("menu.follow_bar", checked) }
                         }
                         SRow {

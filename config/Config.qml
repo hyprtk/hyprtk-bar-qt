@@ -2,7 +2,7 @@
 //
 // Loaded from ~/.config/hyprtk-bar-qt/config.json at startup and written back
 // by the Settings/Themer windows. The Qt bar's config is fully separate from
-// the GTK bar's (~/.config/hyprtk-bar/config.json), so the two bars can be
+// its own ~/.config/hyprtk-bar-qt/config.json, separate from the GTK bar, so the two can be
 // configured independently.
 pragma Singleton
 
@@ -22,7 +22,7 @@ Singleton {
         Qt.resolvedUrl("../backend/hyprtk_bar_qt/barsettings.py").toString().replace("file://", "")
 
     // ── appearance override ────────────────────────────────────────────
-    // Bar geometry/layout is authoritative in the SHARED hyprtk-bar config
+    // Bar geometry/layout is authoritative in the Qt bar's own config
     // (data/BarConfig.qml) so the GTK and Qt bars match; only the opacity
     // override lives here.
     property real opacity: -1              // -1 = follow Theme.opacity
@@ -39,7 +39,7 @@ Singleton {
     property var layoutCenter: []
     property var layoutRight: ["updates", "net", "tray", "kbstate", "notifications", "clock", "sysmon", "arcmenu", "themer", "settings", "quicksettings"]
 
-    // ── theme overrides ("" = follow hyprtk-bar / pywal) ───────────────
+    // ── theme overrides ("" = follow pywal) ───────────────
     property string wallpaperDir: ""       // "" = ~/Pictures/Wallpapers
     property string themeSource: ""
     property string themeName: ""

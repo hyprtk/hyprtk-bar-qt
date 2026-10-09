@@ -2,20 +2,14 @@
 # Start/stop a desktop-widget move for the Qt bar by writing to the bar's
 # control FIFO.
 #
-# The Qt bar watches the SAME FIFO as the GTK bar, so the existing
-# Super + Shift + left mouse bind (which calls hyprtk-bar-widget-move.sh)
-# drives whichever bar is running:
-#   bind  = SUPER SHIFT, mouse:272, exec, hyprtk-bar-widget-move.sh start
-#   bindr = SUPER SHIFT, mouse:272, exec, hyprtk-bar-widget-move.sh stop
-#
-# This helper is for a Qt-only bind (if you ever want one):
+# Bind Super + Shift + left mouse (press/release) to:
 #   bind  = SUPER SHIFT, mouse:272, exec, hyprtk-bar-qt-widget-move start
 #   bindr = SUPER SHIFT, mouse:272, exec, hyprtk-bar-qt-widget-move stop
 set -uo pipefail
 
 action="${1:-start}"
 runtime="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-fifo="$runtime/hyprtk-bar-widget-move.fifo"
+fifo="$runtime/hyprtk-bar-qt-widget-move.fifo"
 
 if [ -p "$fifo" ]; then
     # Open read-write so we never block waiting for a reader (a plain write

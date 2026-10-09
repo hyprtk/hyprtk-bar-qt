@@ -47,7 +47,7 @@ PanelWindow {
 
     readonly property string home: Quickshell.env("HOME") || ""
     readonly property string base: Qt.resolvedUrl("../backend/hyprtk_bar_qt/").toString().replace("file://", "")
-    readonly property string scripts: win.home + "/.local/share/hyprtk-bar/scripts"
+    readonly property string scripts: win.home + "/.local/share/hyprtk-bar-qt/scripts"
 
     readonly property var pages: [
         { key: "wallpaper", glyph: "\uf03e", label: "Wallpaper" },
@@ -203,7 +203,7 @@ PanelWindow {
         id: rofiProc
         command: ["bash", "-c",
             "printf 'LINK=%s\\n' \"$(readlink ~/.config/rofi/variant.rasi 2>/dev/null)\"; " +
-            "ls -1 ~/.local/share/hyprtk-bar/scripts/rofi/variants/*.rasi 2>/dev/null || " +
+            "ls -1 ~/.local/share/hyprtk-bar-qt/scripts/rofi/variants/*.rasi 2>/dev/null || " +
             "ls -1 ~/.config/rofi/variants/*.rasi 2>/dev/null"]
         stdout: SplitParser {
             onRead: line => {

@@ -16,14 +16,14 @@ Text {
     property string tip: ""
 
     readonly property string home: Quickshell.env("HOME") || ""
-    readonly property string script: BarConfig.updates.script || (root.home + "/.local/share/hyprtk-bar/scripts/updates.sh")
-    readonly property string install: BarConfig.updates.install_command || (root.home + "/.local/share/hyprtk-bar/scripts/installupdates.sh")
+    readonly property string script: BarConfig.updates.script || (root.home + "/.local/share/hyprtk-bar-qt/scripts/updates.sh")
+    readonly property string install: BarConfig.updates.install_command || (root.home + "/.local/share/hyprtk-bar-qt/scripts/installupdates.sh")
     readonly property int intervalS: BarConfig.updates.interval || 60
 
     // Only run scripts from bar/repo-owned roots (never an arbitrary path).
     readonly property bool scriptAllowed: {
         const roots = [
-            root.home + "/.local/share/hyprtk-bar",
+            root.home + "/.local/share/hyprtk-bar-qt",
             root.home + "/.local/bin",
             root.home + "/hyprtk/installer/scripts"
         ];

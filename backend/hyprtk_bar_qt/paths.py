@@ -1,7 +1,7 @@
 """Config paths for hyprtk-bar-qt.
 
 The Qt bar keeps its **own** config (``~/.config/hyprtk-bar-qt/config.json``),
-separate from the GTK bar's (``~/.config/hyprtk-bar/config.json``), so the two
+separate from the GTK bar (``~/.config/hyprtk-bar/config.json``), which is only read once for migration, so the two bars are fully independent.
 bars can be configured independently. ``seed_from_gtk`` migrates an existing
 setup: it builds the Qt config from the GTK config and re-applies the Qt-only
 keys the Qt bar owns (so a previously-configured Qt bar keeps its overrides).
@@ -20,6 +20,18 @@ from pathlib import Path
 
 GTK_CONFIG = Path.home() / ".config" / "hyprtk-bar" / "config.json"
 QT_CONFIG = Path.home() / ".config" / "hyprtk-bar-qt" / "config.json"
+
+# The Qt bar owns its own trees (fully separate from the GTK bar):
+#   ~/.config/hyprtk-bar-qt     config + themes + widget-themes
+#   ~/.local/share/hyprtk-bar-qt  scripts + assets
+#   ~/.cache/hyprtk-bar-qt      runtime caches
+QT_CONFIG_DIR = QT_CONFIG.parent
+QT_DATA = Path.home() / ".local" / "share" / "hyprtk-bar-qt"
+QT_SCRIPTS = QT_DATA / "scripts"
+QT_ASSETS = QT_DATA / "assets"
+QT_CACHE = Path.home() / ".cache" / "hyprtk-bar-qt"
+QT_THEMES = QT_CONFIG_DIR / "themes"
+QT_WIDGET_THEMES = QT_CONFIG_DIR / "widget-themes"
 
 # Keys the Qt bar owns that are NOT part of the shared GTK bar schema. These are
 # carried over from a legacy Qt config when seeding; on a name clash the GTK

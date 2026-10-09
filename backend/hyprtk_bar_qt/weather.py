@@ -2,7 +2,7 @@
 
 Ported from the GTK bar's ``desktop/weather.py`` (toolkit-free): geocode a city
 name, fetch current + daily forecast, cache the last good result to
-``~/.cache/hyprtk-bar/weather.json`` so the widget renders offline/instantly.
+``~/.cache/hyprtk-bar-qt/weather.json`` so the widget renders offline/instantly.
 
 Usage::
 
@@ -22,7 +22,12 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-CACHE_PATH = Path.home() / ".cache" / "hyprtk-bar" / "weather.json"
+try:
+    from .paths import QT_CACHE
+except ImportError:  # run as a script (python3 weather.py)
+    from paths import QT_CACHE
+
+CACHE_PATH = QT_CACHE / "weather.json"
 GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search"
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 HTTP_TIMEOUT = 8

@@ -1,7 +1,7 @@
 """Import a hyprtk theme (waybar-style CSS) and resolve it into a bar palette.
 
 Themes are imported (folder with ``style.css``, usually plus ``colors.css``)
-into the bar's own themes directory: ``~/.config/hyprtk-bar/themes/``.
+into the bar's own themes directory: ``~/.config/hyprtk-bar-qt/themes/``.
 
 ``@import`` and ``@define-color`` are resolved (including pywal CSS files such
 as ``~/.cache/wal/colors-waybar*.css``), so an imported theme that pulls in
@@ -31,7 +31,11 @@ from .config import load_pywal_colors  # noqa: E402
 
 log = logging.getLogger("hyprtk_bar.theme_import")
 
-BAR_THEMES_DIR = Path.home() / ".config" / "hyprtk-bar" / "themes"
+try:
+    from .paths import QT_THEMES
+except ImportError:  # run as a script
+    from paths import QT_THEMES
+BAR_THEMES_DIR = QT_THEMES
 
 _COLOR_TOKEN = re.compile(
     r"#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)|alpha\([^)]*\)"
