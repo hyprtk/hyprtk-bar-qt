@@ -38,7 +38,7 @@ PanelWindow {
     readonly property var entries: [
         { glyph: "\uf013", label: "Settings", act: "settings" },
         { glyph: "\uf021", label: "Reload", act: "reload" },
-        { glyph: "\uf05a", label: "About hyprtk-bar", act: "about" }
+        { glyph: "\uf05a", label: "About hyprtk-bar-qt", act: "about" }
     ]
 
     // Persist the live widget layout before reloading, so a reload restores the
