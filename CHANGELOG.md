@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.37.0 — unreleased
+
+About dialog, settings toggles, and the Modules/Widgets pages.
+
+- Removed all GTK references from the About box.
+- Added live version readouts: **hyprtk-bar-qt** (from `__init__.__version__`),
+  **Qt** (`qmake6 -query QT_VERSION`) and **Quickshell** (`qs --version`).
+- Settings toggles now render as traditional radio buttons (ring + inner dot)
+  instead of a square tick box; the check glyph (which fell back to a broken
+  `8`) is gone.
+- **Modules** and **Widgets** pages rebuilt as clean accordion cards: one card
+  per module/widget with a readable name, its Enabled/On toggle, placement and
+  reorder controls on the header row, and a chevron that reveals its options
+  (grouped as Placement / Colours / Options) — instead of a dense list followed
+  by a disconnected wall of controls.
+
 ## 0.36.0 — unreleased
 
 Wallpaper thumbnails are cached — the Theme Manager opens with every thumbnail

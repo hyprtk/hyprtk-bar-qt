@@ -1,4 +1,4 @@
-// Themed check box.
+// Themed toggle rendered as a traditional radio button (ring + inner dot).
 import QtQuick
 import QtQuick.Controls.Basic
 import "../theme"
@@ -24,17 +24,18 @@ CheckBox {
         implicitHeight: 18
         x: root.leftPadding
         y: parent.height / 2 - height / 2
-        radius: 5
-        color: root.checked ? Theme.accent : Theme.alpha(Theme.background, 0.6)
-        border.width: 1
-        border.color: root.checked ? Theme.accent : Theme.alpha(Theme.accent2, 0.4)
+        radius: width / 2
+        color: "transparent"
+        border.width: 1.5
+        border.color: root.checked ? Theme.accent : Theme.alpha(Theme.accent2, 0.5)
 
-        Text {
+        Rectangle {
             anchors.centerIn: parent
-            text: "\uf00c"
+            width: Math.round(parent.width * 0.5)
+            height: width
+            radius: width / 2
+            color: Theme.accent
             visible: root.checked
-            color: "#000000"
-            font.pixelSize: 11
         }
     }
 }

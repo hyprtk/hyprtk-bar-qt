@@ -138,6 +138,38 @@ PanelWindow {
         return b ? b + ".enabled" : "";
     }
 
+    // ── module / widget presentation helpers ───────────────────────────
+    readonly property var moduleLabels: ({
+        start_button: "Start Button", quicklinks: "Quick Links", workspaces: "Workspaces",
+        tasklist: "Task List", window: "Active Window", updates: "Updates", net: "Network",
+        tray: "System Tray", kbstate: "Keyboard State", notifications: "Notifications",
+        clock: "Clock", media: "Media", sysmon: "System Monitor", arcmenu: "Arc Menu",
+        themer: "Theme Manager", settings: "Settings", quicksettings: "Quick Settings"
+    })
+    function moduleLabel(id) { return win.moduleLabels[id] || id; }
+    function moduleHasOptions(id) {
+        return ["workspaces", "clock", "media", "updates", "window", "tray", "notifications"].indexOf(id) >= 0;
+    }
+    readonly property var widgetLabels: ({
+        clock: "Clock", weather: "Weather", visualizer: "Visualizer", disk: "Disk",
+        network: "Network", resources: "Resources", sysinfo: "System Info"
+    })
+    function widgetLabel(id) { return win.widgetLabels[id] || id; }
+
+    // Accordion expansion state for the Modules / Widgets pages.
+    property var expMod: ({})
+    property var expWid: ({})
+    function toggleMod(id) {
+        const m = Object.assign({}, win.expMod);
+        m[id] = !m[id];
+        win.expMod = m;
+    }
+    function toggleWid(id) {
+        const m = Object.assign({}, win.expWid);
+        m[id] = !m[id];
+        win.expWid = m;
+    }
+
     // ── quicklinks helpers ─────────────────────────────────────────────
     function links() { return win.g("quicklinks.links", []); }
     function setLink(i, field, value) {
@@ -763,65 +795,127 @@ PanelWindow {
                     ColumnLayout {
                         id: modCol
                         width: parent.width
-                        spacing: 6
-                        Text { text: "Place each module left / center / right; the checkbox toggles it."; color: Theme.dim; font.pixelSize: 11 }
+                        spacing: 8
+                        Text {
+                            Layout.fillWidth: true
+                            text: "Enable a module and pick the bar section it lives in. Tap the arrow to reveal its options."
+                            color: Theme.dim; font.pixelSize: 11; wrapMode: Text.WordWrap
+                        }
                         Repeater {
                             model: win.moduleIds
-                            delegate: RowLayout {
-                                id: mrow
+                            delegate: Rectangle {
+                                id: mcard
                                 required property string modelData
                                 Layout.fillWidth: true
-                                spacing: 8
-                                Text { text: mrow.modelData; color: Theme.foreground; font.pixelSize: 12; Layout.preferredWidth: 130 }
-                                TCheckBox {
-                                    text: "Enabled"
-                                    visible: win.moduleEnabledKey(mrow.modelData) !== ""
-                                    checked: win.g(win.moduleEnabledKey(mrow.modelData), true)
-                                    onToggled: win.set(win.moduleEnabledKey(mrow.modelData), checked)
+                                readonly property bool hasOpts: win.moduleHasOptions(mcard.modelData)
+                                readonly property bool expanded: win.expMod[mcard.modelData] === true
+                                implicitHeight: mcol.implicitHeight + 16
+                                radius: 8
+                                color: Theme.alpha(Theme.background, 0.42)
+                                border.width: 1
+                                border.color: mcard.expanded ? Theme.alpha(Theme.accent, 0.55)
+                                                             : Theme.alpha(Theme.accent2, 0.15)
+
+                                ColumnLayout {
+                                    id: mcol
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    anchors.top: parent.top
+                                    anchors.margins: 8
+                                    spacing: 8
+
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 8
+                                        Text {
+                                            text: win.moduleLabel(mcard.modelData)
+                                            color: Theme.foreground; font.bold: true; font.pixelSize: 12
+                                            elide: Text.ElideRight
+                                            Layout.preferredWidth: 122
+                                        }
+                                        TCheckBox {
+                                            text: "Enabled"
+                                            visible: win.moduleEnabledKey(mcard.modelData) !== ""
+                                            checked: win.g(win.moduleEnabledKey(mcard.modelData), true)
+                                            onToggled: win.set(win.moduleEnabledKey(mcard.modelData), checked)
+                                        }
+                                        TComboBox {
+                                            Layout.preferredWidth: 106
+                                            model: ["Off", "Left", "Center", "Right"]
+                                            currentIndex: {
+                                                const s = win.sectionOf(mcard.modelData);
+                                                return s === "left" ? 1 : s === "center" ? 2 : s === "right" ? 3 : 0;
+                                            }
+                                            onActivated: win.setSection(mcard.modelData, ["", "left", "center", "right"][currentIndex])
+                                        }
+                                        TButton { text: "\u2191"; implicitWidth: 28; enabled: win.sectionOf(mcard.modelData) !== ""; onClicked: win.moveModule(mcard.modelData, -1) }
+                                        TButton { text: "\u2193"; implicitWidth: 28; enabled: win.sectionOf(mcard.modelData) !== ""; onClicked: win.moveModule(mcard.modelData, 1) }
+                                        Item { Layout.fillWidth: true }
+                                        Rectangle {
+                                            visible: mcard.hasOpts
+                                            implicitWidth: 28; implicitHeight: 24; radius: 6
+                                            color: chevHover.hovered ? Theme.alpha(Theme.accent2, 0.2) : "transparent"
+                                            Text { anchors.centerIn: parent; text: mcard.expanded ? "\uf077" : "\uf078"; color: Theme.accent; font.pixelSize: 11 }
+                                            HoverHandler { id: chevHover }
+                                            TapHandler { onTapped: win.toggleMod(mcard.modelData) }
+                                        }
+                                    }
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 6
+                                        visible: mcard.expanded && mcard.modelData === "workspaces"
+                                        SRow { label: "Show empty"; TCheckBox { checked: win.g("workspaces.show_empty", true); onToggled: win.set("workspaces.show_empty", checked) } }
+                                        SRow { label: "Max shown"; TSpinBox { from: 0; to: 32; value: win.g("workspaces.max", 0); onValueModified: win.set("workspaces.max", value) } }
+                                    }
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 6
+                                        visible: mcard.expanded && mcard.modelData === "clock"
+                                        SRow { label: "Time format"; TTextField { Layout.fillWidth: true; text: win.g("clock.format", "ddd HH:mm:ss"); onEditingFinished: win.set("clock.format", text) } }
+                                        SRow { label: "Date format"; TTextField { Layout.fillWidth: true; text: win.g("clock.date_format", "dddd, dd MMMM"); onEditingFinished: win.set("clock.date_format", text) } }
+                                        SRow { label: "Calendar popup"; TCheckBox { checked: win.g("clock.calendar", true); onToggled: win.set("clock.calendar", checked) } }
+                                    }
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 6
+                                        visible: mcard.expanded && mcard.modelData === "media"
+                                        SRow { label: "Transport controls"; TCheckBox { checked: win.g("media.show_controls", true); onToggled: win.set("media.show_controls", checked) } }
+                                        SRow { label: "Show track text"; TCheckBox { checked: win.g("media.show_text", true); onToggled: win.set("media.show_text", checked) } }
+                                        SRow { label: "Max text length"; TSpinBox { from: 0; to: 200; value: win.g("media.max_length", 48); onValueModified: win.set("media.max_length", value) } }
+                                        SRow { label: "Text width (px)"; TSpinBox { from: 0; to: 600; stepSize: 10; value: win.g("media.text_width", 180); onValueModified: win.set("media.text_width", value) } }
+                                    }
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 6
+                                        visible: mcard.expanded && mcard.modelData === "updates"
+                                        SRow { label: "Interval (s)"; TSpinBox { from: 30; to: 3600; stepSize: 30; value: win.g("updates.interval", 60); onValueModified: win.set("updates.interval", value) } }
+                                        SRow { label: "Script"; TTextField { Layout.fillWidth: true; text: win.g("updates.script", ""); onEditingFinished: win.set("updates.script", text) } }
+                                        SRow { label: "Install command"; TTextField { Layout.fillWidth: true; text: win.g("updates.install_command", ""); onEditingFinished: win.set("updates.install_command", text) } }
+                                    }
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 6
+                                        visible: mcard.expanded && mcard.modelData === "window"
+                                        SRow { label: "Max length"; TSpinBox { from: 0; to: 400; value: win.g("window.max_length", 120); onValueModified: win.set("window.max_length", value) } }
+                                        SRow { label: "Fixed width"; TSpinBox { from: 0; to: 600; value: win.g("window.width", 0); onValueModified: win.set("window.width", value) } }
+                                    }
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 6
+                                        visible: mcard.expanded && mcard.modelData === "tray"
+                                        SRow { label: "Icon size (0=auto)"; TSpinBox { from: 0; to: 48; value: win.g("tray.icon_size", 0); onValueModified: win.set("tray.icon_size", value) } }
+                                    }
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 6
+                                        visible: mcard.expanded && mcard.modelData === "notifications"
+                                        SRow { label: "Max stored"; TSpinBox { from: 1; to: 500; value: win.g("notifications.max_stored", 50); onValueModified: win.set("notifications.max_stored", value) } }
+                                        SRow { label: "Default timeout (ms)"; TSpinBox { from: 1000; to: 60000; stepSize: 500; value: win.g("notifications.default_timeout", 5000); onValueModified: win.set("notifications.default_timeout", value) } }
+                                    }
                                 }
-                                TComboBox {
-                                    model: ["", "left", "center", "right"]
-                                    currentIndex: win.idx(["", "left", "center", "right"], win.sectionOf(mrow.modelData))
-                                    onActivated: win.setSection(mrow.modelData, model[currentIndex])
-                                }
-                                TButton { text: "\u2191"; implicitWidth: 30; enabled: win.sectionOf(mrow.modelData) !== ""; onClicked: win.moveModule(mrow.modelData, -1) }
-                                TButton { text: "\u2193"; implicitWidth: 30; enabled: win.sectionOf(mrow.modelData) !== ""; onClicked: win.moveModule(mrow.modelData, 1) }
-                                Item { Layout.fillWidth: true }
                             }
                         }
-
-                        // ── per-module options (mirrors the GTK module tabs) ──
-                        Text { text: "Workspaces"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 8 }
-                        SRow { label: "Show empty"; TCheckBox { checked: win.g("workspaces.show_empty", true); onToggled: win.set("workspaces.show_empty", checked) } }
-                        SRow { label: "Max shown"; TSpinBox { from: 0; to: 32; value: win.g("workspaces.max", 0); onValueModified: win.set("workspaces.max", value) } }
-
-                        Text { text: "Clock"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 8 }
-                        SRow { label: "Time format"; TTextField { Layout.fillWidth: true; text: win.g("clock.format", "ddd HH:mm:ss"); onEditingFinished: win.set("clock.format", text) } }
-                        SRow { label: "Date format"; TTextField { Layout.fillWidth: true; text: win.g("clock.date_format", "dddd, dd MMMM"); onEditingFinished: win.set("clock.date_format", text) } }
-                        SRow { label: "Calendar popup"; TCheckBox { checked: win.g("clock.calendar", true); onToggled: win.set("clock.calendar", checked) } }
-
-                        Text { text: "Media (MPRIS)"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 8 }
-                        SRow { label: "Transport controls"; TCheckBox { checked: win.g("media.show_controls", true); onToggled: win.set("media.show_controls", checked) } }
-                        SRow { label: "Show track text"; TCheckBox { checked: win.g("media.show_text", true); onToggled: win.set("media.show_text", checked) } }
-                        SRow { label: "Max text length"; TSpinBox { from: 0; to: 200; value: win.g("media.max_length", 48); onValueModified: win.set("media.max_length", value) } }
-                        SRow { label: "Text width (px)"; TSpinBox { from: 0; to: 600; stepSize: 10; value: win.g("media.text_width", 180); onValueModified: win.set("media.text_width", value) } }
-
-                        Text { text: "Updates"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 8 }
-                        SRow { label: "Interval (s)"; TSpinBox { from: 30; to: 3600; stepSize: 30; value: win.g("updates.interval", 60); onValueModified: win.set("updates.interval", value) } }
-                        SRow { label: "Script"; TTextField { Layout.fillWidth: true; text: win.g("updates.script", ""); onEditingFinished: win.set("updates.script", text) } }
-                        SRow { label: "Install command"; TTextField { Layout.fillWidth: true; text: win.g("updates.install_command", ""); onEditingFinished: win.set("updates.install_command", text) } }
-
-                        Text { text: "Window title"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 8 }
-                        SRow { label: "Max length"; TSpinBox { from: 0; to: 400; value: win.g("window.max_length", 120); onValueModified: win.set("window.max_length", value) } }
-                        SRow { label: "Fixed width"; TSpinBox { from: 0; to: 600; value: win.g("window.width", 0); onValueModified: win.set("window.width", value) } }
-
-                        Text { text: "Tray"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 8 }
-                        SRow { label: "Icon size (0=auto)"; TSpinBox { from: 0; to: 48; value: win.g("tray.icon_size", 0); onValueModified: win.set("tray.icon_size", value) } }
-
-                        Text { text: "Notifications"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 8 }
-                        SRow { label: "Max stored"; TSpinBox { from: 1; to: 500; value: win.g("notifications.max_stored", 50); onValueModified: win.set("notifications.max_stored", value) } }
-                        SRow { label: "Default timeout (ms)"; TSpinBox { from: 1000; to: 60000; stepSize: 500; value: win.g("notifications.default_timeout", 5000); onValueModified: win.set("notifications.default_timeout", value) } }
-
                         Item { Layout.fillHeight: true }
                     }
                 }
@@ -829,171 +923,200 @@ PanelWindow {
                 // Widgets ────────────────────────────────────────────────
                 ColumnLayout {
                     spacing: 8
-                    SRow {
-                        label: "Widgets enabled"
-                        TCheckBox { checked: win.g("widgets.enabled", false); onToggled: win.set("widgets.enabled", checked) }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        implicitHeight: masters.implicitHeight + 16
+                        radius: 8
+                        color: Theme.alpha(Theme.background, 0.42)
+                        border.width: 1; border.color: Theme.alpha(Theme.accent2, 0.15)
+                        RowLayout {
+                            id: masters
+                            anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top
+                            anchors.margins: 8
+                            spacing: 18
+                            TCheckBox { text: "Widgets enabled"; checked: win.g("widgets.enabled", false); onToggled: win.set("widgets.enabled", checked) }
+                            TCheckBox { text: "Transparent pills"; checked: win.g("widgets.transparent", false); onToggled: win.set("widgets.transparent", checked) }
+                            TCheckBox { text: "Borders"; checked: win.g("widgets.border", true); onToggled: win.set("widgets.border", checked) }
+                            Item { Layout.fillWidth: true }
+                        }
                     }
-                    SRow {
-                        label: "Transparent pills"
-                        TCheckBox { checked: win.g("widgets.transparent", false); onToggled: win.set("widgets.transparent", checked) }
-                    }
-                    SRow {
-                        label: "Widget borders"
-                        TCheckBox { checked: win.g("widgets.border", true); onToggled: win.set("widgets.border", checked) }
-                    }
+
                     Flickable {
                         Layout.fillWidth: true; Layout.fillHeight: true
                         contentHeight: wCol.implicitHeight; clip: true
                         ColumnLayout {
                             id: wCol
                             width: parent.width
-                            spacing: 10
+                            spacing: 8
+                            Text {
+                                Layout.fillWidth: true
+                                text: "Turn a desktop widget on and choose its screen position. Tap the arrow for size, colours and options."
+                                color: Theme.dim; font.pixelSize: 11; wrapMode: Text.WordWrap
+                            }
                             Repeater {
                                 model: win.widgetIds
-                                delegate: ColumnLayout {
-                                    id: wr
+                                delegate: Rectangle {
+                                    id: wcard
                                     required property string modelData
                                     Layout.fillWidth: true
-                                    spacing: 4
+                                    readonly property bool expanded: win.expWid[wcard.modelData] === true
+                                    readonly property bool hasColors: win.hasColors(wcard.modelData)
+                                    implicitHeight: wcol.implicitHeight + 16
+                                    radius: 8
+                                    color: Theme.alpha(Theme.background, 0.42)
+                                    border.width: 1
+                                    border.color: wcard.expanded ? Theme.alpha(Theme.accent, 0.55)
+                                                                 : Theme.alpha(Theme.accent2, 0.15)
 
-                                    // header: name / on / position / opacity
-                                    RowLayout {
-                                        Layout.fillWidth: true
+                                    ColumnLayout {
+                                        id: wcol
+                                        anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top
+                                        anchors.margins: 8
                                         spacing: 8
-                                        Text { text: wr.modelData; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.preferredWidth: 90 }
-                                        TCheckBox { text: "On"; checked: win.g("widgets." + wr.modelData + ".enabled", false); onToggled: win.setWidget(wr.modelData, "enabled", checked) }
-                                        TComboBox {
-                                            Layout.preferredWidth: 130
-                                            model: ["top-left", "top-center", "top-right", "center-left", "center", "center-right", "bottom-left", "bottom-center", "bottom-right", "free"]
-                                            currentIndex: win.idx(model, win.widgetVal(wr.modelData, "position", "top-left"))
-                                            onActivated: win.setWidget(wr.modelData, "position", model[currentIndex])
+
+                                        RowLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 8
+                                            Text { text: win.widgetLabel(wcard.modelData); color: Theme.foreground; font.bold: true; font.pixelSize: 12; Layout.preferredWidth: 92 }
+                                            TCheckBox { text: "On"; checked: win.g("widgets." + wcard.modelData + ".enabled", false); onToggled: win.setWidget(wcard.modelData, "enabled", checked) }
+                                            TComboBox {
+                                                Layout.preferredWidth: 128
+                                                model: ["top-left", "top-center", "top-right", "center-left", "center", "center-right", "bottom-left", "bottom-center", "bottom-right", "free"]
+                                                currentIndex: win.idx(model, win.widgetVal(wcard.modelData, "position", "top-left"))
+                                                onActivated: win.setWidget(wcard.modelData, "position", model[currentIndex])
+                                            }
+                                            Text { text: "Opacity"; color: Theme.dim; font.pixelSize: 10 }
+                                            TSlider {
+                                                Layout.preferredWidth: 90
+                                                from: 0.1; to: 1.0; stepSize: 0.05
+                                                value: win.widgetVal(wcard.modelData, "opacity", 0.75)
+                                                onMoved: win.setWidget(wcard.modelData, "opacity", value)
+                                            }
+                                            Item { Layout.fillWidth: true }
+                                            Rectangle {
+                                                implicitWidth: 28; implicitHeight: 24; radius: 6
+                                                color: wchev.hovered ? Theme.alpha(Theme.accent2, 0.2) : "transparent"
+                                                Text { anchors.centerIn: parent; text: wcard.expanded ? "\uf077" : "\uf078"; color: Theme.accent; font.pixelSize: 11 }
+                                                HoverHandler { id: wchev }
+                                                TapHandler { onTapped: win.toggleWid(wcard.modelData) }
+                                            }
                                         }
-                                        Text { text: "op"; color: Theme.dim; font.pixelSize: 10 }
-                                        TSlider {
-                                            Layout.preferredWidth: 90
-                                            from: 0.1; to: 1.0; stepSize: 0.05
-                                            value: win.widgetVal(wr.modelData, "opacity", 0.75)
-                                            onMoved: win.setWidget(wr.modelData, "opacity", value)
+
+                                        ColumnLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 8
+                                            visible: wcard.expanded
+
+                                            Text { text: "Placement"; color: Theme.dim; font.pixelSize: 10 }
+                                            Flow {
+                                                Layout.fillWidth: true
+                                                spacing: 8
+                                                WOpt { label: "layer"; TComboBox { Layout.preferredWidth: 105; model: ["background", "bottom", "top"]; currentIndex: win.idx(model, win.widgetVal(wcard.modelData, "layer", "bottom")); onActivated: win.setWidget(wcard.modelData, "layer", model[currentIndex]) } }
+                                                WOpt { label: "X"; TSpinBox { from: 0; to: 8000; value: win.widgetVal(wcard.modelData, "margin_x", 40); onValueModified: win.setWidget(wcard.modelData, "margin_x", value) } }
+                                                WOpt { label: "Y"; TSpinBox { from: 0; to: 8000; value: win.widgetVal(wcard.modelData, "margin_y", 40); onValueModified: win.setWidget(wcard.modelData, "margin_y", value) } }
+                                                WOpt { label: "W"; TSpinBox { from: 0; to: 4000; value: win.widgetVal(wcard.modelData, "width", 280); onValueModified: win.setWidget(wcard.modelData, "width", value) } }
+                                                WOpt { label: "H"; TSpinBox { from: 0; to: 4000; value: win.widgetVal(wcard.modelData, "height", 0); onValueModified: win.setWidget(wcard.modelData, "height", value) } }
+                                                WOpt { label: "radius"; TSpinBox { from: 0; to: 60; value: win.widgetVal(wcard.modelData, "radius", 16); onValueModified: win.setWidget(wcard.modelData, "radius", value) } }
+                                                WOpt { label: "pad"; TSpinBox { from: 0; to: 80; value: win.widgetVal(wcard.modelData, "padding", 18); onValueModified: win.setWidget(wcard.modelData, "padding", value) } }
+                                                WOpt { label: "scale%"; TSpinBox { from: 50; to: 200; stepSize: 5; value: Math.round(win.widgetVal(wcard.modelData, "scale", 1) * 100); onValueModified: win.setWidget(wcard.modelData, "scale", value / 100) } }
+                                                WOpt { label: "snap group"; TTextField { Layout.preferredWidth: 90; placeholderText: "group"; text: win.widgetVal(wcard.modelData, "snap_group", ""); onEditingFinished: win.setWidget(wcard.modelData, "snap_group", text) } }
+                                                WOpt { label: "axis"; TComboBox { Layout.preferredWidth: 100; model: ["horizontal", "vertical"]; currentIndex: win.idx(model, win.widgetVal(wcard.modelData, "snap_axis", "horizontal")); onActivated: win.setWidget(wcard.modelData, "snap_axis", model[currentIndex]) } }
+                                                WOpt { label: "order"; TSpinBox { from: 0; to: 99; value: win.widgetVal(wcard.modelData, "snap_order", 0); onValueModified: win.setWidget(wcard.modelData, "snap_order", value) } }
+                                            }
+
+                                            Text { text: "Colours"; color: Theme.dim; font.pixelSize: 10; visible: wcard.hasColors }
+                                            Flow {
+                                                Layout.fillWidth: true
+                                                spacing: 8
+                                                visible: wcard.hasColors
+                                                WOpt { label: "bg"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wcard.modelData, "background", ""); onEditingFinished: win.setWidget(wcard.modelData, "background", text) } }
+                                                WOpt { label: "fg"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wcard.modelData, "foreground", ""); onEditingFinished: win.setWidget(wcard.modelData, "foreground", text) } }
+                                                WOpt { label: "accent"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wcard.modelData, "accent", ""); onEditingFinished: win.setWidget(wcard.modelData, "accent", text) } }
+                                            }
+
+                                            Text { text: "Options"; color: Theme.dim; font.pixelSize: 10 }
+                                            Flow {
+                                                Layout.fillWidth: true
+                                                spacing: 8
+                                                visible: wcard.modelData === "clock"
+                                                WOpt { label: "style"; TComboBox { Layout.preferredWidth: 100; model: win.widgetStyles("clock"); currentIndex: win.idx(model, win.widgetVal(wcard.modelData, "style", "digital")); onActivated: win.setWidget(wcard.modelData, "style", model[currentIndex]) } }
+                                                WOpt { label: "time fmt"; TTextField { Layout.preferredWidth: 130; text: win.widgetVal(wcard.modelData, "time_format", "HH:mm"); onEditingFinished: win.setWidget(wcard.modelData, "time_format", text) } }
+                                                WOpt { label: "date fmt"; TTextField { Layout.preferredWidth: 150; text: win.widgetVal(wcard.modelData, "date_format", "dddd, dd MMMM"); onEditingFinished: win.setWidget(wcard.modelData, "date_format", text) } }
+                                                WOpt { label: "font"; TTextField { Layout.preferredWidth: 130; text: win.widgetVal(wcard.modelData, "font", ""); onEditingFinished: win.setWidget(wcard.modelData, "font", text) } }
+                                                WOpt { label: "theme"; TTextField { Layout.preferredWidth: 110; placeholderText: "theme name"; text: win.widgetVal(wcard.modelData, "theme", ""); onEditingFinished: win.setWidget(wcard.modelData, "theme", text) } }
+                                                WOpt { label: "show date"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_date", true); onToggled: win.setWidget(wcard.modelData, "show_date", checked) } }
+                                                WOpt { label: "seconds"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_seconds", false); onToggled: win.setWidget(wcard.modelData, "show_seconds", checked) } }
+                                                WOpt { label: "dials (1/3)"; TSpinBox { from: 1; to: 3; value: win.widgetVal(wcard.modelData, "dial_count", 1); onValueModified: win.setWidget(wcard.modelData, "dial_count", value) } }
+                                                WOpt { label: "ring width"; TSpinBox { from: 2; to: 24; value: win.widgetVal(wcard.modelData, "ring_thickness", 6); onValueModified: win.setWidget(wcard.modelData, "ring_thickness", value) } }
+                                            }
+                                            Flow {
+                                                Layout.fillWidth: true
+                                                spacing: 8
+                                                visible: wcard.modelData === "weather"
+                                                WOpt { label: "city"; TTextField { Layout.preferredWidth: 150; text: win.widgetVal(wcard.modelData, "city", ""); onEditingFinished: win.setWidget(wcard.modelData, "city", text) } }
+                                                WOpt { label: "units"; TComboBox { Layout.preferredWidth: 100; model: ["metric", "imperial"]; currentIndex: win.idx(model, win.widgetVal(wcard.modelData, "units", "metric")); onActivated: win.setWidget(wcard.modelData, "units", model[currentIndex]) } }
+                                                WOpt { label: "refresh (m)"; TSpinBox { from: 5; to: 240; stepSize: 5; value: win.widgetVal(wcard.modelData, "refresh_minutes", 30); onValueModified: win.setWidget(wcard.modelData, "refresh_minutes", value) } }
+                                                WOpt { label: "forecast days"; TSpinBox { from: 0; to: 7; value: win.widgetVal(wcard.modelData, "forecast_days", 4); onValueModified: win.setWidget(wcard.modelData, "forecast_days", value) } }
+                                                WOpt { label: "icon"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_icon", true); onToggled: win.setWidget(wcard.modelData, "show_icon", checked) } }
+                                                WOpt { label: "temp"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_temp", true); onToggled: win.setWidget(wcard.modelData, "show_temp", checked) } }
+                                                WOpt { label: "condition"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_condition", true); onToggled: win.setWidget(wcard.modelData, "show_condition", checked) } }
+                                                WOpt { label: "feels"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_feels_like", true); onToggled: win.setWidget(wcard.modelData, "show_feels_like", checked) } }
+                                                WOpt { label: "humidity"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_humidity", true); onToggled: win.setWidget(wcard.modelData, "show_humidity", checked) } }
+                                                WOpt { label: "wind"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_wind", true); onToggled: win.setWidget(wcard.modelData, "show_wind", checked) } }
+                                                WOpt { label: "forecast"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_forecast", true); onToggled: win.setWidget(wcard.modelData, "show_forecast", checked) } }
+                                            }
+                                            Flow {
+                                                Layout.fillWidth: true
+                                                spacing: 8
+                                                visible: wcard.modelData === "visualizer"
+                                                WOpt { label: "style"; TComboBox { Layout.preferredWidth: 100; model: win.widgetStyles("visualizer"); currentIndex: win.idx(model, win.widgetVal(wcard.modelData, "style", "bars")); onActivated: win.setWidget(wcard.modelData, "style", model[currentIndex]) } }
+                                                WOpt { label: "bars"; TSpinBox { from: 8; to: 128; value: win.widgetVal(wcard.modelData, "bars", 48); onValueModified: win.setWidget(wcard.modelData, "bars", value) } }
+                                                WOpt { label: "fps"; TSpinBox { from: 10; to: 120; value: win.widgetVal(wcard.modelData, "fps", 60); onValueModified: win.setWidget(wcard.modelData, "fps", value) } }
+                                                WOpt { label: "colours"; TComboBox { Layout.preferredWidth: 110; model: ["accent", "gradient", "pywal", "custom"]; currentIndex: win.idx(model, win.widgetVal(wcard.modelData, "color_mode", "accent")); onActivated: win.setWidget(wcard.modelData, "color_mode", model[currentIndex]) } }
+                                                WOpt { label: "colour"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wcard.modelData, "color", ""); onEditingFinished: win.setWidget(wcard.modelData, "color", text) } }
+                                                WOpt { label: "grad from"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wcard.modelData, "gradient_from", ""); onEditingFinished: win.setWidget(wcard.modelData, "gradient_from", text) } }
+                                                WOpt { label: "grad to"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wcard.modelData, "gradient_to", ""); onEditingFinished: win.setWidget(wcard.modelData, "gradient_to", text) } }
+                                                WOpt { label: "source"; TComboBox { Layout.preferredWidth: 100; model: ["auto", "cava", "synthetic"]; currentIndex: win.idx(model, win.widgetVal(wcard.modelData, "source", "auto")); onActivated: win.setWidget(wcard.modelData, "source", model[currentIndex]) } }
+                                                WOpt { label: "sensitivity%"; TSpinBox { from: 50; to: 300; stepSize: 10; value: Math.round((win.widgetVal(wcard.modelData, "sensitivity", 1) || 1) * 100); onValueModified: win.setWidget(wcard.modelData, "sensitivity", value / 100) } }
+                                                WOpt { label: "smoothing%"; TSpinBox { from: 0; to: 90; stepSize: 5; value: Math.round((win.widgetVal(wcard.modelData, "smoothing", 0) || 0) * 100); onValueModified: win.setWidget(wcard.modelData, "smoothing", value / 100) } }
+                                                WOpt { label: "orientation"; TComboBox { Layout.preferredWidth: 90; model: ["up", "down"]; currentIndex: win.idx(model, win.widgetVal(wcard.modelData, "orientation", "up")); onActivated: win.setWidget(wcard.modelData, "orientation", model[currentIndex]) } }
+                                                WOpt { label: "peak dots"; TCheckBox { checked: win.widgetVal(wcard.modelData, "peak_dots", false); onToggled: win.setWidget(wcard.modelData, "peak_dots", checked) } }
+                                            }
+                                            Flow {
+                                                Layout.fillWidth: true
+                                                spacing: 8
+                                                visible: wcard.modelData === "disk"
+                                                WOpt { label: "bar"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_bar", true); onToggled: win.setWidget(wcard.modelData, "show_bar", checked) } }
+                                                WOpt { label: "rates"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_rates", true); onToggled: win.setWidget(wcard.modelData, "show_rates", checked) } }
+                                                WOpt { label: "max drives"; TSpinBox { from: 1; to: 16; value: win.widgetVal(wcard.modelData, "drives_max", 4); onValueModified: win.setWidget(wcard.modelData, "drives_max", value) } }
+                                            }
+                                            Flow {
+                                                Layout.fillWidth: true
+                                                spacing: 8
+                                                visible: wcard.modelData === "network"
+                                                WOpt { label: "IP"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_ip", true); onToggled: win.setWidget(wcard.modelData, "show_ip", checked) } }
+                                                WOpt { label: "rates"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_rates", true); onToggled: win.setWidget(wcard.modelData, "show_rates", checked) } }
+                                                WOpt { label: "graph"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_graph", true); onToggled: win.setWidget(wcard.modelData, "show_graph", checked) } }
+                                            }
+                                            Flow {
+                                                Layout.fillWidth: true
+                                                spacing: 8
+                                                visible: wcard.modelData === "resources"
+                                                WOpt { label: "CPU"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_cpu", true); onToggled: win.setWidget(wcard.modelData, "show_cpu", checked) } }
+                                                WOpt { label: "RAM"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_ram", true); onToggled: win.setWidget(wcard.modelData, "show_ram", checked) } }
+                                                WOpt { label: "swap"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_swap", true); onToggled: win.setWidget(wcard.modelData, "show_swap", checked) } }
+                                                WOpt { label: "temp"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_temp", true); onToggled: win.setWidget(wcard.modelData, "show_temp", checked) } }
+                                                WOpt { label: "load"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_load", true); onToggled: win.setWidget(wcard.modelData, "show_load", checked) } }
+                                            }
+                                            Flow {
+                                                Layout.fillWidth: true
+                                                spacing: 8
+                                                visible: wcard.modelData === "sysinfo"
+                                                WOpt { label: "refresh (s)"; TSpinBox { from: 1; to: 120; value: win.widgetVal(wcard.modelData, "refresh_seconds", 10); onValueModified: win.setWidget(wcard.modelData, "refresh_seconds", value) } }
+                                                WOpt { label: "disks"; TCheckBox { checked: win.widgetVal(wcard.modelData, "show_disks", true); onToggled: win.setWidget(wcard.modelData, "show_disks", checked) } }
+                                            }
                                         }
-                                        Item { Layout.fillWidth: true }
-                                    }
-
-                                    // placement + finish + snap (wrapping)
-                                    Flow {
-                                        Layout.fillWidth: true
-                                        Layout.leftMargin: 90
-                                        spacing: 6
-                                        WOpt { label: "layer"; TComboBox { Layout.preferredWidth: 105; model: ["background", "bottom", "top"]; currentIndex: win.idx(model, win.widgetVal(wr.modelData, "layer", "bottom")); onActivated: win.setWidget(wr.modelData, "layer", model[currentIndex]) } }
-                                        WOpt { label: "X"; TSpinBox { from: 0; to: 8000; value: win.widgetVal(wr.modelData, "margin_x", 40); onValueModified: win.setWidget(wr.modelData, "margin_x", value) } }
-                                        WOpt { label: "Y"; TSpinBox { from: 0; to: 8000; value: win.widgetVal(wr.modelData, "margin_y", 40); onValueModified: win.setWidget(wr.modelData, "margin_y", value) } }
-                                        WOpt { label: "W"; TSpinBox { from: 0; to: 4000; value: win.widgetVal(wr.modelData, "width", 280); onValueModified: win.setWidget(wr.modelData, "width", value) } }
-                                        WOpt { label: "H"; TSpinBox { from: 0; to: 4000; value: win.widgetVal(wr.modelData, "height", 0); onValueModified: win.setWidget(wr.modelData, "height", value) } }
-                                        WOpt { label: "radius"; TSpinBox { from: 0; to: 60; value: win.widgetVal(wr.modelData, "radius", 16); onValueModified: win.setWidget(wr.modelData, "radius", value) } }
-                                        WOpt { label: "pad"; TSpinBox { from: 0; to: 80; value: win.widgetVal(wr.modelData, "padding", 18); onValueModified: win.setWidget(wr.modelData, "padding", value) } }
-                                        WOpt { label: "scale%"; TSpinBox { from: 50; to: 200; stepSize: 5; value: Math.round(win.widgetVal(wr.modelData, "scale", 1) * 100); onValueModified: win.setWidget(wr.modelData, "scale", value / 100) } }
-                                        WOpt { label: "snap group"; TTextField { Layout.preferredWidth: 90; placeholderText: "group"; text: win.widgetVal(wr.modelData, "snap_group", ""); onEditingFinished: win.setWidget(wr.modelData, "snap_group", text) } }
-                                        WOpt { label: "axis"; TComboBox { Layout.preferredWidth: 100; model: ["horizontal", "vertical"]; currentIndex: win.idx(model, win.widgetVal(wr.modelData, "snap_axis", "horizontal")); onActivated: win.setWidget(wr.modelData, "snap_axis", model[currentIndex]) } }
-                                        WOpt { label: "order"; TSpinBox { from: 0; to: 99; value: win.widgetVal(wr.modelData, "snap_order", 0); onValueModified: win.setWidget(wr.modelData, "snap_order", value) } }
-                                    }
-
-                                    // colours
-                                    Flow {
-                                        Layout.fillWidth: true
-                                        Layout.leftMargin: 90
-                                        spacing: 6
-                                        visible: win.hasColors(wr.modelData)
-                                        WOpt { label: "bg"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wr.modelData, "background", ""); onEditingFinished: win.setWidget(wr.modelData, "background", text) } }
-                                        WOpt { label: "fg"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wr.modelData, "foreground", ""); onEditingFinished: win.setWidget(wr.modelData, "foreground", text) } }
-                                        WOpt { label: "accent"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wr.modelData, "accent", ""); onEditingFinished: win.setWidget(wr.modelData, "accent", text) } }
-                                    }
-
-                                    // widget-specific (wrapping)
-                                    Flow {
-                                        Layout.fillWidth: true
-                                        Layout.leftMargin: 90
-                                        spacing: 6
-                                        visible: wr.modelData === "clock"
-                                        WOpt { label: "style"; TComboBox { Layout.preferredWidth: 100; model: win.widgetStyles("clock"); currentIndex: win.idx(model, win.widgetVal(wr.modelData, "style", "digital")); onActivated: win.setWidget(wr.modelData, "style", model[currentIndex]) } }
-                                        WOpt { label: "time fmt"; TTextField { Layout.preferredWidth: 130; text: win.widgetVal(wr.modelData, "time_format", "HH:mm"); onEditingFinished: win.setWidget(wr.modelData, "time_format", text) } }
-                                        WOpt { label: "date fmt"; TTextField { Layout.preferredWidth: 150; text: win.widgetVal(wr.modelData, "date_format", "dddd, dd MMMM"); onEditingFinished: win.setWidget(wr.modelData, "date_format", text) } }
-                                        WOpt { label: "font"; TTextField { Layout.preferredWidth: 130; text: win.widgetVal(wr.modelData, "font", ""); onEditingFinished: win.setWidget(wr.modelData, "font", text) } }
-                                        WOpt { label: "theme"; TTextField { Layout.preferredWidth: 110; placeholderText: "theme name"; text: win.widgetVal(wr.modelData, "theme", ""); onEditingFinished: win.setWidget(wr.modelData, "theme", text) } }
-                                        WOpt { label: "show date"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_date", true); onToggled: win.setWidget(wr.modelData, "show_date", checked) } }
-                                        WOpt { label: "seconds"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_seconds", false); onToggled: win.setWidget(wr.modelData, "show_seconds", checked) } }
-                                        WOpt { label: "dials (1/3)"; TSpinBox { from: 1; to: 3; value: win.widgetVal(wr.modelData, "dial_count", 1); onValueModified: win.setWidget(wr.modelData, "dial_count", value) } }
-                                        WOpt { label: "ring width"; TSpinBox { from: 2; to: 24; value: win.widgetVal(wr.modelData, "ring_thickness", 6); onValueModified: win.setWidget(wr.modelData, "ring_thickness", value) } }
-                                    }
-                                    Flow {
-                                        Layout.fillWidth: true
-                                        Layout.leftMargin: 90
-                                        spacing: 6
-                                        visible: wr.modelData === "weather"
-                                        WOpt { label: "city"; TTextField { Layout.preferredWidth: 150; text: win.widgetVal(wr.modelData, "city", ""); onEditingFinished: win.setWidget(wr.modelData, "city", text) } }
-                                        WOpt { label: "units"; TComboBox { Layout.preferredWidth: 100; model: ["metric", "imperial"]; currentIndex: win.idx(model, win.widgetVal(wr.modelData, "units", "metric")); onActivated: win.setWidget(wr.modelData, "units", model[currentIndex]) } }
-                                        WOpt { label: "refresh (m)"; TSpinBox { from: 5; to: 240; stepSize: 5; value: win.widgetVal(wr.modelData, "refresh_minutes", 30); onValueModified: win.setWidget(wr.modelData, "refresh_minutes", value) } }
-                                        WOpt { label: "forecast days"; TSpinBox { from: 0; to: 7; value: win.widgetVal(wr.modelData, "forecast_days", 4); onValueModified: win.setWidget(wr.modelData, "forecast_days", value) } }
-                                        WOpt { label: "icon"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_icon", true); onToggled: win.setWidget(wr.modelData, "show_icon", checked) } }
-                                        WOpt { label: "temp"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_temp", true); onToggled: win.setWidget(wr.modelData, "show_temp", checked) } }
-                                        WOpt { label: "condition"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_condition", true); onToggled: win.setWidget(wr.modelData, "show_condition", checked) } }
-                                        WOpt { label: "feels"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_feels_like", true); onToggled: win.setWidget(wr.modelData, "show_feels_like", checked) } }
-                                        WOpt { label: "humidity"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_humidity", true); onToggled: win.setWidget(wr.modelData, "show_humidity", checked) } }
-                                        WOpt { label: "wind"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_wind", true); onToggled: win.setWidget(wr.modelData, "show_wind", checked) } }
-                                        WOpt { label: "forecast"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_forecast", true); onToggled: win.setWidget(wr.modelData, "show_forecast", checked) } }
-                                    }
-                                    Flow {
-                                        Layout.fillWidth: true
-                                        Layout.leftMargin: 90
-                                        spacing: 6
-                                        visible: wr.modelData === "visualizer"
-                                        WOpt { label: "style"; TComboBox { Layout.preferredWidth: 100; model: win.widgetStyles("visualizer"); currentIndex: win.idx(model, win.widgetVal(wr.modelData, "style", "bars")); onActivated: win.setWidget(wr.modelData, "style", model[currentIndex]) } }
-                                        WOpt { label: "bars"; TSpinBox { from: 8; to: 128; value: win.widgetVal(wr.modelData, "bars", 48); onValueModified: win.setWidget(wr.modelData, "bars", value) } }
-                                        WOpt { label: "fps"; TSpinBox { from: 10; to: 120; value: win.widgetVal(wr.modelData, "fps", 60); onValueModified: win.setWidget(wr.modelData, "fps", value) } }
-                                        WOpt { label: "colours"; TComboBox { Layout.preferredWidth: 110; model: ["accent", "gradient", "pywal", "custom"]; currentIndex: win.idx(model, win.widgetVal(wr.modelData, "color_mode", "accent")); onActivated: win.setWidget(wr.modelData, "color_mode", model[currentIndex]) } }
-                                        WOpt { label: "colour"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wr.modelData, "color", ""); onEditingFinished: win.setWidget(wr.modelData, "color", text) } }
-                                        WOpt { label: "grad from"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wr.modelData, "gradient_from", ""); onEditingFinished: win.setWidget(wr.modelData, "gradient_from", text) } }
-                                        WOpt { label: "grad to"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wr.modelData, "gradient_to", ""); onEditingFinished: win.setWidget(wr.modelData, "gradient_to", text) } }
-                                        WOpt { label: "source"; TComboBox { Layout.preferredWidth: 100; model: ["auto", "cava", "synthetic"]; currentIndex: win.idx(model, win.widgetVal(wr.modelData, "source", "auto")); onActivated: win.setWidget(wr.modelData, "source", model[currentIndex]) } }
-                                        WOpt { label: "sensitivity%"; TSpinBox { from: 50; to: 300; stepSize: 10; value: Math.round((win.widgetVal(wr.modelData, "sensitivity", 1) || 1) * 100); onValueModified: win.setWidget(wr.modelData, "sensitivity", value / 100) } }
-                                        WOpt { label: "smoothing%"; TSpinBox { from: 0; to: 90; stepSize: 5; value: Math.round((win.widgetVal(wr.modelData, "smoothing", 0) || 0) * 100); onValueModified: win.setWidget(wr.modelData, "smoothing", value / 100) } }
-                                        WOpt { label: "orientation"; TComboBox { Layout.preferredWidth: 90; model: ["up", "down"]; currentIndex: win.idx(model, win.widgetVal(wr.modelData, "orientation", "up")); onActivated: win.setWidget(wr.modelData, "orientation", model[currentIndex]) } }
-                                        WOpt { label: "peak dots"; TCheckBox { checked: win.widgetVal(wr.modelData, "peak_dots", false); onToggled: win.setWidget(wr.modelData, "peak_dots", checked) } }
-                                    }
-                                    Flow {
-                                        Layout.fillWidth: true
-                                        Layout.leftMargin: 90
-                                        spacing: 6
-                                        visible: wr.modelData === "disk"
-                                        WOpt { label: "bar"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_bar", true); onToggled: win.setWidget(wr.modelData, "show_bar", checked) } }
-                                        WOpt { label: "rates"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_rates", true); onToggled: win.setWidget(wr.modelData, "show_rates", checked) } }
-                                        WOpt { label: "max drives"; TSpinBox { from: 1; to: 16; value: win.widgetVal(wr.modelData, "drives_max", 4); onValueModified: win.setWidget(wr.modelData, "drives_max", value) } }
-                                    }
-                                    Flow {
-                                        Layout.fillWidth: true
-                                        Layout.leftMargin: 90
-                                        spacing: 6
-                                        visible: wr.modelData === "network"
-                                        WOpt { label: "IP"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_ip", true); onToggled: win.setWidget(wr.modelData, "show_ip", checked) } }
-                                        WOpt { label: "rates"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_rates", true); onToggled: win.setWidget(wr.modelData, "show_rates", checked) } }
-                                        WOpt { label: "graph"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_graph", true); onToggled: win.setWidget(wr.modelData, "show_graph", checked) } }
-                                    }
-                                    Flow {
-                                        Layout.fillWidth: true
-                                        Layout.leftMargin: 90
-                                        spacing: 6
-                                        visible: wr.modelData === "resources"
-                                        WOpt { label: "CPU"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_cpu", true); onToggled: win.setWidget(wr.modelData, "show_cpu", checked) } }
-                                        WOpt { label: "RAM"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_ram", true); onToggled: win.setWidget(wr.modelData, "show_ram", checked) } }
-                                        WOpt { label: "swap"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_swap", true); onToggled: win.setWidget(wr.modelData, "show_swap", checked) } }
-                                        WOpt { label: "temp"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_temp", true); onToggled: win.setWidget(wr.modelData, "show_temp", checked) } }
-                                        WOpt { label: "load"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_load", true); onToggled: win.setWidget(wr.modelData, "show_load", checked) } }
-                                    }
-                                    Flow {
-                                        Layout.fillWidth: true
-                                        Layout.leftMargin: 90
-                                        spacing: 6
-                                        visible: wr.modelData === "sysinfo"
-                                        WOpt { label: "refresh (s)"; TSpinBox { from: 1; to: 120; value: win.widgetVal(wr.modelData, "refresh_seconds", 10); onValueModified: win.setWidget(wr.modelData, "refresh_seconds", value) } }
-                                        WOpt { label: "disks"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_disks", true); onToggled: win.setWidget(wr.modelData, "show_disks", checked) } }
                                     }
                                 }
                             }

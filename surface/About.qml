@@ -29,6 +29,33 @@ PanelWindow {
             targetScreen = Screens.focused();
     }
 
+    // ── versions ───────────────────────────────────────────────────────
+    readonly property string backendRoot:
+        Qt.resolvedUrl("../backend/").toString().replace("file://", "")
+    property string barVersion: ""
+    property string qtVersion: ""
+    property string qsVersion: ""
+
+    Process {
+        command: ["python3", "-c",
+            "import sys; sys.path.insert(0, sys.argv[1]); import hyprtk_bar_qt; print(hyprtk_bar_qt.__version__)",
+            about.backendRoot]
+        stdout: SplitParser { onRead: line => about.barVersion = line.trim() }
+        Component.onCompleted: running = true
+    }
+    Process {
+        command: ["bash", "-lc",
+            "qmake6 -query QT_VERSION 2>/dev/null || qmake -query QT_VERSION 2>/dev/null || qtpaths6 --qt-version 2>/dev/null"]
+        stdout: SplitParser { onRead: line => about.qtVersion = line.trim() }
+        Component.onCompleted: running = true
+    }
+    Process {
+        command: ["bash", "-lc",
+            "qs --version 2>/dev/null | sed -n 's/^Quickshell \\([0-9][0-9.]*\\).*/\\1/p'"]
+        stdout: SplitParser { onRead: line => about.qsVersion = line.trim() }
+        Component.onCompleted: running = true
+    }
+
     Rectangle {
         anchors.fill: parent
         radius: 14
@@ -59,15 +86,24 @@ PanelWindow {
         opacity: about.reveal
 
         Text { text: "HYPRTK"; color: Theme.accent; font.bold: true; font.pixelSize: 22; Layout.alignment: Qt.AlignHCenter }
-        Text { text: "hyprtk-bar-qt  \u00b7  Qt/QML rewrite"; color: Theme.foreground; font.pixelSize: 13; Layout.alignment: Qt.AlignHCenter }
+        Text { text: "hyprtk-bar-qt"; color: Theme.foreground; font.pixelSize: 13; Layout.alignment: Qt.AlignHCenter }
         Text {
             Layout.fillWidth: true
             Layout.topMargin: 8
-            text: "A modern, pywal-themed taskbar for the Hyprland desktop — the Qt counterpart to the GTK4 hyprtk-bar (QML presentation + a toolkit-free Python backend)."
+            text: "A modern, pywal-themed taskbar for the Hyprland desktop — QML presentation with a toolkit-free Python backend."
             color: Theme.dim
             font.pixelSize: 12
             wrapMode: Text.WordWrap
             horizontalAlignment: Text.AlignHCenter
+        }
+        Text {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.topMargin: 4
+            text: "hyprtk-bar-qt " + (about.barVersion || "\u2026")
+                + "   \u00b7   Qt " + (about.qtVersion || "\u2026")
+                + (about.qsVersion ? "   \u00b7   Quickshell " + about.qsVersion : "")
+            color: Theme.foreground
+            font.pixelSize: 12
         }
         Text { text: "github.com/hyprtk"; color: Theme.accent2; font.pixelSize: 12; Layout.alignment: Qt.AlignHCenter }
         Item { Layout.fillHeight: true }
