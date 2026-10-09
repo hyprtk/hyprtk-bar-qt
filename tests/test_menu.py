@@ -52,6 +52,14 @@ class FileIO(unittest.TestCase):
                     menu.record_launch(app)
                 self.assertEqual(menu.load_menu()["recents"], ["c", "b"])
 
+    def test_clear_recents(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "config.json"
+            path.write_text('{"menu": {"recents": ["a", "b"]}}')
+            with mock.patch.object(menu, "BAR_CONFIG", path):
+                menu.clear_recents()
+                self.assertEqual(menu.load_menu()["recents"], [])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -45,13 +45,65 @@ def list_dir(path: str) -> dict:
     return {"path": str(base), "parent": parent, "entries": entries}
 
 
+# XDG user-dirs key → friendly label + default subfolder name.
+_XDG_DIRS = [
+    ("DESKTOP", "Desktop"),
+    ("DOCUMENTS", "Documents"),
+    ("DOWNLOAD", "Downloads"),
+    ("MUSIC", "Music"),
+    ("PICTURES", "Pictures"),
+    ("PUBLICSHARE", "Public"),
+    ("TEMPLATES", "Templates"),
+    ("VIDEOS", "Videos"),
+]
+
+
+def xdg_places() -> list[dict]:
+    """The user's XDG places that exist (from ~/.config/user-dirs.dirs).
+
+    Only directories inside ``$HOME`` are returned, in the standard XDG order.
+    Falls back to the conventional subfolder names when user-dirs.dirs is absent.
+    """
+    home = Path.home()
+    conf = home / ".config" / "user-dirs.dirs"
+    wanted: dict[str, str] = {}
+    try:
+        text = conf.read_text()
+    except OSError:
+        text = ""
+    for line in text.splitlines():
+        line = line.strip()
+        if not line.startswith("XDG_") or "=" not in line:
+            continue
+        key, _, val = line.partition("=")
+        key = key.strip()[4:]
+        if key.endswith("_DIR"):
+            key = key[:-4]
+        val = val.strip().strip('"').replace("$HOME", str(home))
+        wanted[key] = val
+    out = []
+    for key, label in _XDG_DIRS:
+        path = wanted.get(key) or str(home / label)
+        try:
+            inside_home = os.path.commonpath([os.path.abspath(path), str(home)]) == str(home)
+        except ValueError:
+            inside_home = False
+        if inside_home and os.path.isdir(path):
+            out.append({"label": label, "path": path})
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="directory listing for the menu browser")
     sub = ap.add_subparsers(dest="action", required=True)
     lst = sub.add_parser("list")
     lst.add_argument("path", nargs="?", default="~")
+    sub.add_parser("xdg-places")
     args = ap.parse_args(argv)
 
+    if args.action == "xdg-places":
+        print(json.dumps({"places": xdg_places()}))
+        return 0
     print(json.dumps(list_dir(args.path)))
     return 0
 

@@ -103,10 +103,18 @@ def set_favorite(app_id: str, on: bool) -> list:
     return menu["favorites"]
 
 
+def clear_recents() -> list:
+    menu = load_menu()
+    menu["recents"] = []
+    _save_menu(menu)
+    return []
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="start-menu favourites/recents")
     sub = ap.add_subparsers(dest="action", required=True)
     sub.add_parser("get")
+    sub.add_parser("clear-recents")
     for name in ("record", "favorite", "unfavorite"):
         p = sub.add_parser(name)
         p.add_argument("id")
@@ -114,6 +122,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.action == "get":
         print(json.dumps(load_menu()))
+        return 0
+    if args.action == "clear-recents":
+        print(json.dumps({"recents": clear_recents()}))
         return 0
     if args.action == "record":
         print(json.dumps({"recents": record_launch(args.id)}))
