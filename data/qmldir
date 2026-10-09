@@ -18,3 +18,4 @@ singleton Screens 1.0 Screens.qml
 singleton HyprAnim 1.0 HyprAnim.qml
 singleton Chrome 1.0 Chrome.qml
 singleton ThemeSync 1.0 ThemeSync.qml
+singleton LockSync 1.0 LockSync.qml

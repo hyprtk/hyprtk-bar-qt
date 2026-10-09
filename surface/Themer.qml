@@ -330,6 +330,12 @@ PanelWindow {
         }
     }
     Process { id: lockSetProc; onExited: (code, status) => { lockReadProc.running = true; win.toast(code === 0 ? "Lock setting saved" : "Could not save"); } }
+    // Re-apply: run pywal, then write the palette into the active lock config.
+    Process {
+        id: lockRerunProc
+        command: ["bash", "-lc", "wal -R -q; python3 " + win.base + "lock.py sync-pywal"]
+        onExited: (code, status) => { lockFile.reload(); lockRefresh.restart(); }
+    }
     Timer { id: lockRefresh; interval: 2500; onTriggered: win.refreshLock() }
 
     function applyWallpaper(path) {
@@ -441,6 +447,11 @@ PanelWindow {
         iconApplyProc.running = true;
     }
     function refreshLock() { if (!lockReadProc.running) lockReadProc.running = true; }
+    function reapplyLock() {
+        // runs wal -R then lock.py sync-pywal (see lockRerunProc)
+        lockRerunProc.running = true;
+        win.toast("Re-applying pywal theme");
+    }
     function setLock(key, value) {
         lockSetProc.command = ["python3", win.base + "lock.py", "set", "--key", key, "--value", value];
         lockSetProc.running = true;
@@ -949,12 +960,7 @@ PanelWindow {
                         spacing: 8
                         TButton {
                             text: "Re-apply Pywal Theme"
-                            onClicked: {
-                                Quickshell.execDetached(["wal", "-R", "-q"]);
-                                win.toast("Re-applying pywal theme");
-                                lockFile.reload();
-                                lockRefresh.restart();
-                            }
+                            onClicked: win.reapplyLock()
                         }
                         TButton { text: "Reload"; onClicked: win.refreshLock() }
                         Item { Layout.fillWidth: true }

@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 
@@ -89,6 +90,30 @@ class LockSettings(unittest.TestCase):
                 self.assertIn("text-color=FFFFFF", cfg.read_text())
             finally:
                 lock.SWAYLOCK, lock.HYPRLOCK_CONF = old_sway, old_hypr
+
+
+class LockPywalSync(unittest.TestCase):
+    def test_sync_swaylock_rewrites_only_colors(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = Path(tmp) / "config"
+            cfg.write_text('font="Cantarell"\nsomeflag\nring-color=000000\n')
+            old_sway = lock.SWAYLOCK
+            lock.SWAYLOCK = cfg
+            palette = ["%02x%02x%02x" % (i, i, i) for i in range(16)]
+            try:
+                with mock.patch.object(lock, "_wal_hex", return_value=palette):
+                    self.assertTrue(lock.sync_swaylock())
+            finally:
+                lock.SWAYLOCK = old_sway
+            text = cfg.read_text()
+            self.assertIn('font="Cantarell"', text)        # non-color kept
+            self.assertIn("someflag", text)                # bare flag kept
+            self.assertIn("ring-color=060606", text)       # index 6, opaque
+            self.assertIn("inside-color=00000044", text)   # index 0 + alpha
+
+    def test_sync_swaylock_needs_palette(self) -> None:
+        with mock.patch.object(lock, "_wal_hex", return_value=[]):
+            self.assertFalse(lock.sync_swaylock())
 
 
 if __name__ == "__main__":

@@ -20,6 +20,7 @@ ShellRoot {
     // theme writer (keeps the rofi variant in sync with `theme.source`).
     readonly property var signalBridge: SignalBridge
     readonly property var themeSync: ThemeSync
+    readonly property var lockSync: LockSync
 
     // Screens that should show the bar, per the `monitors` selector in the Qt
     // bar's config ("primary" | "all" | ["CONNECTOR", ...]).
