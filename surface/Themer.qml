@@ -443,14 +443,6 @@ PanelWindow {
         anchors.fill: parent
         radius: 14
         color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Math.max(0.95, Theme.opacity))
-        border.width: BarConfig.borderWidth
-        border.color: Theme.accent
-        SequentialAnimation on border.color {
-            running: Chrome.animated
-            loops: Animation.Infinite
-            ColorAnimation { to: Theme.accent2; duration: Chrome.periodMs; easing.type: Easing.InOutSine }
-            ColorAnimation { to: Theme.accent; duration: Chrome.periodMs; easing.type: Easing.InOutSine }
-        }
         opacity: win.reveal
         transform: Translate { y: (1 - win.reveal) * -8 }
     }
@@ -1168,5 +1160,23 @@ PanelWindow {
                 TButton { text: "Close"; onClicked: UiState.themerOpen = false }
             }
         }
+    }
+
+    // Animated accent border drawn ON TOP of the sidebar + content, so it reads
+    // the same on every edge (the background's border was covered on the left).
+    Rectangle {
+        anchors.fill: parent
+        radius: 14
+        color: "transparent"
+        border.width: BarConfig.borderWidth
+        border.color: Theme.accent
+        SequentialAnimation on border.color {
+            running: Chrome.animated
+            loops: Animation.Infinite
+            ColorAnimation { to: Theme.accent2; duration: Chrome.periodMs; easing.type: Easing.InOutSine }
+            ColorAnimation { to: Theme.accent; duration: Chrome.periodMs; easing.type: Easing.InOutSine }
+        }
+        opacity: win.reveal
+        transform: Translate { y: (1 - win.reveal) * -8 }
     }
 }

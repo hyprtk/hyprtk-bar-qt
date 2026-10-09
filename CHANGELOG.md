@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.38.0 — unreleased
+
+- Fixed the bar right-click menu opening shifted left: `barMenuX` is the cursor
+  x relative to the bar window, but the menu is anchored to the screen, so the
+  bar's left inset is now added (and the menu is clamped on-screen). It opens
+  right under the cursor.
+- Settings & Themer: the animated accent border is now drawn **on top** of the
+  sidebar + content instead of behind them, so it reads the same on every edge
+  (the sidebar used to cover the left/top-left/bottom-left) and animates all
+  around.
+
 ## 0.37.0 — unreleased
 
 About dialog, settings toggles, and the Modules/Widgets pages.

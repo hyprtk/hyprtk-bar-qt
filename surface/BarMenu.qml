@@ -20,7 +20,14 @@ PanelWindow {
     anchors.left: true
     margins.top: BarConfig.barPosition === "top" ? BarConfig.barHeight + BarConfig.gapOut + BarConfig.gapIn + 6 : 0
     margins.bottom: BarConfig.barPosition === "bottom" ? BarConfig.barHeight + BarConfig.gapOut + BarConfig.gapIn + 6 : 0
-    margins.left: Math.max(4, UiState.barMenuX)
+    // barMenuX is the cursor x relative to the bar window; the menu anchors to
+    // the screen, so add the bar's left inset to line the menu edge up under the
+    // cursor, then clamp it so it never runs off the right edge.
+    readonly property int screenW: menu.screen ? menu.screen.width : 0
+    readonly property real menuLeft:
+        Math.max(4, Math.min(BarGeom.insets(menu.screenW).left + UiState.barMenuX,
+                             Math.max(4, menu.screenW - menu.implicitWidth - 4)))
+    margins.left: menu.menuLeft
     implicitWidth: 224
     implicitHeight: col.implicitHeight + 16
     color: "transparent"
