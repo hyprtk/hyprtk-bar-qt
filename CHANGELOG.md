@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.40.0 — unreleased
+
+Bar opacity ↔ widgets linking.
+
+- The Theme Manager "Bar opacity" slider now steps in **5% increments**
+  (stepSize 0.05).
+- Changing the bar opacity now **syncs every desktop widget's opacity** to match
+  (Themer and Settings sliders; via `widgets_layout.py set-opacity`).
+- Widget colours now follow the bar's **resolved** theme
+  (background/foreground/accent — manual, imported or pywal) instead of reading
+  pywal directly, so switching the bar theme repaints the widgets too. A
+  per-widget colour override still wins.
+
 ## 0.39.0 — unreleased
 
 Theme Manager import browse + arc menu interactions.

@@ -321,6 +321,23 @@ PanelWindow {
     Timer { id: cfgSaveTimer; interval: 400; onTriggered: Config.save() }
     function saveCfgSoon() { cfgSaveTimer.restart(); }
 
+    // Keep the desktop widgets' opacity in step with the bar opacity.
+    property real pendingWidgetOpacity: 0
+    Timer {
+        id: widgetOpTimer
+        interval: 200
+        onTriggered: {
+            widgetOpProc.command = ["python3", win.base + "widgets_layout.py",
+                "set-opacity", "--value", String(win.pendingWidgetOpacity)];
+            widgetOpProc.running = true;
+        }
+    }
+    Process { id: widgetOpProc }
+    function syncWidgetOpacity(v) {
+        win.pendingWidgetOpacity = v;
+        widgetOpTimer.restart();
+    }
+
     function applyTheme(t) {
         Config.themeSource = "manual";
         Config.themeName = t.name;
@@ -1171,9 +1188,9 @@ PanelWindow {
                 Text { text: "Bar opacity"; color: Theme.foreground }
                 TSlider {
                     Layout.preferredWidth: 160
-                    from: 0.2; to: 1.0; stepSize: 0.01
+                    from: 0.2; to: 1.0; stepSize: 0.05
                     value: Config.opacity >= 0 ? Config.opacity : Theme.opacity
-                    onMoved: { Config.opacity = value; win.saveCfgSoon(); }
+                    onMoved: { Config.opacity = value; win.saveCfgSoon(); win.syncWidgetOpacity(value); }
                 }
                 Text { text: win.statusMsg; color: Theme.accent; font.pixelSize: 10; Layout.fillWidth: true; elide: Text.ElideRight }
                 TButton { text: "Save"; onClicked: Config.save() }

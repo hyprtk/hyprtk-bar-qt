@@ -102,7 +102,7 @@ WidgetFrame {
         if (mode === "accent")
             return win.widgetAccent;
         // pywal (default)
-        return win.walColors.color5 || win.widgetAccent;
+        return Theme.walColor(5, win.widgetAccent);
     }
 
     Canvas {

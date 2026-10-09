@@ -326,6 +326,23 @@ def snap(widget_id: str, x: int, y: int, rects: dict, config_path: Path = BAR_CO
     return {"ok": ok, "snapped": True, "group": group, "axis": group_axis}
 
 
+def set_opacity(value: float, config_path: Path = BAR_CONFIG) -> bool:
+    """Set every desktop widget's opacity (keeps them in step with the bar)."""
+    try:
+        data = json.loads(config_path.read_text())
+    except (OSError, ValueError):
+        return False
+    widgets = data.setdefault("widgets", {})
+    try:
+        v = max(0.0, min(1.0, float(value)))
+    except (TypeError, ValueError):
+        return False
+    for b in widgets.values():
+        if isinstance(b, dict):
+            b["opacity"] = v
+    return _write(data, config_path)
+
+
 def save_layout(layout: dict, config_path: Path = BAR_CONFIG) -> bool:
     """Persist a computed layout: set each widget's margin to its on-screen x/y.
 
@@ -366,7 +383,14 @@ def main(argv: list[str] | None = None) -> int:
     np_.add_argument("--rects", required=True)
     sv = sub.add_parser("save")
     sv.add_argument("--layout", required=True)
+    so = sub.add_parser("set-opacity")
+    so.add_argument("--value", type=float, required=True)
     args = ap.parse_args(argv)
+
+    if args.action == "set-opacity":
+        ok = set_opacity(args.value)
+        print(json.dumps({"ok": ok}))
+        return 0 if ok else 1
 
     if args.action == "set":
         ok = set_position(args.id, args.x, args.y)

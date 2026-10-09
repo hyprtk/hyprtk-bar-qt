@@ -5,4 +5,4 @@ shell over Quickshell's Process/IPC (JSON lines on stdout), so the same logic
 can be exercised headlessly and unit-tested without a compositor.
 """
 
-__version__ = "0.39.0"
+__version__ = "0.40.0"

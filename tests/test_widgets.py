@@ -291,6 +291,20 @@ class SaveLayout(unittest.TestCase):
         self.assertFalse(widgets_layout.save_layout({"a": {"x": 1, "y": 2}}, Path("/no/such/config.json")))
 
 
+class SetOpacity(unittest.TestCase):
+    def test_sets_all_widgets(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "config.json"
+            path.write_text(json.dumps({"widgets": {"a": {"opacity": 0.75}, "b": {}}}))
+            self.assertTrue(widgets_layout.set_opacity(0.8, path))
+            w = json.loads(path.read_text())["widgets"]
+            self.assertEqual(w["a"]["opacity"], 0.8)
+            self.assertEqual(w["b"]["opacity"], 0.8)
+
+    def test_missing_config_fails(self) -> None:
+        self.assertFalse(widgets_layout.set_opacity(0.5, Path("/no/such/config.json")))
+
+
 class SetPosition(unittest.TestCase):
     def test_writes_free_position_and_detaches(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

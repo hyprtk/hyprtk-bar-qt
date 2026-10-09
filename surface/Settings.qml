@@ -56,6 +56,25 @@ PanelWindow {
         }
     }
 
+    // Keep the desktop widgets' opacity in step with the bar opacity.
+    readonly property string wbase:
+        Qt.resolvedUrl("../backend/hyprtk_bar_qt/").toString().replace("file://", "")
+    property real pendingWidgetOpacity: 0
+    Timer {
+        id: wOpTimer
+        interval: 200
+        onTriggered: {
+            wOpProc.command = ["python3", win.wbase + "widgets_layout.py",
+                "set-opacity", "--value", String(win.pendingWidgetOpacity)];
+            wOpProc.running = true;
+        }
+    }
+    Process { id: wOpProc }
+    function syncWidgetOpacity(v) {
+        win.pendingWidgetOpacity = v;
+        wOpTimer.restart();
+    }
+
     function set(path, value) {
         const parts = String(path).split(".");
         let node = win.pending;
@@ -435,9 +454,9 @@ PanelWindow {
                             label: "Opacity"
                             TSlider {
                                 Layout.preferredWidth: 200
-                                from: 0.2; to: 1.0; stepSize: 0.01
+                                from: 0.2; to: 1.0; stepSize: 0.05
                                 value: win.g("opacity", 0.75)
-                                onMoved: win.set("opacity", value)
+                                onMoved: { win.set("opacity", value); win.syncWidgetOpacity(value); }
                             }
                             Text { text: Math.round(win.g("opacity", 0.75) * 100) + "%"; color: Theme.dim; font.pixelSize: 11 }
                         }

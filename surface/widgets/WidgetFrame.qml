@@ -108,11 +108,11 @@ PanelWindow {
     property color foregroundOverride: "transparent"
     property color accentOverride: "transparent"
 
-    readonly property var walColors: Theme.wal.colors || ({})
-    readonly property var walSpecial: Theme.wal.special || ({})
-    readonly property color widgetBackground: frame._pick(frame.backgroundOverride, frame.walSpecial.background, "#1e1e2e")
-    readonly property color widgetForeground: frame._pick(frame.foregroundOverride, frame.walSpecial.foreground, "#e5e7eb")
-    readonly property color widgetAccent: frame._pick(frame.accentOverride, frame.walColors.color5, "#c084fc")
+    // Widgets follow the bar's *resolved* theme (manual / imported / pywal), so
+    // changing the bar theme repaints them too; a per-widget colour overrides it.
+    readonly property color widgetBackground: frame._pick(frame.backgroundOverride, Theme.background, "#1e1e2e")
+    readonly property color widgetForeground: frame._pick(frame.foregroundOverride, Theme.foreground, "#e5e7eb")
+    readonly property color widgetAccent: frame._pick(frame.accentOverride, Theme.accent, "#c084fc")
 
     default property alias contentData: contentCol.data
 
@@ -140,10 +140,10 @@ PanelWindow {
         ? frame.effHeight
         : contentCol.implicitHeight + frame.padding * 2
 
-    function _pick(override, wal, fallback) {
+    function _pick(override, base, fallback) {
         if (override.a > 0)
             return override;
-        return (typeof wal === "string" && wal.length > 0) ? wal : fallback;
+        return base || fallback;
     }
     function _pos() {
         if (frame.effPos === "free")
