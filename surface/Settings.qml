@@ -222,17 +222,17 @@ PanelWindow {
         return ["clock", "weather", "visualizer", "disk", "network", "resources", "sysinfo"].indexOf(id) >= 0;
     }
 
-    // ── theme helpers (theme block + Qt override kept in sync, so the
-    // Settings page and the Themer window cannot shadow each other) ─────────
+    // ── theme helpers (theme block + Qt override + rofi variant kept in sync,
+    // so the Settings page and the Themer window cannot shadow each other) ────
     function setTheme(key, value) {
-        win.set("theme." + key, value);
-        if (key === "source") Config.themeSource = value;
-        else if (key === "theme_name") Config.themeName = value;
-        else if (key === "background") Config.themeBackground = value;
-        else if (key === "foreground") Config.themeForeground = value;
-        else if (key === "accent") Config.themeAccent = value;
-        else return;
-        Config.save();
+        // Merge the edit into the full theme and hand it to the shared writer
+        // (writes both config representations and re-links rofi).
+        const src = key === "source" ? value : win.g("theme.source", "pywal");
+        const nm = key === "theme_name" ? value : win.g("theme.theme_name", "");
+        const bg = key === "background" ? value : win.g("theme.background", "");
+        const fg = key === "foreground" ? value : win.g("theme.foreground", "");
+        const ac = key === "accent" ? value : win.g("theme.accent", "");
+        ThemeSync.apply(src, nm, bg, fg, ac);
     }
     readonly property string themesBackend:
         Qt.resolvedUrl("../backend/hyprtk_bar_qt/themes.py").toString().replace("file://", "")
@@ -240,13 +240,8 @@ PanelWindow {
     function refreshInstalledThemes() { if (!themesProc.running) themesProc.running = true; }
     function applyImportedTheme(name) {
         const t = win.installedThemes.find(x => x.name === name);
-        win.setTheme("source", "imported");
-        win.setTheme("theme_name", name);
-        if (t && t.palette) {
-            win.setTheme("background", t.palette.background);
-            win.setTheme("foreground", t.palette.foreground);
-            win.setTheme("accent", t.palette.accent);
-        }
+        const p = (t && t.palette) ? t.palette : ({});
+        ThemeSync.apply("imported", name, p.background || "", p.foreground || "", p.accent || "");
     }
     Process {
         id: themesProc

@@ -359,21 +359,15 @@ PanelWindow {
     }
 
     function applyTheme(t) {
-        Config.themeSource = "manual";
-        Config.themeName = t.name;
-        Config.themeBackground = t.palette.background;
-        Config.themeForeground = t.palette.foreground;
-        Config.themeAccent = t.palette.accent;
-        Config.save();
+        // Writes the nested theme block + Qt overrides and re-links rofi.
+        ThemeSync.apply("manual", t.name, t.palette.background, t.palette.foreground, t.palette.accent);
         win.toast("Theme: " + t.name);
+        rofiRefresh.restart();
     }
     function clearOverrides() {
-        Config.themeSource = "";
-        Config.themeName = "";
-        Config.themeBackground = "";
-        Config.themeForeground = "";
-        Config.themeAccent = "";
-        Config.save();
+        // "Follow pywal": drop the overrides and let the pywal variant track live.
+        ThemeSync.apply("pywal", "", "", "", "");
+        rofiRefresh.restart();
     }
     function doImport(path) {
         if (!path) { win.toast("Enter a theme path"); return; }

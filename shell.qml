@@ -16,8 +16,10 @@ import "data"
 ShellRoot {
     id: shell
 
-    // Instantiate the keybind signal bridge (menu/arc/clipboard toggles).
+    // Instantiate the keybind signal bridge (menu/arc/clipboard toggles) and the
+    // theme writer (keeps the rofi variant in sync with `theme.source`).
     readonly property var signalBridge: SignalBridge
+    readonly property var themeSync: ThemeSync
 
     // Screens that should show the bar, per the `monitors` selector in the Qt
     // bar's config ("primary" | "all" | ["CONNECTOR", ...]).
