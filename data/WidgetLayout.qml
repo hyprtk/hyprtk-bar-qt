@@ -57,7 +57,15 @@ Singleton {
 
     function bounds() {
         const s = Screens.focused();
-        return s ? { w: s.width, h: s.height } : { w: 0, h: 0 };
+        if (!s)
+            return { x0: 0, y0: 0, w: 0, h: 0 };
+        // Usable area: the monitor minus the bar's reserved edge, as an origin
+        // (x0/y0) plus size. The layout clamps the whole group into this, so its
+        // top member is not shifted alone by the widget frame.
+        const inset = BarConfig.barHeight + BarConfig.gapOut + BarConfig.gapIn;
+        const top = BarConfig.barPosition === "top" ? inset : 0;
+        const bottom = BarConfig.barPosition === "bottom" ? inset : 0;
+        return { x0: 0, y0: top, w: s.width, h: s.height - top - bottom };
     }
 
     function reload() {

@@ -376,7 +376,7 @@ PanelWindow {
                         }
                         SRow {
                             label: "Height"
-                            TSpinBox { from: 20; to: 120; value: win.g("height", 38); onValueChanged: win.set("height", value) }
+                            TSpinBox { from: 20; to: 120; value: win.g("height", 38); onValueModified: win.set("height", value) }
                         }
                         SRow {
                             label: "Width (% or px)"
@@ -392,19 +392,19 @@ PanelWindow {
                         }
                         SRow {
                             label: "Gap in (bar\u2194windows)"
-                            TSpinBox { from: 0; to: 60; value: win.g("gap_in", 0); onValueChanged: win.set("gap_in", value) }
+                            TSpinBox { from: 0; to: 60; value: win.g("gap_in", 0); onValueModified: win.set("gap_in", value) }
                         }
                         SRow {
                             label: "Gap out (bar\u2194edge)"
-                            TSpinBox { from: 0; to: 60; value: win.g("gap_out", 0); onValueChanged: win.set("gap_out", value) }
+                            TSpinBox { from: 0; to: 60; value: win.g("gap_out", 0); onValueModified: win.set("gap_out", value) }
                         }
                         SRow {
                             label: "Corner radius"
-                            TSpinBox { from: 0; to: 40; value: win.g("radius", 12); onValueChanged: win.set("radius", value) }
+                            TSpinBox { from: 0; to: 40; value: win.g("radius", 12); onValueModified: win.set("radius", value) }
                         }
                         SRow {
                             label: "Border width (bar & panels)"
-                            TSpinBox { from: 0; to: 8; value: win.g("border_width", 2); onValueChanged: win.set("border_width", value) }
+                            TSpinBox { from: 0; to: 8; value: win.g("border_width", 2); onValueModified: win.set("border_width", value) }
                         }
                         SRow {
                             label: "Opacity"
@@ -501,15 +501,15 @@ PanelWindow {
                         }
                         SRow {
                             label: "Size (px)"
-                            TSpinBox { from: 8; to: 40; value: win.g("font.size", 12); onValueChanged: win.set("font.size", value) }
+                            TSpinBox { from: 8; to: 40; value: win.g("font.size", 12); onValueModified: win.set("font.size", value) }
                         }
                         SRow {
                             label: "Icon size (0=auto)"
-                            TSpinBox { from: 0; to: 48; value: win.g("font.icon_size", 0); onValueChanged: win.set("font.icon_size", value) }
+                            TSpinBox { from: 0; to: 48; value: win.g("font.icon_size", 0); onValueModified: win.set("font.icon_size", value) }
                         }
                         SRow {
                             label: "Quicklink icons"
-                            TSpinBox { from: 0; to: 48; value: win.g("quicklinks.icon_size", 0); onValueChanged: win.set("quicklinks.icon_size", value) }
+                            TSpinBox { from: 0; to: 48; value: win.g("quicklinks.icon_size", 0); onValueModified: win.set("quicklinks.icon_size", value) }
                         }
                         Item { Layout.fillHeight: true }
                     }
@@ -542,7 +542,7 @@ PanelWindow {
                         }
                         SRow {
                             label: "Custom speed"
-                            TSpinBox { from: 1; to: 200; value: win.g("animations.speed", 15); onValueChanged: win.set("animations.speed", value) }
+                            TSpinBox { from: 1; to: 200; value: win.g("animations.speed", 15); onValueModified: win.set("animations.speed", value) }
                         }
                         SRow {
                             label: "UI animations"
@@ -580,11 +580,11 @@ PanelWindow {
                                 onActivated: win.set("arcmenu.shape", model[currentIndex])
                             }
                         }
-                        SRow { label: "Radius"; TSpinBox { from: 40; to: 400; value: win.g("arcmenu.radius", 140); onValueChanged: win.set("arcmenu.radius", value) } }
-                        SRow { label: "FAB size"; TSpinBox { from: 24; to: 96; value: win.g("arcmenu.fab_size", 56); onValueChanged: win.set("arcmenu.fab_size", value) } }
-                        SRow { label: "Item size"; TSpinBox { from: 24; to: 96; value: win.g("arcmenu.item_size", 48); onValueChanged: win.set("arcmenu.item_size", value) } }
-                        SRow { label: "Margin"; TSpinBox { from: 0; to: 200; value: win.g("arcmenu.margin", 24); onValueChanged: win.set("arcmenu.margin", value) } }
-                        SRow { label: "Animation (ms)"; TSpinBox { from: 0; to: 1000; stepSize: 20; value: win.g("arcmenu.animation_time", 300); onValueChanged: win.set("arcmenu.animation_time", value) } }
+                        SRow { label: "Radius"; TSpinBox { from: 40; to: 400; value: win.g("arcmenu.radius", 140); onValueModified: win.set("arcmenu.radius", value) } }
+                        SRow { label: "FAB size"; TSpinBox { from: 24; to: 96; value: win.g("arcmenu.fab_size", 56); onValueModified: win.set("arcmenu.fab_size", value) } }
+                        SRow { label: "Item size"; TSpinBox { from: 24; to: 96; value: win.g("arcmenu.item_size", 48); onValueModified: win.set("arcmenu.item_size", value) } }
+                        SRow { label: "Margin"; TSpinBox { from: 0; to: 200; value: win.g("arcmenu.margin", 24); onValueModified: win.set("arcmenu.margin", value) } }
+                        SRow { label: "Animation (ms)"; TSpinBox { from: 0; to: 1000; stepSize: 20; value: win.g("arcmenu.animation_time", 300); onValueModified: win.set("arcmenu.animation_time", value) } }
                         SRow {
                             label: "FAB glyph"
                             TTextField { Layout.fillWidth: true; text: win.g("arcmenu.fab_glyph", "\uf00a"); onEditingFinished: win.set("arcmenu.fab_glyph", text) }
@@ -673,17 +673,17 @@ PanelWindow {
                                 onActivated: win.set("menu.align", model[currentIndex])
                             }
                         }
-                        SRow { label: "Gap in"; TSpinBox { from: 0; to: 60; value: win.g("menu.gap_in", 4); onValueChanged: win.set("menu.gap_in", value) } }
-                        SRow { label: "Gap out"; TSpinBox { from: 0; to: 60; value: win.g("menu.gap_out", 5); onValueChanged: win.set("menu.gap_out", value) } }
-                        SRow { label: "Width"; TSpinBox { from: 400; to: 1600; stepSize: 20; value: win.g("menu.width", 920); onValueChanged: win.set("menu.width", value) } }
-                        SRow { label: "Height"; TSpinBox { from: 320; to: 1000; stepSize: 20; value: win.g("menu.height", 580); onValueChanged: win.set("menu.height", value) } }
-                        SRow { label: "Sidebar width"; TSpinBox { from: 120; to: 300; value: win.g("menu.sidebar_width", 180); onValueChanged: win.set("menu.sidebar_width", value) } }
-                        SRow { label: "Recents width"; TSpinBox { from: 120; to: 360; value: win.g("menu.recents_width", 230); onValueChanged: win.set("menu.recents_width", value) } }
+                        SRow { label: "Gap in"; TSpinBox { from: 0; to: 60; value: win.g("menu.gap_in", 4); onValueModified: win.set("menu.gap_in", value) } }
+                        SRow { label: "Gap out"; TSpinBox { from: 0; to: 60; value: win.g("menu.gap_out", 5); onValueModified: win.set("menu.gap_out", value) } }
+                        SRow { label: "Width"; TSpinBox { from: 400; to: 1600; stepSize: 20; value: win.g("menu.width", 920); onValueModified: win.set("menu.width", value) } }
+                        SRow { label: "Height"; TSpinBox { from: 320; to: 1000; stepSize: 20; value: win.g("menu.height", 580); onValueModified: win.set("menu.height", value) } }
+                        SRow { label: "Sidebar width"; TSpinBox { from: 120; to: 300; value: win.g("menu.sidebar_width", 180); onValueModified: win.set("menu.sidebar_width", value) } }
+                        SRow { label: "Recents width"; TSpinBox { from: 120; to: 360; value: win.g("menu.recents_width", 230); onValueModified: win.set("menu.recents_width", value) } }
                         SRow {
                             label: "Show recents"
                             TCheckBox { checked: win.g("menu.show_recents", true); onToggled: win.set("menu.show_recents", checked) }
                         }
-                        SRow { label: "Max recents"; TSpinBox { from: 0; to: 30; value: win.g("menu.max_recents", 10); onValueChanged: win.set("menu.max_recents", value) } }
+                        SRow { label: "Max recents"; TSpinBox { from: 0; to: 30; value: win.g("menu.max_recents", 10); onValueModified: win.set("menu.max_recents", value) } }
                         Text { text: "Power commands"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 6 }
                         Repeater {
                             model: win.powerKeys
@@ -793,7 +793,7 @@ PanelWindow {
                         // ── per-module options (mirrors the GTK module tabs) ──
                         Text { text: "Workspaces"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 8 }
                         SRow { label: "Show empty"; TCheckBox { checked: win.g("workspaces.show_empty", true); onToggled: win.set("workspaces.show_empty", checked) } }
-                        SRow { label: "Max shown"; TSpinBox { from: 0; to: 32; value: win.g("workspaces.max", 0); onValueChanged: win.set("workspaces.max", value) } }
+                        SRow { label: "Max shown"; TSpinBox { from: 0; to: 32; value: win.g("workspaces.max", 0); onValueModified: win.set("workspaces.max", value) } }
 
                         Text { text: "Clock"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 8 }
                         SRow { label: "Time format"; TTextField { Layout.fillWidth: true; text: win.g("clock.format", "ddd HH:mm:ss"); onEditingFinished: win.set("clock.format", text) } }
@@ -803,24 +803,24 @@ PanelWindow {
                         Text { text: "Media (MPRIS)"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 8 }
                         SRow { label: "Transport controls"; TCheckBox { checked: win.g("media.show_controls", true); onToggled: win.set("media.show_controls", checked) } }
                         SRow { label: "Show track text"; TCheckBox { checked: win.g("media.show_text", true); onToggled: win.set("media.show_text", checked) } }
-                        SRow { label: "Max text length"; TSpinBox { from: 0; to: 200; value: win.g("media.max_length", 48); onValueChanged: win.set("media.max_length", value) } }
-                        SRow { label: "Text width (px)"; TSpinBox { from: 0; to: 600; stepSize: 10; value: win.g("media.text_width", 180); onValueChanged: win.set("media.text_width", value) } }
+                        SRow { label: "Max text length"; TSpinBox { from: 0; to: 200; value: win.g("media.max_length", 48); onValueModified: win.set("media.max_length", value) } }
+                        SRow { label: "Text width (px)"; TSpinBox { from: 0; to: 600; stepSize: 10; value: win.g("media.text_width", 180); onValueModified: win.set("media.text_width", value) } }
 
                         Text { text: "Updates"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 8 }
-                        SRow { label: "Interval (s)"; TSpinBox { from: 30; to: 3600; stepSize: 30; value: win.g("updates.interval", 60); onValueChanged: win.set("updates.interval", value) } }
+                        SRow { label: "Interval (s)"; TSpinBox { from: 30; to: 3600; stepSize: 30; value: win.g("updates.interval", 60); onValueModified: win.set("updates.interval", value) } }
                         SRow { label: "Script"; TTextField { Layout.fillWidth: true; text: win.g("updates.script", ""); onEditingFinished: win.set("updates.script", text) } }
                         SRow { label: "Install command"; TTextField { Layout.fillWidth: true; text: win.g("updates.install_command", ""); onEditingFinished: win.set("updates.install_command", text) } }
 
                         Text { text: "Window title"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 8 }
-                        SRow { label: "Max length"; TSpinBox { from: 0; to: 400; value: win.g("window.max_length", 120); onValueChanged: win.set("window.max_length", value) } }
-                        SRow { label: "Fixed width"; TSpinBox { from: 0; to: 600; value: win.g("window.width", 0); onValueChanged: win.set("window.width", value) } }
+                        SRow { label: "Max length"; TSpinBox { from: 0; to: 400; value: win.g("window.max_length", 120); onValueModified: win.set("window.max_length", value) } }
+                        SRow { label: "Fixed width"; TSpinBox { from: 0; to: 600; value: win.g("window.width", 0); onValueModified: win.set("window.width", value) } }
 
                         Text { text: "Tray"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 8 }
-                        SRow { label: "Icon size (0=auto)"; TSpinBox { from: 0; to: 48; value: win.g("tray.icon_size", 0); onValueChanged: win.set("tray.icon_size", value) } }
+                        SRow { label: "Icon size (0=auto)"; TSpinBox { from: 0; to: 48; value: win.g("tray.icon_size", 0); onValueModified: win.set("tray.icon_size", value) } }
 
                         Text { text: "Notifications"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 8 }
-                        SRow { label: "Max stored"; TSpinBox { from: 1; to: 500; value: win.g("notifications.max_stored", 50); onValueChanged: win.set("notifications.max_stored", value) } }
-                        SRow { label: "Default timeout (ms)"; TSpinBox { from: 1000; to: 60000; stepSize: 500; value: win.g("notifications.default_timeout", 5000); onValueChanged: win.set("notifications.default_timeout", value) } }
+                        SRow { label: "Max stored"; TSpinBox { from: 1; to: 500; value: win.g("notifications.max_stored", 50); onValueModified: win.set("notifications.max_stored", value) } }
+                        SRow { label: "Default timeout (ms)"; TSpinBox { from: 1000; to: 60000; stepSize: 500; value: win.g("notifications.default_timeout", 5000); onValueModified: win.set("notifications.default_timeout", value) } }
 
                         Item { Layout.fillHeight: true }
                     }
@@ -884,16 +884,16 @@ PanelWindow {
                                         Layout.leftMargin: 90
                                         spacing: 6
                                         WOpt { label: "layer"; TComboBox { Layout.preferredWidth: 105; model: ["background", "bottom", "top"]; currentIndex: win.idx(model, win.widgetVal(wr.modelData, "layer", "bottom")); onActivated: win.setWidget(wr.modelData, "layer", model[currentIndex]) } }
-                                        WOpt { label: "X"; TSpinBox { from: 0; to: 2000; value: win.widgetVal(wr.modelData, "margin_x", 40); onValueChanged: win.setWidget(wr.modelData, "margin_x", value) } }
-                                        WOpt { label: "Y"; TSpinBox { from: 0; to: 2000; value: win.widgetVal(wr.modelData, "margin_y", 40); onValueChanged: win.setWidget(wr.modelData, "margin_y", value) } }
-                                        WOpt { label: "W"; TSpinBox { from: 0; to: 2000; value: win.widgetVal(wr.modelData, "width", 280); onValueChanged: win.setWidget(wr.modelData, "width", value) } }
-                                        WOpt { label: "H"; TSpinBox { from: 0; to: 2000; value: win.widgetVal(wr.modelData, "height", 0); onValueChanged: win.setWidget(wr.modelData, "height", value) } }
-                                        WOpt { label: "radius"; TSpinBox { from: 0; to: 60; value: win.widgetVal(wr.modelData, "radius", 16); onValueChanged: win.setWidget(wr.modelData, "radius", value) } }
-                                        WOpt { label: "pad"; TSpinBox { from: 0; to: 80; value: win.widgetVal(wr.modelData, "padding", 18); onValueChanged: win.setWidget(wr.modelData, "padding", value) } }
-                                        WOpt { label: "scale%"; TSpinBox { from: 50; to: 200; stepSize: 5; value: Math.round(win.widgetVal(wr.modelData, "scale", 1) * 100); onValueChanged: win.setWidget(wr.modelData, "scale", value / 100) } }
+                                        WOpt { label: "X"; TSpinBox { from: 0; to: 8000; value: win.widgetVal(wr.modelData, "margin_x", 40); onValueModified: win.setWidget(wr.modelData, "margin_x", value) } }
+                                        WOpt { label: "Y"; TSpinBox { from: 0; to: 8000; value: win.widgetVal(wr.modelData, "margin_y", 40); onValueModified: win.setWidget(wr.modelData, "margin_y", value) } }
+                                        WOpt { label: "W"; TSpinBox { from: 0; to: 4000; value: win.widgetVal(wr.modelData, "width", 280); onValueModified: win.setWidget(wr.modelData, "width", value) } }
+                                        WOpt { label: "H"; TSpinBox { from: 0; to: 4000; value: win.widgetVal(wr.modelData, "height", 0); onValueModified: win.setWidget(wr.modelData, "height", value) } }
+                                        WOpt { label: "radius"; TSpinBox { from: 0; to: 60; value: win.widgetVal(wr.modelData, "radius", 16); onValueModified: win.setWidget(wr.modelData, "radius", value) } }
+                                        WOpt { label: "pad"; TSpinBox { from: 0; to: 80; value: win.widgetVal(wr.modelData, "padding", 18); onValueModified: win.setWidget(wr.modelData, "padding", value) } }
+                                        WOpt { label: "scale%"; TSpinBox { from: 50; to: 200; stepSize: 5; value: Math.round(win.widgetVal(wr.modelData, "scale", 1) * 100); onValueModified: win.setWidget(wr.modelData, "scale", value / 100) } }
                                         WOpt { label: "snap group"; TTextField { Layout.preferredWidth: 90; placeholderText: "group"; text: win.widgetVal(wr.modelData, "snap_group", ""); onEditingFinished: win.setWidget(wr.modelData, "snap_group", text) } }
                                         WOpt { label: "axis"; TComboBox { Layout.preferredWidth: 100; model: ["horizontal", "vertical"]; currentIndex: win.idx(model, win.widgetVal(wr.modelData, "snap_axis", "horizontal")); onActivated: win.setWidget(wr.modelData, "snap_axis", model[currentIndex]) } }
-                                        WOpt { label: "order"; TSpinBox { from: 0; to: 99; value: win.widgetVal(wr.modelData, "snap_order", 0); onValueChanged: win.setWidget(wr.modelData, "snap_order", value) } }
+                                        WOpt { label: "order"; TSpinBox { from: 0; to: 99; value: win.widgetVal(wr.modelData, "snap_order", 0); onValueModified: win.setWidget(wr.modelData, "snap_order", value) } }
                                     }
 
                                     // colours
@@ -920,8 +920,8 @@ PanelWindow {
                                         WOpt { label: "theme"; TTextField { Layout.preferredWidth: 110; placeholderText: "theme name"; text: win.widgetVal(wr.modelData, "theme", ""); onEditingFinished: win.setWidget(wr.modelData, "theme", text) } }
                                         WOpt { label: "show date"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_date", true); onToggled: win.setWidget(wr.modelData, "show_date", checked) } }
                                         WOpt { label: "seconds"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_seconds", false); onToggled: win.setWidget(wr.modelData, "show_seconds", checked) } }
-                                        WOpt { label: "dials (1/3)"; TSpinBox { from: 1; to: 3; value: win.widgetVal(wr.modelData, "dial_count", 1); onValueChanged: win.setWidget(wr.modelData, "dial_count", value) } }
-                                        WOpt { label: "ring width"; TSpinBox { from: 2; to: 24; value: win.widgetVal(wr.modelData, "ring_thickness", 6); onValueChanged: win.setWidget(wr.modelData, "ring_thickness", value) } }
+                                        WOpt { label: "dials (1/3)"; TSpinBox { from: 1; to: 3; value: win.widgetVal(wr.modelData, "dial_count", 1); onValueModified: win.setWidget(wr.modelData, "dial_count", value) } }
+                                        WOpt { label: "ring width"; TSpinBox { from: 2; to: 24; value: win.widgetVal(wr.modelData, "ring_thickness", 6); onValueModified: win.setWidget(wr.modelData, "ring_thickness", value) } }
                                     }
                                     Flow {
                                         Layout.fillWidth: true
@@ -930,8 +930,8 @@ PanelWindow {
                                         visible: wr.modelData === "weather"
                                         WOpt { label: "city"; TTextField { Layout.preferredWidth: 150; text: win.widgetVal(wr.modelData, "city", ""); onEditingFinished: win.setWidget(wr.modelData, "city", text) } }
                                         WOpt { label: "units"; TComboBox { Layout.preferredWidth: 100; model: ["metric", "imperial"]; currentIndex: win.idx(model, win.widgetVal(wr.modelData, "units", "metric")); onActivated: win.setWidget(wr.modelData, "units", model[currentIndex]) } }
-                                        WOpt { label: "refresh (m)"; TSpinBox { from: 5; to: 240; stepSize: 5; value: win.widgetVal(wr.modelData, "refresh_minutes", 30); onValueChanged: win.setWidget(wr.modelData, "refresh_minutes", value) } }
-                                        WOpt { label: "forecast days"; TSpinBox { from: 0; to: 7; value: win.widgetVal(wr.modelData, "forecast_days", 4); onValueChanged: win.setWidget(wr.modelData, "forecast_days", value) } }
+                                        WOpt { label: "refresh (m)"; TSpinBox { from: 5; to: 240; stepSize: 5; value: win.widgetVal(wr.modelData, "refresh_minutes", 30); onValueModified: win.setWidget(wr.modelData, "refresh_minutes", value) } }
+                                        WOpt { label: "forecast days"; TSpinBox { from: 0; to: 7; value: win.widgetVal(wr.modelData, "forecast_days", 4); onValueModified: win.setWidget(wr.modelData, "forecast_days", value) } }
                                         WOpt { label: "icon"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_icon", true); onToggled: win.setWidget(wr.modelData, "show_icon", checked) } }
                                         WOpt { label: "temp"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_temp", true); onToggled: win.setWidget(wr.modelData, "show_temp", checked) } }
                                         WOpt { label: "condition"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_condition", true); onToggled: win.setWidget(wr.modelData, "show_condition", checked) } }
@@ -946,15 +946,15 @@ PanelWindow {
                                         spacing: 6
                                         visible: wr.modelData === "visualizer"
                                         WOpt { label: "style"; TComboBox { Layout.preferredWidth: 100; model: win.widgetStyles("visualizer"); currentIndex: win.idx(model, win.widgetVal(wr.modelData, "style", "bars")); onActivated: win.setWidget(wr.modelData, "style", model[currentIndex]) } }
-                                        WOpt { label: "bars"; TSpinBox { from: 8; to: 128; value: win.widgetVal(wr.modelData, "bars", 48); onValueChanged: win.setWidget(wr.modelData, "bars", value) } }
-                                        WOpt { label: "fps"; TSpinBox { from: 10; to: 120; value: win.widgetVal(wr.modelData, "fps", 60); onValueChanged: win.setWidget(wr.modelData, "fps", value) } }
+                                        WOpt { label: "bars"; TSpinBox { from: 8; to: 128; value: win.widgetVal(wr.modelData, "bars", 48); onValueModified: win.setWidget(wr.modelData, "bars", value) } }
+                                        WOpt { label: "fps"; TSpinBox { from: 10; to: 120; value: win.widgetVal(wr.modelData, "fps", 60); onValueModified: win.setWidget(wr.modelData, "fps", value) } }
                                         WOpt { label: "colours"; TComboBox { Layout.preferredWidth: 110; model: ["accent", "gradient", "pywal", "custom"]; currentIndex: win.idx(model, win.widgetVal(wr.modelData, "color_mode", "accent")); onActivated: win.setWidget(wr.modelData, "color_mode", model[currentIndex]) } }
                                         WOpt { label: "colour"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wr.modelData, "color", ""); onEditingFinished: win.setWidget(wr.modelData, "color", text) } }
                                         WOpt { label: "grad from"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wr.modelData, "gradient_from", ""); onEditingFinished: win.setWidget(wr.modelData, "gradient_from", text) } }
                                         WOpt { label: "grad to"; TTextField { Layout.preferredWidth: 92; placeholderText: "#rrggbb"; text: win.widgetVal(wr.modelData, "gradient_to", ""); onEditingFinished: win.setWidget(wr.modelData, "gradient_to", text) } }
                                         WOpt { label: "source"; TComboBox { Layout.preferredWidth: 100; model: ["auto", "cava", "synthetic"]; currentIndex: win.idx(model, win.widgetVal(wr.modelData, "source", "auto")); onActivated: win.setWidget(wr.modelData, "source", model[currentIndex]) } }
-                                        WOpt { label: "sensitivity%"; TSpinBox { from: 50; to: 300; stepSize: 10; value: Math.round((win.widgetVal(wr.modelData, "sensitivity", 1) || 1) * 100); onValueChanged: win.setWidget(wr.modelData, "sensitivity", value / 100) } }
-                                        WOpt { label: "smoothing%"; TSpinBox { from: 0; to: 90; stepSize: 5; value: Math.round((win.widgetVal(wr.modelData, "smoothing", 0) || 0) * 100); onValueChanged: win.setWidget(wr.modelData, "smoothing", value / 100) } }
+                                        WOpt { label: "sensitivity%"; TSpinBox { from: 50; to: 300; stepSize: 10; value: Math.round((win.widgetVal(wr.modelData, "sensitivity", 1) || 1) * 100); onValueModified: win.setWidget(wr.modelData, "sensitivity", value / 100) } }
+                                        WOpt { label: "smoothing%"; TSpinBox { from: 0; to: 90; stepSize: 5; value: Math.round((win.widgetVal(wr.modelData, "smoothing", 0) || 0) * 100); onValueModified: win.setWidget(wr.modelData, "smoothing", value / 100) } }
                                         WOpt { label: "orientation"; TComboBox { Layout.preferredWidth: 90; model: ["up", "down"]; currentIndex: win.idx(model, win.widgetVal(wr.modelData, "orientation", "up")); onActivated: win.setWidget(wr.modelData, "orientation", model[currentIndex]) } }
                                         WOpt { label: "peak dots"; TCheckBox { checked: win.widgetVal(wr.modelData, "peak_dots", false); onToggled: win.setWidget(wr.modelData, "peak_dots", checked) } }
                                     }
@@ -965,7 +965,7 @@ PanelWindow {
                                         visible: wr.modelData === "disk"
                                         WOpt { label: "bar"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_bar", true); onToggled: win.setWidget(wr.modelData, "show_bar", checked) } }
                                         WOpt { label: "rates"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_rates", true); onToggled: win.setWidget(wr.modelData, "show_rates", checked) } }
-                                        WOpt { label: "max drives"; TSpinBox { from: 1; to: 16; value: win.widgetVal(wr.modelData, "drives_max", 4); onValueChanged: win.setWidget(wr.modelData, "drives_max", value) } }
+                                        WOpt { label: "max drives"; TSpinBox { from: 1; to: 16; value: win.widgetVal(wr.modelData, "drives_max", 4); onValueModified: win.setWidget(wr.modelData, "drives_max", value) } }
                                     }
                                     Flow {
                                         Layout.fillWidth: true
@@ -992,7 +992,7 @@ PanelWindow {
                                         Layout.leftMargin: 90
                                         spacing: 6
                                         visible: wr.modelData === "sysinfo"
-                                        WOpt { label: "refresh (s)"; TSpinBox { from: 1; to: 120; value: win.widgetVal(wr.modelData, "refresh_seconds", 10); onValueChanged: win.setWidget(wr.modelData, "refresh_seconds", value) } }
+                                        WOpt { label: "refresh (s)"; TSpinBox { from: 1; to: 120; value: win.widgetVal(wr.modelData, "refresh_seconds", 10); onValueModified: win.setWidget(wr.modelData, "refresh_seconds", value) } }
                                         WOpt { label: "disks"; TCheckBox { checked: win.widgetVal(wr.modelData, "show_disks", true); onToggled: win.setWidget(wr.modelData, "show_disks", checked) } }
                                     }
                                 }

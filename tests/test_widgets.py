@@ -136,20 +136,33 @@ class SnapLayout(unittest.TestCase):
         # big: min(300/300, 200/200)=1.0 * 0.97
         self.assertAlmostEqual(out["big"]["scale"], 1.0 * widgets_layout.SNAP_FIT_MARGIN, places=3)
 
-    def test_anchor_keeps_dropped_widget_in_place(self) -> None:
-        # A widget joining an existing group to the right stays where dropped;
-        # the earlier member reflows to its left.
+    def test_group_clamped_to_bounds_origin_keeps_members_aligned(self) -> None:
+        # The whole group is clamped to the usable origin (bar inset), so the top
+        # member is not shifted alone (which overlapped it with the next).
+        cfg = {
+            "a": {"snap_group": "g", "snap_axis": "vertical", "snap_order": 0,
+                   "margin_x": 100, "margin_y": 8, "position": "free", "width": 200, "height": 100},
+            "b": {"snap_group": "g", "snap_axis": "vertical", "snap_order": 1,
+                   "margin_x": 100, "margin_y": 118, "position": "free", "width": 200, "height": 100},
+        }
+        out = widgets_layout.layout(cfg, bounds={"x0": 0, "y0": 38, "w": 1000, "h": 900})
+        self.assertEqual(out["a"]["y"], 38)
+        self.assertEqual(out["b"]["y"], 38 + 100 + widgets_layout.SNAP_GAP)
+
+    def test_anchor_stays_on_first_member(self) -> None:
+        # Snapping a widget onto an existing group must NOT relocate the group:
+        # it stays anchored on its top/left-most member, and the joining widget
+        # is placed in the next cell.
         cfg = {
             "clock": {"snap_group": "g1", "snap_axis": "horizontal", "snap_order": 0,
                        "width": 100, "height": 100, "margin_x": 0, "margin_y": 0, "position": "free"},
-            "disk": {"position": "free", "margin_x": 320, "margin_y": 4, "snap_anchor": True,
+            "disk": {"position": "free", "margin_x": 320, "margin_y": 4,
                       "snap_group": "g1", "snap_axis": "horizontal", "snap_order": 1,
                       "width": 100, "height": 100},
         }
         out = widgets_layout.layout(cfg)
-        # disk (anchor, index 1) stays at 320; clock moves one cell left of it.
-        self.assertEqual(out["disk"]["x"], 320)
-        self.assertEqual(out["clock"]["x"], 320 - (100 + widgets_layout.SNAP_GAP))
+        self.assertEqual(out["clock"]["x"], 0)                     # group did not move
+        self.assertEqual(out["disk"]["x"], 100 + widgets_layout.SNAP_GAP)
 
 
 
@@ -194,6 +207,88 @@ class SnapDrop(unittest.TestCase):
             res = widgets_layout.snap("clock", 1000, 700, rects, path)
             self.assertFalse(res["snapped"])
             self.assertEqual(json.loads(path.read_text())["widgets"]["clock"]["snap_group"], "")
+
+    def test_snap_joins_group_by_bounding_box(self) -> None:
+        # A widget dropped beside/under a *group* joins it even though it is not
+        # edge-adjacent to any single member, and the group keeps its axis.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "config.json"
+            path.write_text(json.dumps({"widgets": {
+                "a": {"position": "free", "snap_group": "g1", "snap_axis": "vertical",
+                       "snap_order": 0, "margin_x": 3000, "margin_y": 100},
+                "b": {"position": "free", "snap_group": "g1", "snap_axis": "vertical",
+                       "snap_order": 1, "margin_x": 3000, "margin_y": 300},
+                "c": {"position": "free", "margin_x": 0, "margin_y": 0},
+            }}))
+            rects = {
+                "a": {"x": 3000, "y": 100, "w": 300, "h": 150},
+                "b": {"x": 3000, "y": 260, "w": 300, "h": 150},
+                "c": {"x": 3030, "y": 440, "w": 300, "h": 120},
+            }
+            res = widgets_layout.snap("c", 3030, 440, rects, path)
+            self.assertTrue(res["snapped"])
+            self.assertEqual(res["group"], "g1")
+            self.assertEqual(res["axis"], "vertical")
+            data = json.loads(path.read_text())["widgets"]
+            self.assertEqual(data["c"]["snap_group"], "g1")
+            self.assertEqual(data["c"]["snap_order"], 2)   # appended after a, b
+
+    def test_repositioning_member_translates_group(self) -> None:
+        # Dragging an existing member to a new spot moves the group so that
+        # member stays where it was dropped (the anchor shifts).
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "config.json"
+            path.write_text(json.dumps({"widgets": {
+                "a": {"position": "free", "snap_group": "g1", "snap_axis": "vertical",
+                       "snap_order": 0, "margin_x": 100, "margin_y": 100},
+                "b": {"position": "free", "snap_group": "g1", "snap_axis": "vertical",
+                       "snap_order": 1, "margin_x": 100, "margin_y": 260},
+            }}))
+            rects = {
+                "a": {"x": 100, "y": 100, "w": 200, "h": 150},
+                "b": {"x": 100, "y": 260, "w": 200, "h": 150},
+            }
+            res = widgets_layout.snap("b", 100, 280, rects, path)
+            self.assertTrue(res["snapped"])
+            data = json.loads(path.read_text())["widgets"]
+            self.assertEqual(data["a"]["margin_y"], 120)   # 280 - 1*(150+10)
+            self.assertEqual(data["b"]["snap_order"], 1)
+
+    def test_resnap_own_group_keeps_order(self) -> None:
+        # Re-dropping a member onto its own group keeps its slot (no reorder).
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "config.json"
+            path.write_text(json.dumps({"widgets": {
+                "a": {"position": "free", "snap_group": "g1", "snap_axis": "horizontal",
+                       "snap_order": 0, "margin_x": 0, "margin_y": 0},
+                "b": {"position": "free", "snap_group": "g1", "snap_axis": "horizontal",
+                       "snap_order": 1, "margin_x": 110, "margin_y": 0},
+            }}))
+            rects = {
+                "a": {"x": 0, "y": 0, "w": 100, "h": 100},
+                "b": {"x": 110, "y": 0, "w": 100, "h": 100},
+            }
+            res = widgets_layout.snap("b", 110, 0, rects, path)
+            self.assertTrue(res["snapped"])
+            data = json.loads(path.read_text())["widgets"]
+            self.assertEqual(data["b"]["snap_order"], 1)
+
+
+class SaveLayout(unittest.TestCase):
+    def test_writes_margins_keeps_membership(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "config.json"
+            path.write_text(json.dumps({"widgets": {
+                "a": {"snap_group": "g", "snap_order": 0, "margin_x": 0, "margin_y": 0},
+            }}))
+            ok = widgets_layout.save_layout({"a": {"x": 38, "y": 241, "w": 100, "h": 100}}, path)
+            self.assertTrue(ok)
+            b = json.loads(path.read_text())["widgets"]["a"]
+            self.assertEqual((b["margin_x"], b["margin_y"]), (38, 241))
+            self.assertEqual(b["snap_group"], "g")
+
+    def test_missing_config_fails(self) -> None:
+        self.assertFalse(widgets_layout.save_layout({"a": {"x": 1, "y": 2}}, Path("/no/such/config.json")))
 
 
 class SetPosition(unittest.TestCase):

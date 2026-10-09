@@ -5,6 +5,7 @@
 // arc menu, bar menu, start menu, themer). Heavy logic lives in the Python
 // backend (backend/hyprtk_bar_qt) and is streamed in over Quickshell Process.
 import Quickshell
+import Quickshell.Io
 import QtQuick
 import "bar"
 import "surface"
@@ -80,5 +81,10 @@ ShellRoot {
     Loader {
         active: Quickshell.env("HYPRTK_BAR_QT_NOTIFICATIONS") !== "0"
         source: "surface/Notifications.qml"
+    }
+
+    IpcHandler {
+        target: "shell"
+        function reload() { Quickshell.reload(true); }
     }
 }

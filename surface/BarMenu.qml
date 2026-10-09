@@ -2,6 +2,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import "../theme"
 import "../config"
 import "../data"
@@ -28,39 +29,39 @@ PanelWindow {
     visible: UiState.barMenuOpen
 
     readonly property var entries: [
-        { glyph: "\uf009", label: "Start Menu", act: "start" },
         { glyph: "\uf013", label: "Settings", act: "settings" },
-        { glyph: "\uf1fc", label: "Themer", act: "themer" },
-        { glyph: "\u2261", label: "Quick Settings", act: "qs" },
-        { glyph: "\u229e", label: "Arc Menu", act: "arc" },
         { glyph: "\uf021", label: "Reload", act: "reload" },
-        { glyph: "\uf023", label: "Lock", act: "lock" },
         { glyph: "\uf05a", label: "About hyprtk-bar", act: "about" }
     ]
+
+    // Persist the live widget layout before reloading, so a reload restores the
+    // current arrangement. Save each widget's ACTUAL on-screen rect (from
+    // WidgetMove), not the computed layout — the layout can lag a just-dropped
+    // (or still-held) move, whereas the rects are what the user sees.
+    readonly property string saveBackend:
+        Qt.resolvedUrl("../backend/hyprtk_bar_qt/widgets_layout.py").toString().replace("file://", "")
+    function currentRects() {
+        const out = ({});
+        const r = WidgetMove.rects || ({});
+        for (const id in r)
+            out[id] = { x: Math.round(r[id].x), y: Math.round(r[id].y) };
+        return out;
+    }
+    Process {
+        id: saveProc
+        onExited: (code, status) => Quickshell.reload(true)
+    }
 
     function dispatch(action) {
         UiState.barMenuOpen = false;
         switch (action) {
-        case "start":
-            UiState.startMenuOpen = true;
-            break;
         case "settings":
             UiState.settingsOpen = true;
             break;
-        case "themer":
-            UiState.themerOpen = true;
-            break;
-        case "qs":
-            UiState.quickSettingsOpen = true;
-            break;
-        case "arc":
-            UiState.arcMenuOpen = true;
-            break;
         case "reload":
-            Quickshell.reload(true);
-            break;
-        case "lock":
-            Quickshell.execDetached(["sh", "-c", MenuConfig.power("lock") || Config.menuPower.lock]);
+            saveProc.command = ["python3", menu.saveBackend, "save",
+                "--layout", JSON.stringify(menu.currentRects())];
+            saveProc.running = true;
             break;
         case "about":
             UiState.aboutOpen = true;

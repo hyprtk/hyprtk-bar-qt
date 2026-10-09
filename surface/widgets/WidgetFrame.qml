@@ -50,15 +50,18 @@ PanelWindow {
             return sh - frame.effMarginY - frame.height;
         return Math.round((sh - frame.height) / 2);
     }
-    // Natural (unconstrained) content size — used for snap-group cells so a
-    // constrained member still reports the size it *wants* (the cell is the
-    // largest natural member; without this the cell collapses to the last
-    // constrained height and the big member gets squashed).
+    // Natural (unconstrained) content size — used for snap-group cells. Measured
+    // at the widget's base scale and FROZEN while snapped, so the cell size never
+    // feeds back into the widget's own scale (that oscillation was the snap
+    // "jerking": scaled content changed the measured height, which changed the
+    // cell, which changed the scale, ...).
+    property int _frozenNaturalH: 0
     readonly property int naturalWidth: frame.widgetWidth
     readonly property int naturalHeight: frame.widgetHeight > 0
         ? frame.widgetHeight
-        : Math.round((contentCol.implicitHeight + frame.padding * 2)
-                     / (frame.snapScale > 0 ? frame.snapScale : 1))
+        : (frame._frozenNaturalH > 0
+            ? frame._frozenNaturalH
+            : contentCol.implicitHeight + frame.padding * 2)
 
     function _register() {
         WidgetMove.setGeometry(frame.widgetId, frame._gx(), frame._gy(), frame.width, frame.height);
@@ -70,6 +73,7 @@ PanelWindow {
     screen: targetScreen
     Component.onCompleted: {
         frame.targetScreen = Screens.focused();
+        frame._frozenNaturalH = contentCol.implicitHeight + frame.padding * 2;
         _register();
     }
     onWidthChanged: _register()
@@ -81,10 +85,16 @@ PanelWindow {
     onEffMarginXChanged: _register()
     onEffMarginYChanged: _register()
     // Natural height can change as content loads (e.g. sysinfo/weather), so
-    // re-register the size when the content's implicit height changes.
+    // re-register the size when the content's implicit height changes. Only
+    // re-freeze while unsnapped: a snapped widget's content is scaled, and
+    // re-measuring it would reintroduce the cell↔scale feedback loop.
     Connections {
         target: contentCol
-        function onImplicitHeightChanged() { frame._register() }
+        function onImplicitHeightChanged() {
+            if (frame.snapScale === 0)
+                frame._frozenNaturalH = contentCol.implicitHeight + frame.padding * 2;
+            frame._register();
+        }
     }
 
     // ── appearance ─────────────────────────────────────────────────────

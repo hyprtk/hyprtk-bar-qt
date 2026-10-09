@@ -60,23 +60,6 @@ Singleton {
         return null;
     }
 
-    // Drop committed overrides once the config reflects them.
-    function clearCommitted() {
-        const c = root.committed;
-        const cfg = Widgets.cfg || ({});
-        let changed = false;
-        const next = Object.assign({}, c);
-        for (const id in c) {
-            const b = cfg[id] || ({});
-            if (b.margin_x === c[id].x && b.margin_y === c[id].y) {
-                delete next[id];
-                changed = true;
-            }
-        }
-        if (changed)
-            root.committed = next;
-    }
-
     function hitTest(cx, cy) {
         for (const id in root.rects) {
             const r = root.rects[id];
@@ -127,15 +110,17 @@ Singleton {
             "--id", id, "--x", String(x), "--y", String(y),
             "--rects", JSON.stringify(root.rects)];
         saveProc.running = true;
+        // Hold the dropped position until the async layout has caught up (else
+        // the widget flashes to its stale layout slot for a frame).
+        settleTimer.restart();
         root.moving = false;
         root.movingId = "";
         root.status = "";
     }
 
-    Connections {
-        target: Widgets
-        function onCfgChanged() { root.clearCommitted(); }
-    }
+    // Clears the drop override once the config reload (debounce 120ms) and the
+    // layout process have both had time to run.
+    Timer { id: settleTimer; interval: 350; onTriggered: root.committed = ({}) }
 
     Process {
         id: fifoProc

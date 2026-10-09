@@ -23,8 +23,8 @@ WidgetFrame {
     layer: block.layer || "bottom"
     // Natural forecast cell (base scale) drives the widget's preferred width so
     // the whole forecast fits one row, like the GTK bar sizing to content.
-    readonly property int forecastCellNatural: Math.round(54 * win.scale)
-    readonly property int forecastSpacingNatural: Math.round(8 * win.scale)
+    readonly property int forecastCellNatural: Math.round(56 * win.scale)
+    readonly property int forecastSpacingNatural: Math.round(12 * win.scale)
     widgetWidth: Math.max(block.width || 280,
         Math.round(win.days * win.forecastCellNatural
             + Math.max(0, win.days - 1) * win.forecastSpacingNatural + 2 * win.padding))
@@ -187,7 +187,7 @@ WidgetFrame {
                     Text {
                         width: parent.width
                         horizontalAlignment: Text.AlignHCenter
-                        text: (fcell.modelData.hi !== null ? Math.round(fcell.modelData.hi) : "--") + "\u00b0 / "
+                        text: (fcell.modelData.hi !== null ? Math.round(fcell.modelData.hi) : "--") + "\u00b0/"
                             + (fcell.modelData.lo !== null ? Math.round(fcell.modelData.lo) : "--") + "\u00b0"
                         color: win.widgetForeground
                         font.bold: true
