@@ -14,6 +14,7 @@ import argparse
 import hashlib
 import json
 import os
+import random
 import subprocess
 from pathlib import Path
 
@@ -147,6 +148,21 @@ def apply(image: str) -> bool:
         return False
 
 
+def random_image(directory: str) -> str | None:
+    """One random image from ``directory`` (or None if there are none)."""
+    images = scan(directory)
+    return random.choice(images) if images else None
+
+
+def random_apply(directory: str) -> str | None:
+    """Pick a random wallpaper from *directory* and apply it (wallpaper + pywal).
+
+    Returns the chosen image path on success, else None.
+    """
+    image = random_image(directory)
+    return image if image and apply(image) else None
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="wallpaper scanning + thumbnails + apply")
     sub = ap.add_subparsers(dest="action", required=True)
@@ -158,6 +174,8 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("current")
     apply_p = sub.add_parser("apply")
     apply_p.add_argument("image")
+    rand_p = sub.add_parser("random")
+    rand_p.add_argument("directory", nargs="?", default=str(Path.home() / "Pictures" / "Wallpapers"))
     args = ap.parse_args(argv)
 
     if args.action == "scan":
@@ -169,6 +187,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.action == "current":
         print(json.dumps({"current": current()}))
         return 0
+    if args.action == "random":
+        chosen = random_apply(args.directory)
+        print(json.dumps({"ok": bool(chosen), "path": chosen or ""}))
+        return 0 if chosen else 1
     ok = apply(args.image)
     print(json.dumps({"ok": bool(ok)}))
     return 0 if ok else 1

@@ -66,6 +66,10 @@ PanelWindow {
     property var importable: []
     property var images: []
     property string currentWall: ""
+    // Bumped whenever the current wallpaper is (re)read, to bust QML's Image
+    // cache — ~/.cache/current-wallpaper.png keeps the same URL while its
+    // contents change, so the preview would otherwise stay stale.
+    property int currentWallVersion: 0
     property var rofiVariants: []
     property string rofiActive: ""
     property string statusMsg: ""
@@ -177,6 +181,7 @@ PanelWindow {
         stdout: SplitParser {
             onRead: line => {
                 try { win.currentWall = JSON.parse(line).current || ""; } catch (e) { win.currentWall = ""; }
+                win.currentWallVersion++;
             }
         }
     }
@@ -266,7 +271,22 @@ PanelWindow {
         }
     }
     Process { id: walApplyProc; onExited: (code, status) => { pywalRefresh.restart(); } }
-    Process { id: walRerunProc; onExited: (code, status) => { win.toast(code === 0 ? "Re-ran pywal" : "wal failed"); pywalRefresh.restart(); } }
+    Process {
+        id: walRerunProc
+        property string chosen: ""
+        stdout: SplitParser {
+            onRead: line => { try { walRerunProc.chosen = JSON.parse(line).path || ""; } catch (e) {} }
+        }
+        onExited: (code, status) => {
+            win.toast(code === 0
+                ? ("Wallpaper: " + walRerunProc.chosen.split("/").pop())
+                : "No wallpapers found");
+            if (code === 0 && walRerunProc.chosen.length)
+                win.selectedWall = walRerunProc.chosen;
+            currentProc.running = true;
+            pywalRefresh.restart();
+        }
+    }
     Timer { id: pywalRefresh; interval: 2500; onTriggered: { win.refreshPywal(); win.refreshSchemes(); } }
 
     // ── papirus folder icons ───────────────────────────────────────────
@@ -390,8 +410,12 @@ PanelWindow {
         walApplyProc.running = true;
         win.toast("Applied scheme: " + path.split("/").pop());
     }
+    // Pick a random wallpaper from the wall dir and apply it: sets the wallpaper
+    // and regenerates every pywal-template colour in one shot.
     function rerunWal() {
-        walRerunProc.command = ["python3", win.base + "pywal.py", "rerun", win.pywalDir];
+        walRerunProc.chosen = "";
+        walRerunProc.command = ["python3", win.base + "wallpapers.py", "random",
+            win.pywalDir.length ? win.pywalDir : win.wallDir()];
         walRerunProc.running = true;
     }
     function applySelectedWall() {
@@ -556,8 +580,11 @@ PanelWindow {
                         spacing: 10
                         Image {
                             source: {
-                                const p = win.selectedWall.length ? win.selectedWall : win.currentWall;
-                                return p.length ? "file://" + p : "";
+                                if (win.selectedWall.length)
+                                    return "file://" + win.selectedWall;
+                                return win.currentWall.length
+                                    ? ("file://" + win.currentWall + "?v=" + win.currentWallVersion)
+                                    : "";
                             }
                             sourceSize.width: 200
                             sourceSize.height: 112
@@ -689,7 +716,7 @@ PanelWindow {
                         spacing: 6
                         Text { text: "wal dir"; color: Theme.dim; font.pixelSize: 10 }
                         TTextField { Layout.fillWidth: true; placeholderText: win.wallDir(); text: win.pywalDir; color: Theme.foreground; onEditingFinished: win.pywalDir = text }
-                        TButton { text: "Re-run wal"; onClicked: win.rerunWal() }
+                        TButton { text: "Random wallpaper"; onClicked: win.rerunWal() }
                         TButton { text: "Refresh"; onClicked: { win.refreshPywal(); win.refreshSchemes(); } }
                     }
                     Text { text: "Saved colour schemes (" + win.pywalSchemes.length + ")"; color: Theme.accent; font.bold: true; font.pixelSize: 11 }
@@ -1075,7 +1102,9 @@ PanelWindow {
                         wrapMode: Text.WordWrap
                     }
                     Image {
-                        source: win.currentWall.length ? "file://" + win.currentWall : ""
+                        source: win.currentWall.length
+                            ? ("file://" + win.currentWall + "?v=" + win.currentWallVersion)
+                            : ""
                         sourceSize.width: 260
                         sourceSize.height: 146
                         Layout.preferredWidth: 260

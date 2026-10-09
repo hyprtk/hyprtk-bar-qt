@@ -42,7 +42,7 @@ PanelWindow {
     property int page: 0
     readonly property var pageNames: ["Bar", "Themes", "Fonts", "Animations", "Arc Menu", "Menu", "Quicklinks", "Modules", "Widgets"]
     readonly property var arcPositions: ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right"]
-    readonly property var moduleIds: ["start_button", "quicklinks", "workspaces", "tasklist", "window", "updates", "net", "tray", "kbstate", "notifications", "clock", "media", "sysmon", "arcmenu", "themer", "settings", "quicksettings"]
+    readonly property var moduleIds: ["start_button", "quicklinks", "workspaces", "tasklist", "window", "updates", "net", "tray", "kbstate", "notifications", "clock", "media", "sysmon", "themer", "settings", "quicksettings"]
     readonly property var widgetIds: ["clock", "weather", "visualizer", "disk", "network", "resources", "sysinfo"]
 
     // ── debounced config writer ────────────────────────────────────────
@@ -144,7 +144,7 @@ PanelWindow {
             start_button: "center", themer: "themer", quicklinks: "quicklinks",
             workspaces: "workspaces", window: "window", updates: "updates",
             tray: "tray", notifications: "notifications", clock: "clock",
-            media: "media", sysmon: "sysmon", arcmenu: "arcmenu", quicksettings: "quicksettings"
+            media: "media", sysmon: "sysmon", quicksettings: "quicksettings"
         };
         return map[id] || "";
     }
@@ -162,7 +162,7 @@ PanelWindow {
         start_button: "Start Button", quicklinks: "Quick Links", workspaces: "Workspaces",
         tasklist: "Task List", window: "Active Window", updates: "Updates", net: "Network",
         tray: "System Tray", kbstate: "Keyboard State", notifications: "Notifications",
-        clock: "Clock", media: "Media", sysmon: "System Monitor", arcmenu: "Arc Menu",
+        clock: "Clock", media: "Media", sysmon: "System Monitor",
         themer: "Theme Manager", settings: "Settings", quicksettings: "Quick Settings"
     })
     function moduleLabel(id) { return win.moduleLabels[id] || id; }

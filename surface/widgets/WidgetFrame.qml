@@ -162,13 +162,27 @@ PanelWindow {
     }
 
     Rectangle {
+        id: bg
         anchors.fill: parent
         radius: frame.radius
         color: Widgets.transparent
             ? "transparent"
             : Qt.rgba(frame.widgetBackground.r, frame.widgetBackground.g, frame.widgetBackground.b, frame.widgetOpacity)
-        border.width: (Widgets.transparent || !Widgets.border) ? 0 : BarConfig.borderWidth
-        border.color: Qt.rgba(frame.widgetAccent.r, frame.widgetAccent.g, frame.widgetAccent.b, 0.25)
+
+        // Border follows the bar: the same width (`Border width` on the Bar page)
+        // and the same animated accent↔accent2 cycle (via the shared Chrome
+        // helper), so changing either keeps the widgets in step with the bar.
+        readonly property bool borderOn: !Widgets.transparent && Widgets.border
+        readonly property color borderA: Qt.rgba(frame.widgetAccent.r, frame.widgetAccent.g, frame.widgetAccent.b, 0.25)
+        readonly property color borderB: Qt.rgba(Theme.accent2.r, Theme.accent2.g, Theme.accent2.b, 0.25)
+        border.width: bg.borderOn ? BarConfig.borderWidth : 0
+        border.color: bg.borderA
+        SequentialAnimation on border.color {
+            running: bg.borderOn && Chrome.animated
+            loops: Animation.Infinite
+            ColorAnimation { to: bg.borderB; duration: Chrome.periodMs; easing.type: Easing.InOutSine }
+            ColorAnimation { to: bg.borderA; duration: Chrome.periodMs; easing.type: Easing.InOutSine }
+        }
 
         ColumnLayout {
             id: contentCol

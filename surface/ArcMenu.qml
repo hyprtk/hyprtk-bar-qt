@@ -2,7 +2,9 @@
 // concept, merged from the old hyprtk-arc-menu). Position/geometry/colours/
 // animation/items come from the `arcmenu` config block.
 //
-// Toggle from the bar button, the input action, or:
+// The corner FAB is shown whenever `arcmenu.enabled` is on; left-click it to
+// fan the items out, left-click again to tuck them away, middle-click to
+// disable. Also toggleable by Super+Ctrl+M, the bar button, or:
 //   qs ipc call arcmenu toggle
 import QtQuick
 import Quickshell
@@ -17,22 +19,35 @@ PanelWindow {
 
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
-    focusable: true
-    visible: UiState.arcMenuOpen && BarConfig.arcmenu.enabled !== false
+    // The surface is shown whenever the arc menu is enabled, so the corner FAB
+    // is always reachable (like the GTK bar's overlay). While the items are
+    // tucked away the surface is input/render-masked down to just the FAB, so
+    // the empty corner never swallows clicks.
+    visible: BarConfig.arcmenu.enabled !== false
+    focusable: UiState.arcMenuOpen
 
-    // Open on the focused monitor (captured when shown).
-    property var targetScreen: null
+    // Open on the focused monitor (resolved at start-up; single-monitor here).
+    property var targetScreen: Screens.focused()
+        || ((Quickshell.screens && Quickshell.screens.length) ? Quickshell.screens[0] : null)
     screen: targetScreen
-    // The FAB starts collapsed; left-click fans the items out, left-click again
-    // tucks them away, middle-click closes the whole menu.
-    property bool itemsOpen: false
+
+    // Input + render region: the FAB when collapsed, the full surface when fanned.
+    Region { id: fabMask; item: fab }
+    Region { id: fullMask; x: 0; y: 0; width: arc.width; height: arc.height }
+    mask: UiState.arcMenuOpen ? fullMask : fabMask
+
     onVisibleChanged: {
-        if (visible) {
-            targetScreen = Screens.focused();
-            itemsOpen = false;
-        } else {
-            itemsOpen = false;
-        }
+        if (!visible)
+            UiState.arcMenuOpen = false;
+    }
+
+    readonly property string backend:
+        Qt.resolvedUrl("../backend/hyprtk_bar_qt/barsettings.py").toString().replace("file://", "")
+    // Middle-clicking the FAB disables the arc menu (persisted), matching the
+    // GTK bar; re-enable it from Settings → Arc Menu.
+    Process {
+        id: disableProc
+        command: ["python3", arc.backend, "set", "--json", "{\"arcmenu\":{\"enabled\":false}}"]
     }
 
     readonly property var cfg: BarConfig.arcmenu
@@ -131,9 +146,9 @@ PanelWindow {
             readonly property real openY: arc.fabY() + arc.fabSize / 2 + arc.radius * Math.sin(cell.ang) - height / 2
             readonly property real closedX: arc.fabX() + arc.fabSize / 2 - width / 2
             readonly property real closedY: arc.fabY() + arc.fabSize / 2 - height / 2
-            x: arc.itemsOpen ? cell.openX : cell.closedX
-            y: arc.itemsOpen ? cell.openY : cell.closedY
-            opacity: arc.itemsOpen ? 1 : 0
+            x: UiState.arcMenuOpen ? cell.openX : cell.closedX
+            y: UiState.arcMenuOpen ? cell.openY : cell.closedY
+            opacity: UiState.arcMenuOpen ? 1 : 0
             color: arc.itemColor
             border.color: arc.fabColor
             border.width: 1
@@ -146,13 +161,14 @@ PanelWindow {
                 anchors.centerIn: parent
                 text: cell.modelData.glyph || "\u2022"
                 color: "#000000"
+                font.family: BarConfig.glyphFont
                 font.pixelSize: (arc.cfg.glyph_size > 0) ? arc.cfg.glyph_size
                     : Math.round(16 * (arc.itemSize / 42))
             }
 
             MouseArea {
                 anchors.fill: parent
-                enabled: arc.itemsOpen
+                enabled: UiState.arcMenuOpen
                 cursorShape: Qt.PointingHandCursor
                 hoverEnabled: true
                 onClicked: arc.run(cell.modelData)
@@ -185,10 +201,10 @@ PanelWindow {
             cursorShape: Qt.PointingHandCursor
             onClicked: (mouse) => {
                 if (mouse.button === Qt.MiddleButton) {
-                    arc.itemsOpen = false;
                     UiState.arcMenuOpen = false;
+                    disableProc.running = true;
                 } else {
-                    arc.itemsOpen = !arc.itemsOpen;
+                    UiState.arcMenuOpen = !UiState.arcMenuOpen;
                 }
             }
         }

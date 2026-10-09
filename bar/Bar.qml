@@ -64,7 +64,6 @@ Rectangle {
         DelegateChoice { roleValue: "clock"; delegate: Clock {} }
         DelegateChoice { roleValue: "media"; delegate: Media {} }
         DelegateChoice { roleValue: "sysmon"; delegate: SysMonitor {} }
-        DelegateChoice { roleValue: "arcmenu"; delegate: ArcButton {} }
         DelegateChoice { roleValue: "themer"; delegate: ThemerButton {} }
         DelegateChoice { roleValue: "settings"; delegate: SettingsButton {} }
         DelegateChoice { roleValue: "quicksettings"; delegate: QuickSettingsButton {} }

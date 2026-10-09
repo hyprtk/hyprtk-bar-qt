@@ -37,7 +37,7 @@ Singleton {
     // ── module layout (data-driven) ────────────────────────────────────
     property var layoutLeft: ["start_button", "quicklinks", "workspaces", "tasklist", "window"]
     property var layoutCenter: []
-    property var layoutRight: ["updates", "net", "tray", "kbstate", "notifications", "clock", "sysmon", "arcmenu", "themer", "settings", "quicksettings"]
+    property var layoutRight: ["updates", "net", "tray", "kbstate", "notifications", "clock", "sysmon", "themer", "settings", "quicksettings"]
 
     // ── theme overrides ("" = follow pywal) ───────────────
     property string wallpaperDir: ""       // "" = ~/Pictures/Wallpapers

@@ -33,6 +33,29 @@ class Scan(unittest.TestCase):
         self.assertFalse(wallpapers.apply("/no/such/image.png"))
 
 
+class RandomApply(unittest.TestCase):
+    def test_random_image_picks_from_dir(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            for name in ("a.png", "b.jpg"):
+                (Path(tmp) / name).write_bytes(b"x")
+            chosen = wallpapers.random_image(tmp)
+            self.assertIn(Path(chosen).name, {"a.png", "b.jpg"})
+
+    def test_random_image_empty_dir_is_none(self) -> None:
+        self.assertIsNone(wallpapers.random_image("/no/such/dir/here"))
+
+    def test_random_apply_uses_apply(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "a.png").write_bytes(b"x")
+            with unittest.mock.patch.object(wallpapers, "apply", return_value=True) as apply:
+                chosen = wallpapers.random_apply(tmp)
+                self.assertEqual(Path(chosen).name, "a.png")
+                apply.assert_called_once()
+
+    def test_random_apply_empty_dir_is_none(self) -> None:
+        self.assertIsNone(wallpapers.random_apply("/no/such/dir/here"))
+
+
 class Thumbs(unittest.TestCase):
     def test_thumb_path_deterministic(self) -> None:
         self.assertEqual(wallpapers.thumb_path("/tmp/x.png"),
