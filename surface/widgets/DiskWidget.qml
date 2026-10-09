@@ -38,7 +38,7 @@ WidgetFrame {
 
     ColumnLayout {
         Layout.fillWidth: true
-        spacing: Math.round(8 * win.scale)
+        spacing: Math.round(8 * win.effScale)
 
         Repeater {
             model: win.visibleDrives()
@@ -46,16 +46,16 @@ WidgetFrame {
                 id: cell
                 required property var modelData
                 Layout.fillWidth: true
-                spacing: Math.round(3 * win.scale)
+                spacing: Math.round(3 * win.effScale)
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 6
-                    Text { text: cell.modelData.glyph || ""; color: win.widgetAccent; font.family: BarConfig.glyphFont; font.pixelSize: Math.round(16 * win.scale) }
+                    Text { text: cell.modelData.glyph || ""; color: win.widgetAccent; font.family: BarConfig.glyphFont; font.pixelSize: Math.round(16 * win.effScale) }
                     Text {
                         text: cell.modelData.model || cell.modelData.name || ""
                         color: win.widgetForeground
                         font.bold: true
-                        font.pixelSize: Math.round(12 * win.scale)
+                        font.pixelSize: Math.round(12 * win.effScale)
                         Layout.fillWidth: true
                         elide: Text.ElideRight
                     }
@@ -65,13 +65,13 @@ WidgetFrame {
                             : "\u2014"
                         color: win.widgetForeground
                         opacity: 0.85
-                        font.pixelSize: Math.round(11 * win.scale)
+                        font.pixelSize: Math.round(11 * win.effScale)
                     }
                 }
                 Rectangle {
                     visible: win.showBar && modelData.size_b > 0
                     Layout.fillWidth: true
-                    height: Math.round(6 * win.scale)
+                    height: Math.round(6 * win.effScale)
                     radius: height / 2
                     color: Qt.rgba(win.widgetForeground.r, win.widgetForeground.g, win.widgetForeground.b, 0.15)
                     Rectangle {
@@ -92,7 +92,7 @@ WidgetFrame {
                     + "    \uf093  " + MonitorData.fmtRate(WidgetData.disk.write_bps || 0)
                 : "\uf019  --    \uf093  --"
             color: win.widgetAccent
-            font.pixelSize: Math.round(12 * win.scale)
+            font.pixelSize: Math.round(12 * win.effScale)
         }
     }
 }

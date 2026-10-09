@@ -18,6 +18,7 @@ Legend: ✅ done · ◐ partial · ☐ todo
 | `sysmon` | CPU/RAM/disk + click → monitor | ✅ `SysMonitor.qml` + `surface/SysMonitor.qml` dialog |
 | `kbstate` | Caps/Num lock LEDs | ✅ `KbState.qml` |
 | `clock` | time/date (styles, dials, seconds) | ✅ `Clock.qml` (format + hover date/calendar popups) |
+| `media` | (optional extra — not in GTK) now-playing + transport | ✅ `Media.qml` (Quickshell MPRIS; prev/play-pause/next, tooltip, raise; hidden with no player) |
 | `notifications` | daemon + center (bell) | ✅ `NotificationsButton.qml` bell + unread badge, `surface/NotificationCenter.qml` history; toasts on by default (opt out with `HYPRTK_BAR_QT_NOTIFICATIONS=0`) |
 | `tray` | SNI tray + dbusmenu | ✅ `Tray.qml` (icons + activate + right-click DBusMenu via `QsMenuAnchor`) |
 | `quicksettings` | Win11 flyout | ✅ `surface/QuickSettings.qml` (volume/mic/brightness/Wi-Fi/Bluetooth) |
@@ -98,12 +99,12 @@ surfaces reading the Qt bar's own `widgets` config.
 | `resources` | ✅ CPU graph + RAM/swap bars + temp/load |
 | `disk` | ✅ per-drive bars + I/O rates |
 | `network` | ✅ iface/IP/rates + download graph |
-| `weather` | ✅ current + feels/humidity/wind + daily forecast (Open-Meteo, cached) |
+| `weather` | ✅ current + feels/humidity/wind + daily forecast (Open-Meteo, cached; cells shrink to keep one row in a constrained cell) |
 | `visualizer` | ✅ cava/synthetic; bars / wave / mirror / dots / glow; sensitivity, smoothing, orientation, peak dots |
 | `sysinfo` | ✅ host/OS/kernel/uptime/CPU/GPU/memory/disks |
 | placement: 9-way + `free` | ✅ (`WidgetFrame`) |
 | placement: usable-area clamp | ✅ (kept clear of the bar) |
-| placement: snap groups (`snap_group`/`snap_axis`/`snap_order`) | ✅ config-driven (`widgets_layout`) |
+| placement: snap groups (`snap_group`/`snap_axis`/`snap_order`) | ✅ config-driven (`widgets_layout`); per-member cell scale + dropped-widget anchor (GTK `_snap_anchor`), gap 10 |
 | placement: drag (Super+Shift move) | ✅ cursor-polling move mode via `widget_move` FIFO + `hyprtk-bar-qt-widget-move` |
 
 ## Backend (Python, toolkit-free)
@@ -124,13 +125,12 @@ surfaces reading the Qt bar's own `widgets` config.
 Parity remediation (see **`PLAN.md`**, Batches 1–6) is complete. Remaining known
 differences, both deliberate:
 
-- **MPRIS media control** — not implemented; the reference GTK bar does not ship
-  it either (it is on GTK's roadmap). Optional extra, not a parity gap.
 - **`theme.py` / `menu/theme.py` / `desktop/theme.py` CSS builders** — N/A: the Qt
   bar renders from QML colour tokens, not generated CSS; behaviour matches.
 
-Optional polish: start-menu Places categories beyond the current set. GTK-only
-tooling (gengtk/oomox theme generation) is intentionally out of scope.
+Optional polish: start-menu Places now cover Games + Trash + Network; GTK-only
+tooling (gengtk/oomox theme generation) is intentionally out of scope. The
+**MPRIS media module** (`Media.qml`) is an additive extra the GTK bar does not ship.
 
 The dialogs (Settings / Themer / About) are now centred layer-shell panels
 rather than tiled xdg windows, and expose `IpcHandler`s (`toggle`/`open`/`close`)

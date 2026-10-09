@@ -99,7 +99,7 @@ WidgetFrame {
 
     ColumnLayout {
         Layout.fillWidth: true
-        spacing: Math.round(4 * win.scale)
+        spacing: Math.round(4 * win.effScale)
 
         Canvas {
             id: dial
@@ -180,7 +180,7 @@ WidgetFrame {
                 ? win.spell(win.now.getHours(), win.now.getMinutes())
                 : Qt.formatDateTime(win.now, win.qtFormat(win.tv("time_format", "%H:%M")))
             color: win.widgetForeground
-            font.pixelSize: Math.round((win.style === "text" ? 22 : 42) * win.scale)
+            font.pixelSize: Math.round((win.style === "text" ? 22 : 42) * win.effScale)
             font.bold: win.style !== "text"
             font.family: win.fontFamily
             wrapMode: Text.WordWrap
@@ -191,7 +191,7 @@ WidgetFrame {
             visible: win.tv("show_date", true) !== false
             text: Qt.formatDateTime(win.now, win.qtFormat(win.tv("date_format", "%A, %d %B")))
             color: win.widgetAccent
-            font.pixelSize: Math.round(13 * win.scale)
+            font.pixelSize: Math.round(13 * win.effScale)
             font.family: win.fontFamily
         }
     }

@@ -117,7 +117,40 @@ class SnapLayout(unittest.TestCase):
         }
         out = widgets_layout.layout(cfg, heights={"a": {"w": 200, "h": 150}, "b": {"w": 200, "h": 90}})
         self.assertEqual(out["a"]["h"], 150)
-        self.assertEqual(out["b"]["y"], 10 + 150 + widgets_layout.SPACING)
+        self.assertEqual(out["b"]["y"], 10 + 150 + widgets_layout.SNAP_GAP)
+
+    def test_per_member_scale_fills_cell(self) -> None:
+        # The cell is the largest natural member; smaller members scale up
+        # (clamped to SNAP_SCALE_MAX), larger members scale down — as GTK.
+        cfg = {
+            "small": {"snap_group": "g", "snap_axis": "horizontal", "snap_order": 1,
+                       "width": 100, "height": 100, "margin_x": 0, "margin_y": 0, "position": "free"},
+            "big": {"snap_group": "g", "snap_axis": "horizontal", "snap_order": 2,
+                     "width": 300, "height": 200, "position": "free"},
+        }
+        out = widgets_layout.layout(cfg)
+        self.assertEqual(out["small"]["w"], 300)
+        self.assertEqual(out["small"]["h"], 200)
+        # small: min(300/100, 200/100)=2.0 -> clamped 2.0 * 0.97
+        self.assertAlmostEqual(out["small"]["scale"], 2.0 * widgets_layout.SNAP_FIT_MARGIN, places=3)
+        # big: min(300/300, 200/200)=1.0 * 0.97
+        self.assertAlmostEqual(out["big"]["scale"], 1.0 * widgets_layout.SNAP_FIT_MARGIN, places=3)
+
+    def test_anchor_keeps_dropped_widget_in_place(self) -> None:
+        # A widget joining an existing group to the right stays where dropped;
+        # the earlier member reflows to its left.
+        cfg = {
+            "clock": {"snap_group": "g1", "snap_axis": "horizontal", "snap_order": 0,
+                       "width": 100, "height": 100, "margin_x": 0, "margin_y": 0, "position": "free"},
+            "disk": {"position": "free", "margin_x": 320, "margin_y": 4, "snap_anchor": True,
+                      "snap_group": "g1", "snap_axis": "horizontal", "snap_order": 1,
+                      "width": 100, "height": 100},
+        }
+        out = widgets_layout.layout(cfg)
+        # disk (anchor, index 1) stays at 320; clock moves one cell left of it.
+        self.assertEqual(out["disk"]["x"], 320)
+        self.assertEqual(out["clock"]["x"], 320 - (100 + widgets_layout.SNAP_GAP))
+
 
 
 class SnapDrop(unittest.TestCase):

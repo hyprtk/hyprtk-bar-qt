@@ -62,6 +62,7 @@ Rectangle {
         DelegateChoice { roleValue: "kbstate"; delegate: KbState {} }
         DelegateChoice { roleValue: "notifications"; delegate: NotificationsButton {} }
         DelegateChoice { roleValue: "clock"; delegate: Clock {} }
+        DelegateChoice { roleValue: "media"; delegate: Media {} }
         DelegateChoice { roleValue: "sysmon"; delegate: SysMonitor {} }
         DelegateChoice { roleValue: "arcmenu"; delegate: ArcButton {} }
         DelegateChoice { roleValue: "themer"; delegate: ThemerButton {} }

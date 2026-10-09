@@ -31,17 +31,17 @@ WidgetFrame {
 
     ColumnLayout {
         Layout.fillWidth: true
-        spacing: Math.round(4 * win.scale)
+        spacing: Math.round(4 * win.effScale)
 
         RowLayout {
             Layout.fillWidth: true
             spacing: 6
-            Text { text: WidgetData.net.glyph || "\uf1eb"; color: win.widgetAccent; font.family: BarConfig.glyphFont; font.pixelSize: Math.round(14 * win.scale) }
+            Text { text: WidgetData.net.glyph || "\uf1eb"; color: win.widgetAccent; font.family: BarConfig.glyphFont; font.pixelSize: Math.round(14 * win.effScale) }
             Text {
                 text: WidgetData.ready ? (WidgetData.net.iface || "\u2014") : "\u2014"
                 color: win.widgetForeground
                 font.bold: true
-                font.pixelSize: Math.round(14 * win.scale)
+                font.pixelSize: Math.round(14 * win.effScale)
                 Layout.fillWidth: true
             }
         }
@@ -51,7 +51,7 @@ WidgetFrame {
             text: WidgetData.ready ? (WidgetData.net.ip || "no address") : "no address"
             color: win.widgetForeground
             opacity: 0.85
-            font.pixelSize: Math.round(12 * win.scale)
+            font.pixelSize: Math.round(12 * win.effScale)
         }
         Text {
             Layout.fillWidth: true
@@ -61,12 +61,12 @@ WidgetFrame {
                     + "    \uf093  " + MonitorData.fmtRate(WidgetData.net.up_bps || 0)
                 : "\uf019  --    \uf093  --"
             color: win.widgetAccent
-            font.pixelSize: Math.round(12 * win.scale)
+            font.pixelSize: Math.round(12 * win.effScale)
         }
         Sparkline {
             visible: win.showGraph
             Layout.fillWidth: true
-            Layout.preferredHeight: Math.round(44 * win.scale)
+            Layout.preferredHeight: Math.round(44 * win.effScale)
             values: WidgetData.netDownHist
             color: win.widgetAccent
             scale: 0

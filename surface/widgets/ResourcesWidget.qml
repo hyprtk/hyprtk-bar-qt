@@ -48,15 +48,15 @@ WidgetFrame {
         property string value: ""
         property real fraction: 0
         Layout.fillWidth: true
-        spacing: Math.round(3 * win.scale)
+        spacing: Math.round(3 * win.effScale)
         RowLayout {
             Layout.fillWidth: true
-            Text { text: m.label; color: win.widgetForeground; opacity: 0.9; font.pixelSize: Math.round(12 * win.scale); Layout.fillWidth: true }
-            Text { text: m.value; color: win.widgetAccent; font.bold: true; font.pixelSize: Math.round(13 * win.scale) }
+            Text { text: m.label; color: win.widgetForeground; opacity: 0.9; font.pixelSize: Math.round(12 * win.effScale); Layout.fillWidth: true }
+            Text { text: m.value; color: win.widgetAccent; font.bold: true; font.pixelSize: Math.round(13 * win.effScale) }
         }
         Rectangle {
             Layout.fillWidth: true
-            height: Math.round(6 * win.scale)
+            height: Math.round(6 * win.effScale)
             radius: height / 2
             color: Qt.rgba(win.widgetForeground.r, win.widgetForeground.g, win.widgetForeground.b, 0.15)
             Rectangle {
@@ -70,7 +70,7 @@ WidgetFrame {
 
     ColumnLayout {
         Layout.fillWidth: true
-        spacing: Math.round(7 * win.scale)
+        spacing: Math.round(7 * win.effScale)
 
         Metric {
             visible: win.showCpu
@@ -81,7 +81,7 @@ WidgetFrame {
         Sparkline {
             visible: win.showCpu
             Layout.fillWidth: true
-            Layout.preferredHeight: Math.round(40 * win.scale)
+            Layout.preferredHeight: Math.round(40 * win.effScale)
             values: WidgetData.cpuHist
             color: win.widgetAccent
             scale: 100
@@ -108,7 +108,7 @@ WidgetFrame {
             text: win.meta()
             color: win.widgetForeground
             opacity: 0.8
-            font.pixelSize: Math.round(11 * win.scale)
+            font.pixelSize: Math.round(11 * win.effScale)
         }
     }
 }

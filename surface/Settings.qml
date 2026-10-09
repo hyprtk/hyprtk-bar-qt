@@ -42,7 +42,7 @@ PanelWindow {
     property int page: 0
     readonly property var pageNames: ["Bar", "Themes", "Fonts", "Animations", "Arc Menu", "Menu", "Quicklinks", "Modules", "Widgets"]
     readonly property var arcPositions: ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right"]
-    readonly property var moduleIds: ["start_button", "quicklinks", "workspaces", "tasklist", "window", "updates", "net", "tray", "kbstate", "notifications", "clock", "sysmon", "arcmenu", "themer", "settings", "quicksettings"]
+    readonly property var moduleIds: ["start_button", "quicklinks", "workspaces", "tasklist", "window", "updates", "net", "tray", "kbstate", "notifications", "clock", "media", "sysmon", "arcmenu", "themer", "settings", "quicksettings"]
     readonly property var widgetIds: ["clock", "weather", "visualizer", "disk", "network", "resources", "sysinfo"]
 
     // ── debounced config writer ────────────────────────────────────────
@@ -125,7 +125,7 @@ PanelWindow {
             start_button: "center", themer: "themer", quicklinks: "quicklinks",
             workspaces: "workspaces", window: "window", updates: "updates",
             tray: "tray", notifications: "notifications", clock: "clock",
-            sysmon: "sysmon", arcmenu: "arcmenu", quicksettings: "quicksettings"
+            media: "media", sysmon: "sysmon", arcmenu: "arcmenu", quicksettings: "quicksettings"
         };
         return map[id] || "";
     }
@@ -799,6 +799,12 @@ PanelWindow {
                         SRow { label: "Time format"; TTextField { Layout.fillWidth: true; text: win.g("clock.format", "ddd HH:mm:ss"); onEditingFinished: win.set("clock.format", text) } }
                         SRow { label: "Date format"; TTextField { Layout.fillWidth: true; text: win.g("clock.date_format", "dddd, dd MMMM"); onEditingFinished: win.set("clock.date_format", text) } }
                         SRow { label: "Calendar popup"; TCheckBox { checked: win.g("clock.calendar", true); onToggled: win.set("clock.calendar", checked) } }
+
+                        Text { text: "Media (MPRIS)"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 8 }
+                        SRow { label: "Transport controls"; TCheckBox { checked: win.g("media.show_controls", true); onToggled: win.set("media.show_controls", checked) } }
+                        SRow { label: "Show track text"; TCheckBox { checked: win.g("media.show_text", true); onToggled: win.set("media.show_text", checked) } }
+                        SRow { label: "Max text length"; TSpinBox { from: 0; to: 200; value: win.g("media.max_length", 48); onValueChanged: win.set("media.max_length", value) } }
+                        SRow { label: "Text width (px)"; TSpinBox { from: 0; to: 600; stepSize: 10; value: win.g("media.text_width", 180); onValueChanged: win.set("media.text_width", value) } }
 
                         Text { text: "Updates"; color: Theme.accent; font.bold: true; font.pixelSize: 12; Layout.topMargin: 8 }
                         SRow { label: "Interval (s)"; TSpinBox { from: 30; to: 3600; stepSize: 30; value: win.g("updates.interval", 60); onValueChanged: win.set("updates.interval", value) } }

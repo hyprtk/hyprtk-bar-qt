@@ -102,9 +102,9 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done
       wallpaper dir, opacity (debounced).
 - [x] SDDM/GRUB updater path resolved from the live tree instead of a hardcoded
       `~/hyprtk/configs/sddm/update.sh` (A23); errors surfaced if not found.
-- [ ] MPRIS media control — **deferred / out of parity**: the reference GTK bar
-      does not ship MPRIS either (it is on GTK's roadmap too). Optional extra,
-      not a parity gap.
+- [x] MPRIS media control — **optional extra** (the reference GTK bar ships none).
+      Implemented as the `media` bar module (`bar/modules/Media.qml`) on Quickshell's
+      MPRIS service, with a Settings Modules-page editor. See CHANGELOG 0.34.0.
 
 ## Batch 7 — Verification  ✅ done
 

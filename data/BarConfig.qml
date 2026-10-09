@@ -56,6 +56,7 @@ Singleton {
     readonly property var theme: block("theme")
     readonly property var workspaces: block("workspaces")
     readonly property var clock: block("clock")
+    readonly property var media: block("media")
     readonly property var tray: block("tray")
     readonly property var windowBlock: block("window")
     readonly property var center: block("center")

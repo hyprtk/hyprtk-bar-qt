@@ -72,7 +72,7 @@ WidgetFrame {
     ColumnLayout {
         id: rowsCol
         Layout.fillWidth: true
-        spacing: Math.round(4 * win.scale)
+        spacing: Math.round(4 * win.effScale)
         Repeater {
             model: win.rows()
             delegate: RowLayout {
@@ -80,18 +80,18 @@ WidgetFrame {
                 required property var modelData
                 Layout.fillWidth: true
                 spacing: 8
-                Text { text: row.modelData.glyph; color: win.widgetAccent; font.family: BarConfig.glyphFont; font.pixelSize: Math.round(16 * win.scale) }
+                Text { text: row.modelData.glyph; color: win.widgetAccent; font.family: BarConfig.glyphFont; font.pixelSize: Math.round(16 * win.effScale) }
                 Text {
                     text: row.modelData.label
                     color: win.widgetForeground
                     opacity: 0.7
-                    font.pixelSize: Math.round(12 * win.scale)
-                    Layout.preferredWidth: Math.round(72 * win.scale)
+                    font.pixelSize: Math.round(12 * win.effScale)
+                    Layout.preferredWidth: Math.round(72 * win.effScale)
                 }
                 Text {
                     text: row.modelData.value
                     color: win.widgetForeground
-                    font.pixelSize: Math.round(12 * win.scale)
+                    font.pixelSize: Math.round(12 * win.effScale)
                     Layout.fillWidth: true
                     elide: Text.ElideRight
                 }

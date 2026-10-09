@@ -21,12 +21,21 @@ WidgetFrame {
     marginX: block.margin_x !== undefined ? block.margin_x : 40
     marginY: block.margin_y !== undefined ? block.margin_y : 40
     layer: block.layer || "bottom"
-    // Widen to fit the forecast in one row (as the GTK bar sizes to content);
-    // when constrained (e.g. inside a snap cell) the forecast wraps instead.
-    readonly property int forecastCellW: Math.round(54 * win.scale)
-    readonly property int forecastSpacing: Math.round(8 * win.scale)
+    // Natural forecast cell (base scale) drives the widget's preferred width so
+    // the whole forecast fits one row, like the GTK bar sizing to content.
+    readonly property int forecastCellNatural: Math.round(54 * win.scale)
+    readonly property int forecastSpacingNatural: Math.round(8 * win.scale)
     widgetWidth: Math.max(block.width || 280,
-        Math.round(win.days * win.forecastCellW + Math.max(0, win.days - 1) * win.forecastSpacing + 2 * win.padding))
+        Math.round(win.days * win.forecastCellNatural
+            + Math.max(0, win.days - 1) * win.forecastSpacingNatural + 2 * win.padding))
+    // Render cell: shrink to fit the actual width so a constrained cell (a snap
+    // group shrunk to the usable area) still shows the forecast in one row.
+    readonly property int forecastSpacing: Math.round(8 * win.effScale)
+    readonly property int forecastCellW: {
+        const avail = win.effWidth - 2 * win.padding - Math.max(0, win.days - 1) * win.forecastSpacing;
+        const fit = win.days > 0 ? Math.floor(avail / win.days) : win.forecastCellNatural;
+        return Math.max(Math.round(18 * win.effScale), Math.min(win.forecastCellNatural, fit));
+    }
     widgetHeight: block.height || 0
     widgetOpacity: block.opacity !== undefined ? block.opacity : 0.75
     radius: block.radius || 16
@@ -89,7 +98,7 @@ WidgetFrame {
 
     ColumnLayout {
         Layout.fillWidth: true
-        spacing: Math.round(4 * win.scale)
+        spacing: Math.round(4 * win.effScale)
 
         RowLayout {
             Layout.fillWidth: true
@@ -99,7 +108,7 @@ WidgetFrame {
                 text: win.data.code !== undefined ? win.nowGlyph() : "\ue33d"
                 color: win.widgetAccent
                 font.family: BarConfig.glyphFont
-                font.pixelSize: Math.round(34 * win.scale)
+                font.pixelSize: Math.round(34 * win.effScale)
             }
             ColumnLayout {
                 Layout.fillWidth: true
@@ -109,14 +118,14 @@ WidgetFrame {
                     text: win.data.temp !== undefined && win.data.temp !== null
                         ? Math.round(win.data.temp) + "\u00b0" : "--"
                     color: win.widgetForeground
-                    font.pixelSize: Math.round(34 * win.scale)
+                    font.pixelSize: Math.round(34 * win.effScale)
                     font.bold: true
                 }
                 Text {
                     text: win.data.city ? win.data.city + (win.data.country ? ", " + win.data.country : "") : win.city
                     color: win.widgetForeground
                     opacity: 0.85
-                    font.pixelSize: Math.round(13 * win.scale)
+                    font.pixelSize: Math.round(13 * win.effScale)
                 }
             }
         }
@@ -126,7 +135,7 @@ WidgetFrame {
             visible: block.show_condition !== false && win.data.code !== undefined
             text: win.data.code !== undefined ? win.describe(win.data.code)[0] : ""
             color: win.widgetAccent
-            font.pixelSize: Math.round(14 * win.scale)
+            font.pixelSize: Math.round(14 * win.effScale)
         }
 
         Text {
@@ -134,7 +143,7 @@ WidgetFrame {
             visible: (block.show_feels_like !== false || block.show_humidity !== false || block.show_wind !== false) && win.data.temp !== undefined
             color: win.widgetForeground
             opacity: 0.85
-            font.pixelSize: Math.round(12 * win.scale)
+            font.pixelSize: Math.round(12 * win.effScale)
             text: {
                 const parts = [];
                 const unit = win.data.unit || "\u00b0C";
@@ -150,7 +159,7 @@ WidgetFrame {
 
         Flow {
             Layout.fillWidth: true
-            Layout.topMargin: Math.round(4 * win.scale)
+            Layout.topMargin: Math.round(4 * win.effScale)
             spacing: win.forecastSpacing
             Repeater {
                 model: block.show_forecast !== false ? (win.data.daily || []) : []
@@ -158,14 +167,14 @@ WidgetFrame {
                     id: fcell
                     required property var modelData
                     width: win.forecastCellW
-                    spacing: Math.round(1 * win.scale)
+                    spacing: Math.round(1 * win.effScale)
                     Text {
                         width: parent.width
                         horizontalAlignment: Text.AlignHCenter
                         text: fcell.modelData.date ? Qt.formatDate(new Date(fcell.modelData.date), "ddd") : ""
                         color: win.widgetForeground
                         opacity: 0.8
-                        font.pixelSize: Math.round(11 * win.scale)
+                        font.pixelSize: Math.round(11 * win.effScale)
                     }
                     Text {
                         width: parent.width
@@ -173,7 +182,7 @@ WidgetFrame {
                         text: win.describe(fcell.modelData.code)[1]
                         color: win.widgetAccent
                         font.family: BarConfig.glyphFont
-                        font.pixelSize: Math.round(13 * win.scale)
+                        font.pixelSize: Math.round(13 * win.effScale)
                     }
                     Text {
                         width: parent.width
@@ -182,7 +191,7 @@ WidgetFrame {
                             + (fcell.modelData.lo !== null ? Math.round(fcell.modelData.lo) : "--") + "\u00b0"
                         color: win.widgetForeground
                         font.bold: true
-                        font.pixelSize: Math.round(12 * win.scale)
+                        font.pixelSize: Math.round(12 * win.effScale)
                     }
                 }
             }

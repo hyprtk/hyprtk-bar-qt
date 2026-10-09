@@ -156,6 +156,7 @@ PanelWindow {
         { label: "Pictures", glyph: "\uf03e", path: "~/Pictures" },
         { label: "Music", glyph: "\uf001", path: "~/Music" },
         { label: "Videos", glyph: "\uf03d", path: "~/Videos" },
+        { label: "Games", glyph: "\uf11b", path: "~/Games" },
         { label: "Computer", glyph: "\uf109", path: "/" }
     ]
     function openPlace(path) {
@@ -172,9 +173,18 @@ PanelWindow {
         { label: "Music", path: "~/Music" },
         { label: "Pictures", path: "~/Pictures" },
         { label: "Videos", path: "~/Videos" },
+        { label: "Trash", path: "~/.local/share/Trash/files" },
+        { label: "Network", path: "network:///" },
         { label: "Root", path: "/" }
     ]
     function browseTo(path, push) {
+        // URI-style places (network:///) are not local dirs — hand them to the
+        // desktop file manager instead of the in-menu lister.
+        if (path.indexOf("://") >= 0) {
+            UiState.startMenuOpen = false;
+            Quickshell.execDetached(["xdg-open", path]);
+            return;
+        }
         if (push)
             sm.browseHistory = sm.browseHistory.concat([sm.browsePath]);
         browseProc.command = ["python3", sm.filesBackend, "list", path];

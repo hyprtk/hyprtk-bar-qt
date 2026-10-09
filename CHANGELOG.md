@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.34.0 — unreleased
+
+Optional extras and remaining parity polish (the non-blocking frontier from the
+0.33.0 session).
+
+- **Media (MPRIS) module** — new optional `media` bar module (`bar/modules/Media.qml`)
+  built on Quickshell's MPRIS service: now-playing text plus previous / play-pause /
+  next controls, a hover tooltip (title · artist · album) and right-click to raise
+  the player. Hidden when no player is present. Config block `media`
+  (`enabled` / `show_controls` / `show_text` / `max_length` / `text_width`) with a
+  Modules-page editor; place it left/center/right like any other module. Note: the
+  reference GTK bar has no media module — this is purely additive.
+- **Snap groups: full GTK layout parity** — each member's content now scales to fill
+  the uniform cell (`SNAP_SCALE_MIN/MAX` 0.4/2.0 × `SNAP_FIT_MARGIN` 0.97; consumed
+  via `WidgetFrame.effScale`), and a dropped widget becomes the group anchor so it
+  stays where released while the others reflow (mirrors GTK `_snap_anchor`). The
+  inter-member gap is now `SNAP_GAP=10` (was 8) to match the GTK bar.
+- **Weather forecast fits one row** — the forecast cells shrink (`forecastCellW`)
+  to the widget's actual width so a snap cell shrunk to the usable area still shows
+  the whole forecast in one row instead of wrapping.
+- **Start-menu places** — added **Games** to the Win7 places and **Trash** /
+  **Network** to the Plasma file-browser sidebar; URI places (`network:///`) open in
+  the desktop file manager, local places browse in-menu.
+
 ## 0.33.0 — unreleased
 
 Widget parity, drag-to-snap, and border widths.

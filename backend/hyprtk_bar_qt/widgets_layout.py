@@ -22,9 +22,18 @@ try:
 except ImportError:  # run as a script (python3 widgets_layout.py)
     from paths import QT_CONFIG
 
-SPACING = 8
+# Gap between members of a snap group (matches the GTK bar's SNAP_GAP).
+SNAP_GAP = 10
 # A dropped widget joins a neighbour when their edges are within this many px.
 SNAP_DIST = 28
+# Each member's content is scaled to fill the uniform cell; clamp the factor and
+# leave a small margin (matches the GTK bar's SNAP_SCALE_*/SNAP_FIT_MARGIN).
+SNAP_SCALE_MIN = 0.4
+SNAP_SCALE_MAX = 2.0
+SNAP_FIT_MARGIN = 0.97
+
+# Backwards-compatible alias (older tests referenced SPACING).
+SPACING = SNAP_GAP
 
 BAR_CONFIG = QT_CONFIG
 
@@ -63,32 +72,47 @@ def layout(widgets: dict, heights: dict | None = None, bounds: dict | None = Non
 
         if bounds and bounds.get("w") and bounds.get("h"):
             bw, bh = int(bounds["w"]), int(bounds["h"])
-            total_w = count * cell_w + (count - 1) * SPACING
-            total_h = count * cell_h + (count - 1) * SPACING
+            total_w = count * cell_w + (count - 1) * SNAP_GAP
+            total_h = count * cell_h + (count - 1) * SNAP_GAP
             fit = min(1.0, bw / total_w if total_w else 1.0, bh / total_h if total_h else 1.0)
             cell_w = max(40, int(cell_w * fit))
             cell_h = max(30, int(cell_h * fit))
 
-        first = members[0][2]
-        x0 = int(first.get("margin_x") or 40)
-        y0 = int(first.get("margin_y") or 40)
-        if str(first.get("position") or "free") != "free":
-            x0, y0 = 40, 40
+        # Anchor the group on the widget that was just dropped (its persisted
+        # margin is where the user put it) so it stays put; otherwise the first
+        # member. This mirrors the GTK manager's ``_snap_anchor``.
+        anchor_index = next(
+            (i for i, (_o, _w, b) in enumerate(members) if b.get("snap_anchor")), 0
+        )
+        anchor_block = members[anchor_index][2]
+        ref_x = int(anchor_block.get("margin_x") or 40)
+        ref_y = int(anchor_block.get("margin_y") or 40)
+        if str(anchor_block.get("position") or "free") != "free":
+            ref_x, ref_y = 40, 40
+
+        if axis == "vertical":
+            base_x = ref_x
+            base_y = ref_y - anchor_index * (cell_h + SNAP_GAP)
+        else:
+            base_x = ref_x - anchor_index * (cell_w + SNAP_GAP)
+            base_y = ref_y
 
         # Keep the whole group inside the usable area.
         if bounds and bounds.get("w") and bounds.get("h"):
             bw, bh = int(bounds["w"]), int(bounds["h"])
-            span_x = cell_w if axis == "vertical" else count * cell_w + (count - 1) * SPACING
-            span_y = cell_h if axis == "horizontal" else count * cell_h + (count - 1) * SPACING
-            x0 = max(0, min(x0, bw - span_x)) if bw >= span_x else max(0, (bw - span_x) // 2)
-            y0 = max(0, min(y0, bh - span_y)) if bh >= span_y else max(0, (bh - span_y) // 2)
+            span_x = cell_w if axis == "vertical" else count * cell_w + (count - 1) * SNAP_GAP
+            span_y = cell_h if axis == "horizontal" else count * cell_h + (count - 1) * SNAP_GAP
+            base_x = max(0, min(base_x, bw - span_x)) if bw >= span_x else max(0, (bw - span_x) // 2)
+            base_y = max(0, min(base_y, bh - span_y)) if bh >= span_y else max(0, (bh - span_y) // 2)
 
         for i, (_order, wid, _block) in enumerate(members):
+            scale = min(cell_w / max(nat[i][0], 1), cell_h / max(nat[i][1], 1))
+            scale = max(SNAP_SCALE_MIN, min(SNAP_SCALE_MAX, scale)) * SNAP_FIT_MARGIN
             if axis == "vertical":
-                x, y = x0, y0 + i * (cell_h + SPACING)
+                x, y = base_x, base_y + i * (cell_h + SNAP_GAP)
             else:
-                x, y = x0 + i * (cell_w + SPACING), y0
-            out[wid] = {"x": x, "y": y, "w": cell_w, "h": cell_h}
+                x, y = base_x + i * (cell_w + SNAP_GAP), base_y
+            out[wid] = {"x": x, "y": y, "w": cell_w, "h": cell_h, "scale": round(scale, 4)}
     return out
 
 
@@ -109,6 +133,7 @@ def set_position(widget_id: str, x: int, y: int, config_path: Path = BAR_CONFIG)
     block["margin_x"] = int(x)
     block["margin_y"] = int(y)
     block["snap_group"] = ""
+    block.pop("snap_anchor", None)
     try:
         config_path.parent.mkdir(parents=True, exist_ok=True)
         fd, tmp = tempfile.mkstemp(dir=str(config_path.parent), prefix=".config.", suffix=".tmp")
@@ -203,31 +228,40 @@ def snap(widget_id: str, x: int, y: int, rects: dict, config_path: Path = BAR_CO
 
     if best is None:
         block["snap_group"] = ""
+        block.pop("snap_anchor", None)
         ok = _write(data, config_path)
         return {"ok": ok, "snapped": False}
 
     _gap, axis, other_id = best
     other = widgets.setdefault(other_id, {})
+    had_group = bool(str(other.get("snap_group") or "").strip())
     group = str(other.get("snap_group") or "").strip() or _new_group_id(widgets)
-    other["snap_group"] = group
+    if not had_group:
+        # New group: the target becomes its first member.
+        other["snap_group"] = group
+        other["snap_axis"] = axis
+        other.setdefault("snap_order", 0)
+    group_axis = str(other.get("snap_axis") or axis)
     members = [
         wid for wid, b in widgets.items()
         if isinstance(b, dict) and str(b.get("snap_group") or "").strip() == group
     ]
-    for wid in (other_id, widget_id):
-        if wid not in members:
-            members.append(wid)
+    if widget_id not in members:
+        members.append(widget_id)
+    # The joining widget is appended after the existing members (drop order,
+    # matching GTK) and becomes the group's anchor so it stays where dropped.
+    max_order = max(
+        (int(widgets[wid].get("snap_order", 0) or 0) for wid in members if wid != widget_id),
+        default=-1,
+    )
     for wid in members:
         widgets[wid]["snap_group"] = group
-        widgets[wid]["snap_axis"] = axis
-    # Order members by their on-screen position along the axis so the layout
-    # anchors on the top/left-most widget.
-    axis_key = "x" if axis == "horizontal" else "y"
-    members.sort(key=lambda wid: (rects.get(wid) or {}).get(axis_key, 0))
-    for i, wid in enumerate(members):
-        widgets[wid]["snap_order"] = i
+        widgets[wid]["snap_axis"] = group_axis
+        widgets[wid].pop("snap_anchor", None)
+    widgets[widget_id]["snap_order"] = max_order + 1
+    widgets[widget_id]["snap_anchor"] = True
     ok = _write(data, config_path)
-    return {"ok": ok, "snapped": True, "group": group, "axis": axis}
+    return {"ok": ok, "snapped": True, "group": group, "axis": group_axis}
 
 
 def main(argv: list[str] | None = None) -> int:

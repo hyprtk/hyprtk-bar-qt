@@ -28,6 +28,10 @@ PanelWindow {
     readonly property int effMarginY: frame.hasOver ? frame.over.y : frame.marginY
     readonly property int effWidth: (frame.hasOver && frame.over.w > 0) ? frame.over.w : frame.widgetWidth
     readonly property int effHeight: (frame.hasOver && frame.over.h > 0) ? frame.over.h : frame.widgetHeight
+    // Snap-group reflow scales each member's content to fill the uniform cell
+    // (GTK parity). ``snapScale`` is 0 unless the widget is in a live snap group.
+    readonly property real snapScale: (frame.snapOver && frame.snapOver.scale > 0) ? frame.snapOver.scale : 0
+    readonly property real effScale: frame.snapScale > 0 ? frame.snapScale : frame.scale
 
     // Global rect (single monitor origin) for hit-testing a move.
     function _gx() {
@@ -53,7 +57,8 @@ PanelWindow {
     readonly property int naturalWidth: frame.widgetWidth
     readonly property int naturalHeight: frame.widgetHeight > 0
         ? frame.widgetHeight
-        : (contentCol.implicitHeight + frame.padding * 2)
+        : Math.round((contentCol.implicitHeight + frame.padding * 2)
+                     / (frame.snapScale > 0 ? frame.snapScale : 1))
 
     function _register() {
         WidgetMove.setGeometry(frame.widgetId, frame._gx(), frame._gy(), frame.width, frame.height);
@@ -159,7 +164,7 @@ PanelWindow {
             id: contentCol
             anchors.fill: parent
             anchors.margins: frame.padding
-            spacing: Math.round(8 * frame.scale)
+            spacing: Math.round(8 * frame.effScale)
         }
     }
 }
