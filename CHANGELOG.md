@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.41.13 — unreleased
+
+- **Fix**: the tray context-menu popup (0.41.12) opened on top of the bar instead
+  of below it — it anchored to the icon's bottom, which sits inside the bar. It
+  now anchors at the bar's outer edge (offset by the icon's centring inside the
+  bar + a 6px gap) and grows inwards from the icon, so it clears the bar and
+  stays on screen. Its border is now `bar.border_width` (2px) to match the bar.
+
 ## 0.41.12 — unreleased
 
 - **Themed tray context menu.** The right-click menu on a tray item was a native

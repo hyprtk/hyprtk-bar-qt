@@ -25,6 +25,13 @@ PopupWindow {
     grabFocus: true
     onClosed: TrayMenu.close()
 
+    // Sit clear of the whole bar, not on top of it: the icon is centred in the
+    // bar, so offset the anchor from the icon to the bar's outer edge (+ gap).
+    readonly property bool barAtTop: BarConfig.barPosition === "top"
+    readonly property int iconH: TrayMenu.target ? TrayMenu.target.height : 0
+    readonly property int iconW: TrayMenu.target ? TrayMenu.target.width : 0
+    readonly property int edgeGap: Math.round((BarConfig.barHeight - menu.iconH) / 2) + 6
+
     // Start a fresh trail whenever the menu is (re)opened.
     Connections {
         target: TrayMenu
@@ -49,10 +56,12 @@ PopupWindow {
 
     anchor.window: menu.anchorWin
     anchor.item: TrayMenu.target
-    anchor.rect: Qt.rect(0, TrayMenu.target ? TrayMenu.target.height : 0,
-                         TrayMenu.target ? TrayMenu.target.width : 0, 1)
-    anchor.edges: Edges.Bottom
-    anchor.gravity: Edges.Bottom
+    // Anchor at the bar's outer edge, clear of it, and grow inwards from the
+    // icon (the tray sits in the bar's right section, so the menu opens left).
+    anchor.rect: Qt.rect(0, menu.barAtTop ? menu.iconH + menu.edgeGap : -menu.edgeGap,
+                         menu.iconW, 1)
+    anchor.edges: menu.barAtTop ? (Edges.Bottom | Edges.Right) : (Edges.Top | Edges.Right)
+    anchor.gravity: menu.barAtTop ? (Edges.Bottom | Edges.Left) : (Edges.Top | Edges.Left)
     anchor.adjustment: PopupAdjustment.SlideX
 
     function activate(entry) {
@@ -77,7 +86,7 @@ PopupWindow {
         anchors.fill: parent
         radius: Theme.radiusPopup
         color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, Theme.panelOpacityStrong)
-        border.width: 1
+        border.width: BarConfig.borderWidth
         border.color: Theme.alpha(Theme.accent2, 0.25)
 
         ColumnLayout {
