@@ -51,6 +51,7 @@ data/
   WidgetMove.qml              singleton: cursor-polling widget move mode
   MenuConfig.qml              singleton: start-menu config (Qt config block)
   BarConfig.qml               singleton: module/font/animation/monitors config (Qt config)
+  TrayInfo.qml                singleton: tray-hover info (runs the trayinfo backend, formats tooltip lines)
 surface/widgets/
   WidgetFrame.qml             desktop-widget base (placement, pill, pywal theming)
   ClockWidget.qml             digital / text clock
@@ -72,6 +73,7 @@ backend/
     sysmon.py                 /proc sampler (cpu/mem/net), streams JSON lines on stdout
     monitor.py                rich system-monitor sampler (cpu/mem/disk/net/gpu/apps), streams JSON lines
     monitor_data.py           toolkit-free readers (cpu cores/temps, mem, disk, net, gpu, drives, dimms, procs)
+    trayinfo.py               tray-hover sampler (network via nmcli, bluetooth via bluetoothctl), streams JSON lines
     proc_action.py            one-shot kill/launch helper for the Apps page
     dimm.py                   one-shot DIMM-slot reader (SMBIOS/dmidecode)
     clipboard.py              cliphist wrapper (list/copy/delete/wipe)
@@ -90,6 +92,7 @@ backend/
 tests/
   test_sysmon.py              backend unit tests
   test_monitor.py             monitor backend unit tests
+  test_trayinfo.py            tray-info backend unit tests
 bin/hyprtk-bar-qt             launcher wrapper (qs -p <root>)
 bin/hyprtk-bar-qt-arc-toggle  hotkey helper (qs ipc call arcmenu toggle)
 bin/hyprtk-bar-qt-settings-toggle  hotkey helper (qs ipc call settings toggle)

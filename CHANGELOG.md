@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.41.11 — unreleased
+
+- **Tray hover info.** Hovering a tray icon now shows what the app actually
+  reports: the network indicator (nm-applet) shows the active connection,
+  device, IPv4/gateway and live up/down rates; blueman shows the adapter state
+  and the connected devices. Other items fall back to their title.
+  - `backend/hyprtk_bar_qt/trayinfo.py`: toolkit-free sampler (nmcli +
+    bluetoothctl + the shared `monitor_data.NetSampler` for the /proc rates),
+    streamed as JSON lines; every reader degrades to `available: false` rather
+    than raising.
+  - `data/TrayInfo.qml`: singleton that runs it while the tray is enabled and
+    formats the sample into tooltip lines; `data/Tooltips.qml` +
+    `components/BarTooltip.qml` gained multi-line support for it.
+  - Tests: `tests/test_trayinfo.py`.
+- **Fix**: right-clicking a tray icon did **not** open its NetworkManager /
+  DBusMenu context menu. `QsMenuAnchor.open()` is refused unless Quickshell runs
+  in `QApplication` mode, so `shell.qml` now carries
+  `//@ pragma UseQApplication` — the network indicator's own menu (Wi-Fi/VPN
+  toggles, Connection Information, Edit Connections…) opens as before.
+
 ## 0.41.10 — unreleased
 
 - **Themer — Lock Screen shows the whole lock config.** The page listed only the

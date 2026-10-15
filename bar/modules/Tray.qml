@@ -2,7 +2,13 @@
 //
 // Left-click activates, middle-click secondary-activates, right-click opens the
 // item's DBusMenu context menu through QsMenuAnchor (items with onlyMenu open
-// the menu on left-click too).
+// the menu on left-click too), so the network indicator's NetworkManager menu
+// (Wi-Fi/VPN toggles, Connection Information, Edit Connections…) is the app's
+// own.
+//
+// Hovering shows a rich tooltip: the network indicator reports the active
+// connection, device, IPv4/gateway and up/down rates; blueman reports the
+// adapter state and connected devices. Other items fall back to their title.
 //
 // Each item is drawn as a Nerd Font glyph chosen from its SNI id/icon/title
 // (e.g. nm-applet's wired vs wireless icon → ethernet vs Wi-Fi glyph), not the
@@ -20,6 +26,18 @@ RowLayout {
     visible: BarConfig.tray.enabled !== false
 
     readonly property int iconSize: BarConfig.tray.icon_size || 18
+
+    // The tray item currently hovered, so live TrayInfo updates can refresh the
+    // open tooltip (network rates change every couple of seconds).
+    property var hoveredItem: null
+
+    Connections {
+        target: TrayInfo
+        function onNetworkChanged() { root._refreshTip(); }
+        function onBluetoothChanged() { root._refreshTip(); }
+        function onReadyChanged() { root._refreshTip(); }
+    }
+
 
     // Lower-cased id + icon name + title, used to pick a glyph/colour.
     function _info(it) {
@@ -69,6 +87,52 @@ RowLayout {
         return s.indexOf("nm-applet") >= 0 || s.indexOf("nm_applet") >= 0;
     }
 
+    // Which rich tooltip an item gets ("network" / "bluetooth"), or "" for a
+    // plain title tooltip.
+    function trayKind(it) {
+        const s = root._info(it);
+        if (s.indexOf("wireless") >= 0 || s.indexOf("wifi") >= 0 || s.indexOf("wi-fi") >= 0
+            || s.indexOf("wlan") >= 0 || s.indexOf("wired") >= 0 || s.indexOf("ethernet") >= 0
+            || s.indexOf("nm-device") >= 0 || s.indexOf("nm-applet") >= 0
+            || s.indexOf("network") >= 0)
+            return "network";
+        if (s.indexOf("bluetooth") >= 0 || s.indexOf("blueman") >= 0)
+            return "bluetooth";
+        return "";
+    }
+
+    function _tipLines(it) {
+        const kind = root.trayKind(it);
+        if (kind === "network" && TrayInfo.ready)
+            return TrayInfo.networkLines();
+        if (kind === "bluetooth" && TrayInfo.ready)
+            return TrayInfo.bluetoothLines();
+        const title = it.title || it.tooltipTitle || "";
+        return title ? [title] : [];
+    }
+
+    // `del` is the delegate Item (the tooltip anchor); its modelData is the SNI.
+    function showItemTip(del) {
+        root.hoveredItem = del;
+        const lines = root._tipLines(del.modelData);
+        if (lines.length)
+            Tooltips.showLines(del, lines);
+        else
+            Tooltips.hideTip();
+    }
+
+    function _refreshTip() {
+        if (root.hoveredItem)
+            root.showItemTip(root.hoveredItem);
+    }
+
+    function clearTip(del) {
+        if (root.hoveredItem !== del)
+            return;
+        root.hoveredItem = null;
+        Tooltips.hideTip();
+    }
+
     Repeater {
         model: SystemTray.items
 
@@ -85,9 +149,9 @@ RowLayout {
 
             HoverHandler {
                 id: trayHover
-                onHoveredChanged: (trayHover.hovered && item.modelData.title)
-                    ? Tooltips.showTip(item, item.modelData.title)
-                    : Tooltips.hideTip()
+                onHoveredChanged: trayHover.hovered
+                    ? root.showItemTip(item)
+                    : root.clearTip(item)
             }
             Text {
                 anchors.centerIn: parent
@@ -115,6 +179,7 @@ RowLayout {
                     if (mouse.button === Qt.MiddleButton) {
                         item.modelData.secondaryActivate();
                     } else if (mouse.button === Qt.RightButton) {
+                        root.clearTip(item);
                         if (item.modelData.hasMenu)
                             menuAnchor.open();
                     } else if (root.isNmApplet(item.modelData)) {
