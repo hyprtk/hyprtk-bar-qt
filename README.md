@@ -18,7 +18,7 @@ bar/
   modules/
     Workspaces.qml            Hyprland workspaces (Quickshell.Hyprland), click to switch
     Tasklist.qml              open windows (Toplevel): activate / middle-click close
-    Tray.qml                  system tray (SystemTray / SNI)
+    Tray.qml                  system tray (SystemTray / SNI); hover info + themed DBusMenu context menu
     Clock.qml                 Quickshell SystemClock (format from Config)
     SysMonitor.qml            CPU/mem % + rolling sparklines (shared SysData)
     Net.qml                   rx/tx rates + rolling sparklines
@@ -52,6 +52,7 @@ data/
   MenuConfig.qml              singleton: start-menu config (Qt config block)
   BarConfig.qml               singleton: module/font/animation/monitors config (Qt config)
   TrayInfo.qml                singleton: tray-hover info (runs the trayinfo backend, formats tooltip lines)
+  TrayMenu.qml                singleton: tray context-menu state (themed DBusMenu popup)
 surface/widgets/
   WidgetFrame.qml             desktop-widget base (placement, pill, pywal theming)
   ClockWidget.qml             digital / text clock

@@ -1,10 +1,11 @@
 // System tray (SNI host), via Quickshell's StatusNotifier + DBusMenu services.
 //
 // Left-click activates, middle-click secondary-activates, right-click opens the
-// item's DBusMenu context menu through QsMenuAnchor (items with onlyMenu open
-// the menu on left-click too), so the network indicator's NetworkManager menu
-// (Wi-Fi/VPN toggles, Connection Information, Edit Connections…) is the app's
-// own.
+// item's DBusMenu context menu (items with onlyMenu open the menu on left-click
+// too), so the network indicator's NetworkManager menu (Wi-Fi/VPN toggles,
+// Connection Information, Edit Connections…) is the app's own. The menu is
+// rendered by TrayMenuPopup (a frosted, pywal-themed panel) rather than a
+// native Qt menu, which could not match the bar theme.
 //
 // Hovering shows a rich tooltip: the network indicator reports the active
 // connection, device, IPv4/gateway and up/down rates; blueman reports the
@@ -133,6 +134,13 @@ RowLayout {
         Tooltips.hideTip();
     }
 
+    // Open the item's DBusMenu in the themed popup (`del` is the delegate Item,
+    // used as the menu anchor; its modelData carries the menu handle).
+    function _openMenu(del) {
+        if (del.modelData.hasMenu && del.modelData.menu)
+            TrayMenu.open(del, del.modelData.menu);
+    }
+
     Repeater {
         model: SystemTray.items
 
@@ -142,10 +150,6 @@ RowLayout {
 
             implicitWidth: root.iconSize
             implicitHeight: root.iconSize
-
-            // Window attached property is only valid on Item-derived types, so
-            // resolve it here and hand it to the (QtObject) menu anchor.
-            readonly property var barWindow: QsWindow.window
 
             HoverHandler {
                 id: trayHover
@@ -161,16 +165,6 @@ RowLayout {
                 font.pixelSize: Math.round(root.iconSize * 0.85)
             }
 
-            QsMenuAnchor {
-                id: menuAnchor
-                menu: item.modelData.menu
-                anchor.window: item.barWindow
-                anchor.item: item
-                anchor.rect: Qt.rect(0, item.height, item.width, 1)
-                anchor.edges: Edges.Bottom
-                anchor.gravity: Edges.Bottom
-            }
-
             MouseArea {
                 anchors.fill: parent
                 acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
@@ -180,13 +174,12 @@ RowLayout {
                         item.modelData.secondaryActivate();
                     } else if (mouse.button === Qt.RightButton) {
                         root.clearTip(item);
-                        if (item.modelData.hasMenu)
-                            menuAnchor.open();
+                        root._openMenu(item);
                     } else if (root.isNmApplet(item.modelData)) {
                         Quickshell.execDetached(["nm-connection-editor"]);
                     } else if (item.modelData.onlyMenu) {
                         if (item.modelData.hasMenu)
-                            menuAnchor.open();
+                            root._openMenu(item);
                         else
                             item.modelData.activate();
                     } else {

@@ -1,14 +1,9 @@
-//@ pragma UseQApplication
 // hyprtk-bar-qt — Quickshell entry point.
 //
 // QML presentation layer of the Qt rewrite. One layer-shell PanelWindow per
 // screen, each rendering Bar.qml, plus the surfaces (quick settings, settings,
 // arc menu, bar menu, start menu, themer). Heavy logic lives in the Python
 // backend (backend/hyprtk_bar_qt) and is streamed in over Quickshell Process.
-//
-// `UseQApplication` is required for the tray's DBusMenu context menus
-// (QsMenuAnchor). Without it the anchor's open() is refused and a right-click
-// on a tray item does nothing.
 import Quickshell
 import Quickshell.Io
 import QtQuick

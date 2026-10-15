@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.41.12 — unreleased
+
+- **Themed tray context menu.** The right-click menu on a tray item was a native
+  Qt platform menu (`QsMenuAnchor`), so it ignored the bar's pywal theme. It is
+  now rendered by `components/TrayMenuPopup.qml` — a frosted panel matching the
+  bar (rounded, `@accent2` border, hover highlight, dimmed disabled rows, check
+  states and separators) — driven by `QsMenuOpener` over the item's DBusMenu.
+  Submenus (e.g. nm-applet's *VPN Connections*) drill down in place with a Back
+  row, since Quickshell popups don't map inside a Repeater. `data/TrayMenu.qml`
+  holds the shared state; `bar/Bar.qml` declares the popup once.
+  - The `//@ pragma UseQApplication` pragma is dropped again — it was only needed
+    for the native menus — so the shell is back to a plain `QGuiApplication`.
+
 ## 0.41.11 — unreleased
 
 - **Tray hover info.** Hovering a tray icon now shows what the app actually
