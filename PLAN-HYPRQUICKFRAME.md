@@ -184,14 +184,22 @@ NVIDIA hardware validation is still required; containers/AMD cannot prove it.
       overlay logs the pywal theme path; `ssdetect.sh` returns in ~6 ms and
       starts `qs -p .../hyprquickframe` detached.
 
-### Phase 5 — portability + release
+### Phase 5 — portability + release  *(partially validated)*
 
-- [ ] Confirm the prebuilt Quickshell v0.3.0 bundle path (old-Qt distros) and a
-      Qt ≥ 6.6 source build both run the overlay.
-- [ ] Test Alpine (BusyBox) boot: launcher + grim, no GNU-only paths on the
-      default flow.
-- [ ] Run T1 package matrix + T2 dry-run + audit; update CHANGELOG/README.
-- [ ] Bump version, vendor into merged, `push-all`; tag the bar release.
+- [x] Prebuilt Quickshell **v0.3.0 + bundled Qt 6.8.3** runs the vendored
+      overlay (directly and via the launcher with a `qs` shim first on PATH).
+- [ ] Qt ≥ 6.6 **source build** of the installer path (needs a Fedora/openSUSE/
+      Void VM; system 0.3.2 is equivalent but not the unpinned master build).
+- [x] Alpine/BusyBox: `busybox sh -n` parses `ssdetect.sh`/`sshot.sh`; `awk`,
+      `timeout`, `setsid`, `xargs`, `head`, `dirname` applets present; share ID
+      parsing and the slurp/full-screen fallback work under ash. Alpine has
+      satty (edit works), no swappy, no kdeconnect (share hidden) — the
+      capability gates handle it.
+- [x] T1/T2/audit green for v1.3.57 (no code changes since).
+- [ ] Real NVIDIA hardware (single + hybrid) — needs the user's GPU machine.
+- [ ] Fractional-scale (1.25) region capture — needs a temporary monitor scale.
+- [ ] Bump version / `push-all` after the remaining hardware validation (or a
+      docs-only sync if desired).
 
 ---
 
