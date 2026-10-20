@@ -98,12 +98,25 @@ Known NVIDIA risks (upstream Quickshell / Hyprland):
 - Hyprland #14256: region capture fails at fractional scale when the scaled
   region is non-integer.
 
-Mitigation (Phase 2): if `ScreencopyView` produces no frame within ~1–2 s, close
-the overlay and fall back to a **no-freeze** `grim` + `slurp` + `swappy` path,
-with a notification. Keep the overlay for AMD/Intel; offer an explicit
-NVIDIA fallback and an opt-in overlay override.
+Mitigation (Phases 2 + 5, best-effort without NVIDIA hardware):
 
-NVIDIA hardware validation is still required; containers/AMD cannot prove it.
+- The launcher auto-detects NVIDIA (`/proc/driver/nvidia/version` or
+  `nvidia-smi`) and **defaults to the no-freeze `grim` + `slurp` path**, which
+  avoids `ScreencopyView`/ICC entirely. `HQF_FORCE_OVERLAY=1` opts back into the
+  frozen overlay for NVIDIA users who want it.
+- A 2 s watchdog still falls back if a frame never arrives (any GPU).
+- `captureSource` is guarded against stale/phantom screens (Hyprland ≤ 0.56.2
+  crash class).
+- When the installer builds Quickshell from source, it passes
+  `-DSCREENCOPY_ICC=OFF` on NVIDIA, forcing wlr-screencopy (what `grim` uses)
+  instead of the fragile ICC backend. Packaged/prebuilt Quickshell cannot be
+  rebuilt; the fallback covers them.
+- Known Hyprland NVIDIA direct-scanout latch after a one-shot capture
+  (Hyprland #16126): if affected, disable `direct_scanout` in Hyprland. Not
+  changed automatically (it is a compositor-wide performance trade-off).
+
+No NVIDIA hardware was available to validate this; it is a best-effort design
+backed by upstream issues and the AMD/Alpine fallback tests.
 
 ---
 
@@ -196,7 +209,10 @@ NVIDIA hardware validation is still required; containers/AMD cannot prove it.
       satty (edit works), no swappy, no kdeconnect (share hidden) — the
       capability gates handle it.
 - [x] T1/T2/audit green for v1.3.57 (no code changes since).
-- [ ] Real NVIDIA hardware (single + hybrid) — needs the user's GPU machine.
+- [x] NVIDIA best-effort (no hardware): launcher auto-no-freeze, opt-in
+      overlay override, guarded capture source, source builds disable ICC.
+      Documented caveat: upstream issues remain (ICC/dual-GPU, direct-scanout
+      latch); validation needs real hardware.
 - [ ] Fractional-scale (1.25) region capture — needs a temporary monitor scale.
 - [ ] Bump version / `push-all` after the remaining hardware validation (or a
       docs-only sync if desired).
