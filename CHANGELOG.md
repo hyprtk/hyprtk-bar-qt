@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.41.23 — unreleased
+
+- **No more boot-time theme/module flash.** The bar's first frame was drawn
+  before its config and pywal palette had loaded, so it appeared with the
+  fallback module layout and default colours, then snapped to the real ones a
+  moment later. `BarConfig`, `Theme`, `MenuConfig`, `Widgets` and `Config` now
+  load (and parse) synchronously before the first frame is rendered.
+
 ## 0.41.22 — unreleased
 
 - **Folder colours follow the wallpaper reliably.** The pywal auto-match built
