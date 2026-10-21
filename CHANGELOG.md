@@ -2,6 +2,14 @@
 
 ## 0.41.22 — unreleased
 
+- **Folder colours follow the wallpaper reliably.** The pywal auto-match built
+  its palette from a hard-coded 56-colour Catppuccin subset, compared the light
+  Papirus hexes while recolouring `Papirus-Dark`, and matched in plain RGB, so
+  neutral wallpapers landed on saturated pastels. It also skipped the update
+  when a cached "last colour" matched, which went stale once a colour was
+  applied from the Icons page or a helper script. The script now derives all 81
+  folder colours from the installed theme, matches in CIE L\*a\*b\*, and reads
+  the colour actually linked in the theme instead of a cache.
 - **Documentation + housekeeping.** README documents the vendored
   HyprQuickFrame screenshots (modes, save/clipboard, swappy/satty editors,
   optional KDE Connect, pywal theme, NVIDIA no-freeze fallback and
