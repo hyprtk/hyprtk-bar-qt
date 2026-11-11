@@ -5,6 +5,12 @@
 - **hyprtk-file-manager 1.5.1 vendored.** Sidebar section headings (Places,
   Devices, Network) now use the item font size, with network host rows matching.
 
+### Changed
+
+- **Repository hygiene.** Planning docs, test suites and QA scripts are no
+  longer tracked; the vendored file-manager snapshot now carries runtime files
+  only.
+
 ## 0.41.29 — unreleased
 
 - **hyprtk-file-manager 1.5.0 vendored.** Adds a settings dialog covering every
