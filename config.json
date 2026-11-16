@@ -63,7 +63,8 @@
         "id": "apps",
         "label": "Apps menu",
         "icon": "",
-        "command": "~/.local/share/hyprtk-bar-qt/scripts/appsmenu.sh",
+        "action": "launcher",
+        "command": "",
         "command_right": "",
         "command_middle": ""
       },

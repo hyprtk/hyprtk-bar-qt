@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.43.1 — 2026-11-16
+
+- **Fix the bar’s “Apps menu” quicklink.** It still pointed at the deleted
+  `appsmenu.sh`, so clicking the app-launcher glyph did nothing. The shipped
+  link now carries `action: "launcher"` and `Quicklinks.qml` toggles the
+  in-bar launcher for it (same path as the `Super+D` keybind). The installed
+  config is updated in place; no re-add needed.
+
 ## 0.43.0 — 2026-11-16
 
 - **Launcher themes are now launcher-owned.** `data/LauncherTheme.qml` ports the
